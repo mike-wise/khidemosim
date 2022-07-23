@@ -1,0 +1,1 @@
+build\khidemosim.exe --roshost localhost --rosport 10005 --mode echo

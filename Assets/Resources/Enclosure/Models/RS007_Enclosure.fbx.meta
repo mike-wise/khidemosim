@@ -1,0 +1,242 @@
+fileFormatVersion: 2
+guid: 1a00e13ced42b3642a51d4666a83e842
+ModelImporter:
+  serializedVersion: 20200
+  internalIDToNameTable: []
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Enclosure01_Mat
+    second: {fileID: 2100000, guid: b29e08e00232dc742a762a23a058c708, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Enclosure02_top_grille_Mat
+    second: {fileID: 2100000, guid: a33fa277bbb55d84c9a207fb9bb16bea, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Enclosure03_Mat
+    second: {fileID: 2100000, guid: a783b1d6058e7b440892557e6fd46d0a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Enclosure04_Mat
+    second: {fileID: 2100000, guid: 36a6619616e44e7449a32f542981570d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Enclosure05_Mat
+    second: {fileID: 2100000, guid: 623b02e7a1756a94b8a56a6bb0db9797, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Enclosure06_SideRails_Mat
+    second: {fileID: 2100000, guid: a8589b3aea554d44087fa8006189cd93, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Enclosure07_Mat
+    second: {fileID: 2100000, guid: 56831d3647f8da646add74dd6bdf3515, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Enclosure08_Mat
+    second: {fileID: 2100000, guid: 865e06007383cb948b99b181e6b9d704, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Enclosure09_Mat
+    second: {fileID: 2100000, guid: e2fc1358871ccfd4ba0d59ea59bce856, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Enclosure10_Mat
+    second: {fileID: 2100000, guid: 06d1f58bcd5b7494bb2a0ff66c972cda, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Enclosure_glass_handle_Mat
+    second: {fileID: 2100000, guid: f9df378ee3205b446bfd6125b7631ac2, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object001_Mat
+    second: {fileID: 2100000, guid: 1e61a143d703bc244a630dd8e65798bd, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object002_Mat
+    second: {fileID: 2100000, guid: 55971a093ebca0949a30c1daad9fab30, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object003_Mat
+    second: {fileID: 2100000, guid: 4807de047a1b91f41adba657a27866eb, type: 2}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Enclosure01_Diff
+    second: {fileID: 2800000, guid: 1221c391ab275284ca75420cd32c941f, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Enclosure02_top_grille_Diff
+    second: {fileID: 2800000, guid: 3ac8a38e17f2f1f4db1ed623b37c27e4, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Enclosure03_Diff
+    second: {fileID: 2800000, guid: f53af191e81e3fa4aa37e77bfa76b756, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Enclosure04_Diff
+    second: {fileID: 2800000, guid: 961e5f361779e7e4e85e6e35aa1fdb79, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Enclosure05_Diff
+    second: {fileID: 2800000, guid: ba30eb2e51c34324b857dd12b9c0d693, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Enclosure06_SideRails_Diff
+    second: {fileID: 2800000, guid: bfcc90f6743f43243a322a7cf29d9e58, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Enclosure07_Diff
+    second: {fileID: 2800000, guid: 0437ae000f9935940874ee3d7993a16b, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Enclosure08_Diff
+    second: {fileID: 2800000, guid: 1e5896ec922094b41b09f21e2e7e6afd, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Enclosure09_Diff
+    second: {fileID: 2800000, guid: a75be8038f1b4264c94499198c65a6b4, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Enclosure10_Diff
+    second: {fileID: 2800000, guid: 06ba216937cdc5946b6d9c24023228ae, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Enclosure_glass_handle_Diff
+    second: {fileID: 2800000, guid: 49272d553db3d3c42b826dff1ffd01c6, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Object001_Diff
+    second: {fileID: 2800000, guid: 4d03fc202417a9340a1ec05bd5400311, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Object002_Diff
+    second: {fileID: 2800000, guid: 4d2a9b5bbbe3ca4488b23367b88c35c8, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Object003_Diff
+    second: {fileID: 2800000, guid: d5269defd3cd70945877315bbea95002, type: 3}
+  materials:
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 0
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    fileIdsGeneration: 2
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    bakeAxisConversion: 0
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 1
+    secondaryUVMinLightmapResolution: 40
+    secondaryUVMinObjectScale: 1
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 1
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 2
+  humanoidOversampling: 1
+  avatarSetup: 0
+  addHumanoidExtraRootOnlyWhenUsingAvatar: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

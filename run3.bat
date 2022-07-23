@@ -1,0 +1,1 @@
+build\khidemosim.exe --roshost localhost --rosport 10000 -zmqport 10006 --mode tray2rail
