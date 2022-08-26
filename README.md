@@ -53,7 +53,7 @@ The application has different modes:
 - The scene you should use for building is `Assets/Scenes/build1.unity`
 - The packages needed should install themselves, I beleive - not sure about this
 - One small change needs to be made after the UnityRoboticsHub package is installed to make this compile:
-   - the `KhiPickAndPlaceProject\Library\PackageCache\com.unity.robotics.ros-tcp-connector@c27f00c6cf\Runtime\TcpConnector\ROSConnection.cs` file has a method (`InitializeHUD`) that needs to be made public like this on line 1016:
+   - the `KhiDemoSIm\Library\PackageCache\com.unity.robotics.ros-tcp-connector@c27f00c6cf\Runtime\TcpConnector\ROSConnection.cs` file has a method (`InitializeHUD`) that needs to be made public like this on line 1016:
    - `public void InitializeHUD()` 
    - I will see if I can find another workaround for it later
 
@@ -71,7 +71,7 @@ The application has different modes:
 ### Keyboard Commands:
 
    - Ctrl-E Echo Mode
-   - Ctrl-P RailToRail Mode
+   - Ctrl-P Publish Mode
    - Ctrl-L RailToRail Mode
    - Ctrl-T TrayToRail Mode
    - Ctrl-R Reverse TrayRail

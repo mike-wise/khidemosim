@@ -734,7 +734,7 @@ namespace KhiDemo
             "Ctrl-V Ctrl-S View from Top (rotated)",
             "Ctrl-V Ctrl-R View from Right",
             "Ctrl-V Ctrl-L View from Left",
-            "Ctrl-V Ctrl-+ (Plus) Move out",
+            "Ctrl-V Ctrl-+ (Plus or Equal) Move out",
             "Ctrl-V Ctrl-- (Minus) Move in",
             "",
             "",
