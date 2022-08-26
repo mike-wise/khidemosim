@@ -9,9 +9,13 @@
 /[Bb]uild1/
 /[Bb]uilds/
 /[Ll]ogs/
+/[Rr]ecordings/
+/[Rr]ecording/
 /[Uu]ser[Ss]ettings/
 # /[Aa]ssets/[Rr]os[Mm]essages/
 # /[Aa]ssets/[Rr]os[Mm]essages.meta
+
+/Packages/packages-lock.json
 
 
 # Ignore scripts that are expected to get copied in at some point
@@ -79,3 +83,6 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+
+/Packages/packages-lock.json

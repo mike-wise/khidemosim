@@ -402,6 +402,17 @@ namespace KhiDemo
             }
         }
 
+        int rosReceivedCount = 0;
+        int zmqPublishedCount = 0;
+
+        public void IncRosReceivedCount()
+        {
+            rosReceivedCount++;
+        }
+        public void IncZmqPublishedCount()
+        {
+            zmqPublishedCount++;
+        }
 
         float lastPub = 0;
         float lastPubZmq = 0;
@@ -455,8 +466,8 @@ namespace KhiDemo
         float minusHitTime = 0;
         public void KeyProcessing()
         {
-            var plushit = Input.GetKey(KeyCode.Plus) || Input.GetKey(KeyCode.KeypadPlus);
-            var minushit = Input.GetKey(KeyCode.Minus) || Input.GetKey(KeyCode.KeypadMinus);
+            var plushit = Input.GetKeyDown(KeyCode.Plus) || Input.GetKeyDown(KeyCode.KeypadPlus) || Input.GetKeyDown(KeyCode.Equals);
+            var minushit = Input.GetKeyDown(KeyCode.Minus) || Input.GetKeyDown(KeyCode.KeypadMinus);
             var ctrlhit = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
             if (ctrlhit && Input.GetKeyDown(KeyCode.Q))
             {
@@ -502,19 +513,19 @@ namespace KhiDemo
                     showLogText = false;
                 }
             }
-            if (ctrlhit && plushit && Time.time - plusHitTime > 0.1f)
+            if (ctrlhit && Input.GetKeyDown(KeyCode.X))
             {
-                Debug.Log("Hit LCtrl-Plus");
+                Debug.Log("Zoom text");
                 fontsize += 2;
                 if (fontsize > 30) fontsize = 30;
-                plusHitTime = Time.time;
+                //plusHitTime = Time.time;
             }
-            if (ctrlhit && minushit && Time.time - minusHitTime > 0.1f)
+            if (ctrlhit && Input.GetKeyDown(KeyCode.Z))
             {
-                Debug.Log("Hit LCtrl-Minus");
+                Debug.Log("Unzoom text");
                 fontsize -= 2;
                 if (fontsize < 12) fontsize = 12;
-                minusHitTime = Time.time;
+                //minusHitTime = Time.time;
             }
             if (ctrlhit && Input.GetKeyDown(KeyCode.G))
             {
@@ -586,6 +597,18 @@ namespace KhiDemo
                 var rot = new Vector3(45, 270, 0);
                 Camera.main.transform.position = pos;
                 Camera.main.transform.rotation = Quaternion.Euler(rot);
+            }
+            if (((Time.time - ctrlVhitTime) < 1) && plushit)
+            {
+                Debug.Log("Move Back");
+                var newpos = Camera.main.transform.position * 1.414f;
+                Camera.main.transform.position = newpos;
+            }
+            if (((Time.time - ctrlVhitTime) < 1) && minushit)
+            {
+                Debug.Log("Move Up");
+                var newpos = Camera.main.transform.position/1.414f;
+                Camera.main.transform.position = newpos;
             }
             if (ctrlhit && Input.GetKeyDown(KeyCode.L))
             {
@@ -693,7 +716,7 @@ namespace KhiDemo
         string[] helptext =
         {
             "Ctrl-E Echo Mode",
-            "Ctrl-P RailToRail Mode",
+            "Ctrl-P Planning Mode",
             "Ctrl-L RailToRail Mode",
             "Ctrl-T TrayToRail Mode",
             "Ctrl-R Reverse TrayRail",
@@ -711,6 +734,8 @@ namespace KhiDemo
             "Ctrl-V Ctrl-S View from Top (rotated)",
             "Ctrl-V Ctrl-R View from Right",
             "Ctrl-V Ctrl-L View from Left",
+            "Ctrl-V Ctrl-+ (Plus) Move out",
+            "Ctrl-V Ctrl-- (Minus) Move in",
             "",
             "",
             "Ctrl-+ (plus) Increase text size",
@@ -770,7 +795,8 @@ namespace KhiDemo
             }
             else
             {
-                GUI.Label(new Rect(x1, y, w, h), "Ctrl-H For Help", textstyle);
+                var msg = $"Ctrl-H For Help - zmqpub:{this.zmqPublishedCount} rosrec:{this.rosReceivedCount}";
+                GUI.Label(new Rect(x1, y, w, h), msg, textstyle);
             }
 
         }

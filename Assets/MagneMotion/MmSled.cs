@@ -4,8 +4,7 @@ using UnityEngine;
 
 namespace KhiDemo
 {
-
-    public class MmSled : MonoBehaviour
+   public class MmSled : MonoBehaviour
     {
         MagneMotion magmo;
         MmTable mmt;

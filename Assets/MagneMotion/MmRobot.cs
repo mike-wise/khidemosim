@@ -106,6 +106,7 @@ namespace KhiDemo
         {
             if (magmo.publishMovementsZmq)
             {
+                magmo.IncZmqPublishedCount();
                 var a = GetRobotPosDouble();
                 var msg = $"j6|{a[0]:f1}, {a[1]:f1}, {a[2]:f1}, {a[3]:f1}, {a[4]:f1}, {a[5]:f1}";
                 magmo.ZmqSendString(msg);
@@ -114,6 +115,7 @@ namespace KhiDemo
 
         void Rs007J1Change(RsJ1Msg j1msg)
         {
+            magmo.IncRosReceivedCount();
             if (magmo.echoMovementsRos)
             {
                 //Debug.Log($"RsJ1Msg:{j1msg.ToString()}");
@@ -133,6 +135,7 @@ namespace KhiDemo
 
         void Rs007J6Change(RsJ6Msg j6msg)
         {
+            magmo.IncRosReceivedCount();
             if (magmo.echoMovementsRos)
             {
                 //Debug.Log($"RsJ6Msg:{j6msg.ToString()}");

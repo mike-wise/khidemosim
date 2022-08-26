@@ -83,6 +83,7 @@ namespace KhiDemo
         {
             if (magmo.publishMovementsZmq)
             {
+                magmo.IncZmqPublishedCount();
                 var msg = "trayjson|[";
                 var ntray = 1;
                 for (var i = 0; i < nrow; i++)
@@ -370,6 +371,7 @@ namespace KhiDemo
 
         void Tray1Change(MmTray1Msg traymsg)
         {
+            magmo.IncRosReceivedCount();
             if (magmo.echoMovementsRos)
             {
                 //Debug.Log($"Received ROS message on topic Rs007Tray1:{traymsg.ToString()}");

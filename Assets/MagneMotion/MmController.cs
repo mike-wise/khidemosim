@@ -208,9 +208,6 @@ namespace KhiDemo
             longRobMoveSec /= fak;
         }
 
-
-
-
         public void DoReverseTrayRail()
         {
             if (mmSubMode == MmSubMode.RailToTray)
@@ -426,8 +423,6 @@ namespace KhiDemo
                 robstatus = RobStatus.idle;
             }
         }
-
-
 
         bool Interrupt(MmMode launchMode)
         {
@@ -755,11 +750,9 @@ namespace KhiDemo
             }
         }
 
-
         public void PhysicsStep()
         {
             ReverseTrayRail();
-
         }
 
         // Update is called once per frame

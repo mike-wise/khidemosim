@@ -58,6 +58,7 @@ namespace KhiDemo
         {
             if (magmo.publishMovementsZmq)
             {
+                magmo.IncZmqPublishedCount();
                 var msg = "cartjson|{";
                 var ntodo = sleds.Count;
                 var ndone = 1;
@@ -465,6 +466,7 @@ namespace KhiDemo
         }
         void EchoSledChange(MmSledMsg sledmsg)
         {
+            magmo.IncRosReceivedCount();
             if (magmo.echoMovementsRos)
             {
                 // Debug.Log($"Received ROS message on topic Rs007Sleds:{sledmsg.ToString()}");
