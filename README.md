@@ -58,7 +58,7 @@ The application has different modes:
    - I will see if I can find another workaround for it later
    
    
-## ROS Messages
+## Unity Robotics Hub ROS Messages
 - The Unity Robotics Hub provided a ROS message generation utility that needs to be configured
 - Configuration settings are under the menu selection "Robotics/Generate ROS Message" - this brings up a dialog box.
   - ROS Message Path: `d:\ros\KhiDemoRos1\ROS\src\rs007_control`

@@ -300,46 +300,49 @@ public class Rs007TrajectoryPlanner : MonoBehaviour
     ///     Call the MoverService using the ROSConnection and if a trajectory is successfully planned,
     ///     execute the trajectories in a coroutine.
     /// </summary>
-    public void PlanAndExecutePickAndPlace()
-    {
-        var request = new MoverServiceRequest();
-        request.joints_input = CurrentJointConfig();
-        request.joints_input.opt1 = 1;
-        request.joints_input.opt2 = 2;
-        request.joints_input.opt3 = 3;
+    //public void PlanAndExecutePickAndPlace()
+    //{
+    //    var request = new MoverServiceRequest();
+    //    request.joints_input = CurrentJointConfig();
+    //    request.joints_input.opt1 = 1;
+    //    request.joints_input.opt2 = 2;
+    //    request.joints_input.opt3 = 3;
 
 
-        // Pick Pose
-        var targpos = TransformToRobotCoordinates(m_Target.transform.position, "pickpose", "blue", "cyan");
-        var pt1 = (targpos + m_PickPoseOffset).To<FLU>();
-        var or1 = Quaternion.Euler(180, m_Target.transform.eulerAngles.y, 0).To<FLU>();
-        request.pick_pose = new PoseMsg
-        {
-            position = pt1,
+    //    // Pick Pose
+    //    var targpos = TransformToRobotCoordinates(m_Target.transform.position, "pickpose", "blue", "cyan");
+    //    var pt1 = (targpos + m_PickPoseOffset).To<FLU>();
+    //    var or1 = Quaternion.Euler(180, m_Target.transform.eulerAngles.y, 0).To<FLU>();
+    //    request.pick_pose = new PoseMsg
+    //    {
+    //        position = pt1,
 
-            // The hardcoded x/z angles assure that the gripper is always positioned above the target cube before grasping.
-            // orientation = Quaternion.Euler(90, m_Target.transform.eulerAngles.y, 0).To<FLU>()
-            orientation = or1
-        };
-        var msg0 = $"m_PickPoseOffset:{m_PickPoseOffset:f3}";
-        Debug.Log(msg0);
-        var msg1 = $"PickPose (FLU) position:{pt1:f3} orientation:{or1:f3}";
-        Debug.Log(msg1);
+    //        // The hardcoded x/z angles assure that the gripper is always positioned above the target cube before grasping.
+    //        // orientation = Quaternion.Euler(90, m_Target.transform.eulerAngles.y, 0).To<FLU>()
+    //        orientation = or1
+    //    };
+    //    var msg0 = $"m_PickPoseOffset:{m_PickPoseOffset:f3}";
+    //    Debug.Log(msg0);
+    //    var msg1 = $"PickPose (FLU) position:{pt1:f3} orientation:{or1:f3}";
+    //    Debug.Log(msg1);
 
-        // Place Pose
-        var placepos = TransformToRobotCoordinates(m_TargetPlacement.transform.position, "placepose", "red", "magenta");
-        var pt2 = (placepos + m_PlacePoseOffset).To<FLU>();
-        var or2 = Quaternion.Euler(180, 0, 0).To<FLU>();
-        request.place_pose = new PoseMsg
-        {
-            position = pt2,
-            orientation = or2
-        };
-        var msg2 = $"PlacePose (FLU) position:{pt2:f3} orientation:{or2:f3}";
-        Debug.Log(msg2);
+    //    // Place Pose
+    //    var placepos = TransformToRobotCoordinates(m_TargetPlacement.transform.position, "placepose", "red", "magenta");
+    //    var pt2 = (placepos + m_PlacePoseOffset).To<FLU>();
+    //    var or2 = Quaternion.Euler(180, 0, 0).To<FLU>();
+    //    request.place_pose = new PoseMsg
+    //    {
+    //        position = pt2,
+    //        orientation = or2
+    //    };
+    //    var msg2 = $"PlacePose (FLU) position:{pt2:f3} orientation:{or2:f3}";
+    //    Debug.Log(msg2);
 
-        m_Ros.SendServiceMessage<MoverServiceResponse>(m_RosServiceName, request, TrajectoryResponse);
-    }
+    //    var msg3 = $"opt1:{request.joints_input.opt1}  opt2:{request.joints_input.opt2}  opt3:{request.joints_input.opt3}";
+    //    Debug.Log(msg3);
+
+    //    m_Ros.SendServiceMessage<MoverServiceResponse>(m_RosServiceName, request, TrajectoryResponse);
+    //}
 
     void TrajectoryResponse(MoverServiceResponse response)
     {
