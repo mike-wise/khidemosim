@@ -56,7 +56,7 @@ namespace KhiDemo
 
         public void PublishSledsZmq()
         {
-            if (magmo.publishMovementsZmq)
+            if (magmo.publishMovementsZmq && magmo.zmqactivated)
             {
                 magmo.IncZmqPublishedCount();
                 var msg = "cartjson|{";

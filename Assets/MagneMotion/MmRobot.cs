@@ -104,7 +104,7 @@ namespace KhiDemo
 
         public void PublishJointsZmq()
         {
-            if (magmo.publishMovementsZmq)
+            if (magmo.publishMovementsZmq && magmo.zmqactivated)
             {
                 magmo.IncZmqPublishedCount();
                 var a = GetRobotPosDouble();

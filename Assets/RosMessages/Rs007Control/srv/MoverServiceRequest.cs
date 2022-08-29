@@ -13,20 +13,20 @@ namespace RosMessageTypes.Rs007Control
         public const string k_RosMessageName = "rs007_control/MoverService";
         public override string RosMessageName => k_RosMessageName;
 
-        public Rs007MoveitJointsAndPoseSeqMsg joints_poses_input;
+        public Rs007MoveitJointsAndPoseSeqMsg joints_input;
         public Geometry.PoseMsg pick_pose;
         public Geometry.PoseMsg place_pose;
 
         public MoverServiceRequest()
         {
-            this.joints_poses_input = new Rs007MoveitJointsAndPoseSeqMsg();
+            this.joints_input = new Rs007MoveitJointsAndPoseSeqMsg();
             this.pick_pose = new Geometry.PoseMsg();
             this.place_pose = new Geometry.PoseMsg();
         }
 
         public MoverServiceRequest(Rs007MoveitJointsAndPoseSeqMsg joints_input, Geometry.PoseMsg pick_pose, Geometry.PoseMsg place_pose)
         {
-            this.joints_poses_input = joints_input;
+            this.joints_input = joints_input;
             this.pick_pose = pick_pose;
             this.place_pose = place_pose;
         }
@@ -35,14 +35,14 @@ namespace RosMessageTypes.Rs007Control
 
         private MoverServiceRequest(MessageDeserializer deserializer)
         {
-            this.joints_poses_input = Rs007MoveitJointsAndPoseSeqMsg.Deserialize(deserializer);
+            this.joints_input = Rs007MoveitJointsAndPoseSeqMsg.Deserialize(deserializer);
             this.pick_pose = Geometry.PoseMsg.Deserialize(deserializer);
             this.place_pose = Geometry.PoseMsg.Deserialize(deserializer);
         }
 
         public override void SerializeTo(MessageSerializer serializer)
         {
-            serializer.Write(this.joints_poses_input);
+            serializer.Write(this.joints_input);
             serializer.Write(this.pick_pose);
             serializer.Write(this.place_pose);
         }
@@ -50,7 +50,7 @@ namespace RosMessageTypes.Rs007Control
         public override string ToString()
         {
             return "MoverServiceRequest: " +
-            "\njoints_input: " + joints_poses_input.ToString() +
+            "\njoints_input: " + joints_input.ToString() +
             "\npick_pose: " + pick_pose.ToString() +
             "\nplace_pose: " + place_pose.ToString();
         }

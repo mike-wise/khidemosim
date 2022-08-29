@@ -303,7 +303,10 @@ public class Rs007TrajectoryPlanner : MonoBehaviour
     public void PlanAndExecutePickAndPlace()
     {
         var request = new MoverServiceRequest();
-        request.joints_poses_input = CurrentJointConfig();
+        request.joints_input = CurrentJointConfig();
+        request.joints_input.opt1 = 1;
+        request.joints_input.opt2 = 2;
+        request.joints_input.opt3 = 3;
 
 
         // Pick Pose

@@ -269,7 +269,7 @@ namespace KhiDemo
         {
             // var joints = new NiryoMoveitJointsMsg();
             var poses = new PoseMsg[] { p1, p2, p3, p4 };
-            var rv = new Rs007MoveitJointsAndPoseSeqMsg(orig.joints, poses );
+            var rv = new Rs007MoveitJointsAndPoseSeqMsg(1,2,3,orig.joints, poses );
             return rv;
         }
 
@@ -299,8 +299,7 @@ namespace KhiDemo
         public void PlanAndExecutePickAndPlace()
         {
             var request = new MoverServiceRequest();
-            request.joints_poses_input = CurrentJointConfig();
-
+            request.joints_input = CurrentJointConfig();
 
             // Pick Pose
             var targpos = TransformToRobotCoordinates(m_Target.transform.position, "pickpose", "blue", "cyan");
@@ -335,7 +334,7 @@ namespace KhiDemo
             var pm2 = new PointMsg(p1.position.x, p1.position.y, p1.position.z - 0.05f);
             var p2 = new PoseMsg(pm2, p1.orientation);
             var p3 = request.place_pose;
-            request.joints_poses_input.poses = new PoseMsg[] { p1, p2, p1, p3 };
+            request.joints_input.poses = new PoseMsg[] { p1, p2, p1, p3 };
 
             magmo.rosconnection.SendServiceMessage<MoverServiceResponse>(serviceName, request, TrajectoryResponse);
         }

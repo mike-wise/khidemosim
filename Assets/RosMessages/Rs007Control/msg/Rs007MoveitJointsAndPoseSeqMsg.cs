@@ -13,17 +13,26 @@ namespace RosMessageTypes.Rs007Control
         public const string k_RosMessageName = "rs007_control/Rs007MoveitJointsAndPoseSeq";
         public override string RosMessageName => k_RosMessageName;
 
+        public long opt1;
+        public long opt2;
+        public long opt3;
         public double[] joints;
         public Geometry.PoseMsg[] poses;
 
         public Rs007MoveitJointsAndPoseSeqMsg()
         {
+            this.opt1 = 0;
+            this.opt2 = 0;
+            this.opt3 = 0;
             this.joints = new double[6];
             this.poses = new Geometry.PoseMsg[0];
         }
 
-        public Rs007MoveitJointsAndPoseSeqMsg(double[] joints, Geometry.PoseMsg[] poses)
+        public Rs007MoveitJointsAndPoseSeqMsg(long opt1, long opt2, long opt3, double[] joints, Geometry.PoseMsg[] poses)
         {
+            this.opt1 = opt1;
+            this.opt2 = opt2;
+            this.opt3 = opt3;
             this.joints = joints;
             this.poses = poses;
         }
@@ -32,12 +41,18 @@ namespace RosMessageTypes.Rs007Control
 
         private Rs007MoveitJointsAndPoseSeqMsg(MessageDeserializer deserializer)
         {
+            deserializer.Read(out this.opt1);
+            deserializer.Read(out this.opt2);
+            deserializer.Read(out this.opt3);
             deserializer.Read(out this.joints, sizeof(double), 6);
             deserializer.Read(out this.poses, Geometry.PoseMsg.Deserialize, deserializer.ReadLength());
         }
 
         public override void SerializeTo(MessageSerializer serializer)
         {
+            serializer.Write(this.opt1);
+            serializer.Write(this.opt2);
+            serializer.Write(this.opt3);
             serializer.Write(this.joints);
             serializer.WriteLength(this.poses);
             serializer.Write(this.poses);
@@ -46,6 +61,9 @@ namespace RosMessageTypes.Rs007Control
         public override string ToString()
         {
             return "Rs007MoveitJointsAndPoseSeqMsg: " +
+            "\nopt1: " + opt1.ToString() +
+            "\nopt2: " + opt2.ToString() +
+            "\nopt3: " + opt3.ToString() +
             "\njoints: " + System.String.Join(", ", joints.ToList()) +
             "\nposes: " + System.String.Join(", ", poses.ToList());
         }

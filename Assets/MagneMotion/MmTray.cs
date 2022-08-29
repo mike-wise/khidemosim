@@ -81,7 +81,7 @@ namespace KhiDemo
 
         public void PublishTrayZmq()
         {
-            if (magmo.publishMovementsZmq)
+            if (magmo.publishMovementsZmq && magmo.zmqactivated)
             {
                 magmo.IncZmqPublishedCount();
                 var msg = "trayjson|[";

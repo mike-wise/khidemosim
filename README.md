@@ -56,6 +56,13 @@ The application has different modes:
    - the `KhiDemoSIm\Library\PackageCache\com.unity.robotics.ros-tcp-connector@c27f00c6cf\Runtime\TcpConnector\ROSConnection.cs` file has a method (`InitializeHUD`) that needs to be made public like this on line 1016:
    - `public void InitializeHUD()` 
    - I will see if I can find another workaround for it later
+   
+   
+## ROS Messages
+- The Unity Robotics Hub provided a ROS message generation utility that needs to be configured
+- Configuration settings are under the menu selection "Robotics/Generate ROS Message" - this brings up a dialog box.
+  - ROS Message Path: `d:\ros\KhiDemoRos1\ROS\src\rs007_control`
+  - Built Message Path: `RosMessages`
 
 ## Building an exe
 - We want this app to run in its own window, the setting for this is kind of buried deep in Unity
@@ -67,6 +74,11 @@ The application has different modes:
 - We build in the "Build" subdirectory (which is standard in Unity and excluded in their usual .gitignore).
 - We build to the name `KhiDemoSim.exe`
    
+# Connecting to ROS
+- While using the Unity editor I prefer to edit the ROS and ZMQ server fields in the Magmo properties dialog. These will be used if there are no overriding command line parameters.
+- To use to a local docker container use the server "localhost" or something eqiivelent (127.0.0.1)
+- 
+
 
 ### Keyboard Commands:
 
