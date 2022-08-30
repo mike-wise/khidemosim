@@ -428,7 +428,7 @@ namespace KhiDemo
             }
         }
 
-        public (bool found,(int i,int j)) FindFirst(bool seekLoadState)
+        public (bool found,(int i,int j)) FindFirstSuitableTrayRowColPos(bool seekLoadState)
         {
             for (int i = 0; i < nrow; i++)
             {

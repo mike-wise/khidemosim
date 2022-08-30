@@ -286,11 +286,11 @@ namespace KhiDemo
 
                 if (mmMode == MmMode.SimuRailToRail)
                 {
-                    mmRobot.RealiseRobotPose(RobotPose.restr2r);
+                    mmRobot.MutateRobotPose(RobotPose.fcartup, RobotPose.restr2r);
                 }
                 else
                 {
-                    mmRobot.RealiseRobotPose(RobotPose.rest);
+                    mmRobot.MutateRobotPose(RobotPose.fcartup, RobotPose.rest);
                 }
                 yield return new WaitForSeconds(longRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
@@ -347,7 +347,7 @@ namespace KhiDemo
             }
         }
 
-        IEnumerator TransferBoxFromTrayToRobot(MmMode launchMode, (int,int) key, MmRobot rob)
+        IEnumerator TransferBoxFromTrayToRobot(MmMode launchMode, (int,int) TrayRowColPos, MmRobot rob)
         {
             try
             {
@@ -355,7 +355,7 @@ namespace KhiDemo
                 if (Interrupt(launchMode)) yield break;
 
                 robstatus = RobStatus.busy;
-                var (poseup, posedn) = mmRobot.GetPoses(key);
+                var (poseup, posedn) = mmRobot.GetPoses(TrayRowColPos);
                 mmRobot.RealiseRobotPose(poseup);
                 yield return new WaitForSeconds(shortRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
@@ -364,7 +364,7 @@ namespace KhiDemo
                 yield return new WaitForSeconds(longRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
 
-                var box = mmtray.DetachhBoxFromTraySlot(key);
+                var box = mmtray.DetachhBoxFromTraySlot(TrayRowColPos);
                 if (box != null)
                 {
                     if (Interrupt(launchMode)) yield break;
@@ -388,14 +388,14 @@ namespace KhiDemo
 
 
 
-        IEnumerator TransferBoxFromRobotToTray(MmMode launchMode, MmRobot rob, (int, int) key )
+        IEnumerator TransferBoxFromRobotToTray(MmMode launchMode, MmRobot rob, (int, int) TrayRowColPos )
         {
             try
             {
                 yield return new WaitUntil(() => robstatus == RobStatus.idle);
                 if (Interrupt(launchMode)) yield break;
                 robstatus = RobStatus.busy;
-                var (poseup, posedn) = mmRobot.GetPoses(key);
+                var (poseup, posedn) = mmRobot.GetPoses(TrayRowColPos);
                 mmRobot.RealiseRobotPose(poseup);
                 yield return new WaitForSeconds(shortRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
@@ -407,7 +407,7 @@ namespace KhiDemo
                 var box = rob.DetachhBoxFromRobot();
                 if (box != null)
                 {
-                    mmtray.AttachBoxToTraySlot(key, box);
+                    mmtray.AttachBoxToTraySlot(TrayRowColPos, box);
                 }
                 mmRobot.RealiseRobotPose(poseup);
                 yield return new WaitForSeconds(shortRobMoveSec);
@@ -481,7 +481,7 @@ namespace KhiDemo
             }
         }
 
-        public void StartCoroutineTrayTransferBox(TranferType tt, (int, int) key)
+        public void StartCoroutineTrayTransferBox(TranferType tt, (int, int) TrayRowColPos)
         {
             coroutineStart = Time.time;
             var rob = mmRobot;
@@ -492,14 +492,14 @@ namespace KhiDemo
                     switch (mmBoxMode)
                     {
                         case MmBoxMode.FakePooled:
-                            mmtray.SetVal(key, false);
+                            mmtray.SetVal(TrayRowColPos, false);
                             rob.ActivateRobBox(true);
                             break;
                         case MmBoxMode.RealPooled:
-                            Debug.Log($"TransferBoxFromTrayToRobot {key}");
+                            Debug.Log($"TransferBoxFromTrayToRobot {TrayRowColPos}");
                             //yield return new WaitUntil(() => robstatus == RobStatus.idle);
                             CheckCount("TransferBoxFromTrayToRobot");
-                            StartCoroutine(TransferBoxFromTrayToRobot(magmo.mmMode, key, rob));
+                            StartCoroutine(TransferBoxFromTrayToRobot(magmo.mmMode, TrayRowColPos, rob));
                             break;
                     }
                     break;
@@ -507,12 +507,12 @@ namespace KhiDemo
                     switch (mmBoxMode)
                     {
                         case MmBoxMode.FakePooled:
-                            mmtray.SetVal(key, true);
+                            mmtray.SetVal(TrayRowColPos, true);
                             rob.ActivateRobBox(false);
                             break;
                         case MmBoxMode.RealPooled:
                             CheckCount("TransferBoxFromRobotToTray");
-                            StartCoroutine(TransferBoxFromRobotToTray(magmo.mmMode,rob,key));
+                            StartCoroutine(TransferBoxFromRobotToTray(magmo.mmMode,rob,TrayRowColPos));
                             break;
                     }
                     break;
@@ -707,7 +707,7 @@ namespace KhiDemo
                                     }
                                     else
                                     {
-                                        var (found, key) = mmtray.FindFirst(seekLoadState: false);
+                                        var (found, TrayRowColPos) = mmtray.FindFirstSuitableTrayRowColPos(seekLoadState: false);
                                         if (!found)
                                         {
                                             magmo.WarnMsg($"{errhead}  - cound not find empty tray slot");
@@ -715,7 +715,7 @@ namespace KhiDemo
                                         }
                                         if (found)
                                         {
-                                            StartCoroutineTrayTransferBox(TranferType.RobToTray, key);
+                                            StartCoroutineTrayTransferBox(TranferType.RobToTray, TrayRowColPos);
                                         }
                                     }
                                     break;
@@ -724,13 +724,13 @@ namespace KhiDemo
                                 {
                                     if (!rob.loadState)
                                     {
-                                        var (found, key) = mmtray.FindFirst(seekLoadState: true);
+                                        var (found, TrayRowColPos) = mmtray.FindFirstSuitableTrayRowColPos(seekLoadState: true);
                                         if (!found)
                                         {
                                             magmo.WarnMsg($"{errhead}  - cound not find loaded tray slot to unload");
                                             return;
                                         }
-                                        StartCoroutineTrayTransferBox(TranferType.TrayToRob, key);
+                                        StartCoroutineTrayTransferBox(TranferType.TrayToRob, TrayRowColPos);
                                     }
                                     else
                                     {

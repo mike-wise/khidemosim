@@ -1717,7 +1717,7 @@ MonoBehaviour:
   enclosureLoaded: 0
   mmtgo: {fileID: 0}
   mmtctrlgo: {fileID: 0}
-  mmMode: 5
+  mmMode: 3
   stopSimulation: 0
   enablePlanning: 0
   echoMovementsRos: 1

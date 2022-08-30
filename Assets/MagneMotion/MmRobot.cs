@@ -328,6 +328,11 @@ namespace KhiDemo
             return rv;
         }
 
+        public void MutateRobotPose(RobotPose startpose,RobotPose endpose)
+        {
+            RealiseRobotPose(endpose);
+        }
+
         public void RealiseRobotPose(RobotPose pose)
         {
             if (!poses.ContainsKey(pose))
