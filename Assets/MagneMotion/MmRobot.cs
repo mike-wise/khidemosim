@@ -4,6 +4,8 @@ using UnityEngine;
 using RsJ1Msg = RosMessageTypes.Rs007Control.Rs007Joints1Msg;
 using RsJ6Msg = RosMessageTypes.Rs007Control.Rs007Joints6Msg;
 using Unity.Robotics.ROSTCPConnector;
+using Newtonsoft.Json;
+using System.IO;
 
 namespace KhiDemo
 {
@@ -235,6 +237,7 @@ namespace KhiDemo
             DefineJointPose(RobotJointPose.restr2r, (a[0], a[1], a[2], a[3], a[4], a[5]));
 
 
+            LoadPoses();
 
             TrayUpDownJointPoses = new Dictionary<(int, int), (RobotJointPose,RobotJointPose)>();
             SetUpDownPoseForTrayPos((0, 0), (RobotJointPose.key00up, RobotJointPose.key00dn));
@@ -263,7 +266,38 @@ namespace KhiDemo
 
             return tpt;
         }
+
+        public void LoadPoses()
+        {
+            var jsonstr1 = Resources.Load<TextAsset>("JsonInitializers/JointPoses");
+            jointPoses = JsonConvert.DeserializeObject<Dictionary<RobotJointPose, float[]>>(jsonstr1.ToString());
+            Debug.Log($"Loaded and Deserialized jointPoses.Count:{jointPoses.Count}");
+
+            var jsonstr2 = Resources.Load<TextAsset>("JsonInitializers/EffectorPoses");
+            effPoses = JsonConvert.DeserializeObject<Dictionary<RobotJointPose, (Vector3, Quaternion)>>(jsonstr2.ToString());
+            Debug.Log($"Loaded and Deserialized effPoses.Count:{effPoses.Count}");
+        }
+
         public bool definingEffectorPoses = false;
+
+        public void WriteOutPosesToJsonFiles()
+        {
+            // Joint Poses
+            var jsonSettings = new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore };// Quaternions cause trouble
+            string jsonstr1 = JsonConvert.SerializeObject(jointPoses, jsonSettings );
+            Debug.Log($"DeSerializing");
+            var testjp = JsonConvert.DeserializeObject<Dictionary<RobotJointPose,float[]>>(jsonstr1);
+            Debug.Log($"Deserialized jointPoses.Count:{jointPoses.Count} testjp.Count:{testjp.Count}");
+            File.WriteAllText("JointPoses.json", jsonstr1);
+
+            // Effector Poses
+            string jsonstr2 = JsonConvert.SerializeObject(effPoses, jsonSettings);
+            Debug.Log($"DeSerializing");
+            var testep = JsonConvert.DeserializeObject<Dictionary<RobotJointPose, (Vector3, Quaternion) >>(jsonstr2);
+            Debug.Log($"Deserialized effPoses.Count:{effPoses.Count} testep.Count:{testep.Count}");
+            File.WriteAllText("EffectorPoses.json", jsonstr2);
+        }
+
         public IEnumerator DefineEffectorPoses(float sleepsecs = 0.5f)
         {
             definingEffectorPoses = true;
@@ -317,6 +351,9 @@ namespace KhiDemo
                 }
                 Debug.Log($"{key} {eftxt}");
             }
+
+            WriteOutPosesToJsonFiles();
+
             definingEffectorPoses = false;
         }
 

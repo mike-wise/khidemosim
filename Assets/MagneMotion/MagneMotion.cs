@@ -72,6 +72,10 @@ namespace KhiDemo
         public string zmqhost = "localhost";
         public int zmqport = 10006;
 
+        [Header("Extras")]
+        public bool calculatePoses = false;
+
+
         List<(InfoType intyp, DateTime time, string msg)> messages;
 
         GameObject planningCanvas;
@@ -707,6 +711,12 @@ namespace KhiDemo
             fupdatecount++;
         }
 
+        void StartCalculatingPoses()
+        {
+            StartCoroutine(mmRobot.DefineEffectorPoses());
+        }
+
+
         int updatecount = 0;
         // Update is called once per frame
         void Update()
@@ -714,6 +724,11 @@ namespace KhiDemo
             KeyProcessing();
             ChangeSledFormIfRequested();
             ChangeBoxFormIfRequested();
+            if (calculatePoses)
+            {
+                StartCalculatingPoses();
+                calculatePoses = false;
+            }
             //ChangeModeIfRequested();
             updatecount++;
         }

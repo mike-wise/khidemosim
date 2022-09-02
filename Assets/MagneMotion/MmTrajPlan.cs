@@ -169,7 +169,6 @@ namespace KhiDemo
                 Debug.LogError("No Gripper found");
                 MmGripperType = MmGripperType.None;
             }
-            StartCoroutine(magmo.mmRobot.DefineEffectorPoses());
 
         }
 
