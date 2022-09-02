@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace KhiDemo
 {
+
     public enum RobStatus { busy,idle }
     public class MmController : MonoBehaviour
     {
@@ -14,6 +15,7 @@ namespace KhiDemo
         public MmMode mmMode = MmMode.None;
         public MmSubMode mmSubMode = MmSubMode.None;
         public MmBoxMode mmBoxMode = MmBoxMode.FakePooled;
+
         public bool enablePlanning = false;
 
         [Header("Scene Components")]
@@ -126,7 +128,7 @@ namespace KhiDemo
                     magmo.enablePlanning = false;
                     magmo.publishMovementsRos = false;
                     magmo.publishMovementsZmq = false;
-                    magmo.mmRobot.RealiseRobotPose(RobotPose.rest);
+                    magmo.mmRobot.RealiseRobotPose(RobotJointPose.rest);
                     mmt.SetupSledSpeeds(SledSpeedDistrib.fixedValue, 0);
 
                     mmRobot.InitRobotBoxState(startLoadState:true);
@@ -140,7 +142,7 @@ namespace KhiDemo
                     magmo.enablePlanning = true;
                     magmo.publishMovementsRos = false;
                     magmo.publishMovementsZmq = false;
-                    magmo.mmRobot.RealiseRobotPose(RobotPose.rest);
+                    magmo.mmRobot.RealiseRobotPose(RobotJointPose.rest);
                     mmt.SetupSledSpeeds(SledSpeedDistrib.fixedValue, 0);
 
                     mmRobot.InitRobotBoxState(startLoadState: false);
@@ -156,7 +158,7 @@ namespace KhiDemo
                     magmo.publishMovementsZmq = true;
 
 
-                    magmo.mmRobot.RealiseRobotPose(RobotPose.rest);
+                    magmo.mmRobot.RealiseRobotPose(RobotJointPose.rest);
                     mmt.SetupSledSpeeds(SledSpeedDistrib.alternateHiLo, 0.5f);
 
                     mmRobot.InitRobotBoxState(startLoadState: false);
@@ -175,7 +177,7 @@ namespace KhiDemo
                     mmt.SetupSledSpeeds( SledSpeedDistrib.alternateHiLo, 0.5f);
                     mmt.SetupSledLoads(SledLoadDistrib.allLoaded);
                     mmtray.InitAllLoadstate(nbox: 0);
-                    magmo.mmRobot.RealiseRobotPose(RobotPose.rest);
+                    magmo.mmRobot.RealiseRobotPose(RobotJointPose.rest);
                     break;
                 case MmMode.StartTrayToRail:
                     mmSubMode = MmSubMode.TrayToRail;
@@ -189,7 +191,7 @@ namespace KhiDemo
                     mmt.SetupSledSpeeds( SledSpeedDistrib.alternateHiLo, 0.5f);
                     mmt.SetupSledLoads(SledLoadDistrib.allUnloaded);
                     mmtray.InitAllLoadstate(nbox: 10);
-                    magmo.mmRobot.RealiseRobotPose(RobotPose.rest);
+                    magmo.mmRobot.RealiseRobotPose(RobotJointPose.rest);
                     break;
             }
             magmo.CheckNetworkActivation();
@@ -266,11 +268,11 @@ namespace KhiDemo
                 if (Interrupt(launchMode)) yield break;
 
                 robstatus = RobStatus.busy;
-                mmRobot.RealiseRobotPose(RobotPose.fcartup);
+                mmRobot.RealiseRobotPose(RobotJointPose.fcartup);
                 yield return new WaitForSeconds(shortRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
 
-                mmRobot.RealiseRobotPose(RobotPose.fcartdn);
+                mmRobot.RealiseRobotPose(RobotJointPose.fcartdn);
                 yield return new WaitForSeconds(longRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
 
@@ -280,17 +282,17 @@ namespace KhiDemo
                     if (Interrupt(launchMode)) yield break;
                     rob.AttachBoxToRobot(box);
                 }
-                mmRobot.RealiseRobotPose(RobotPose.fcartup);
+                mmRobot.RealiseRobotPose(RobotJointPose.fcartup);
                 yield return new WaitForSeconds(shortRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
 
                 if (mmMode == MmMode.SimuRailToRail)
                 {
-                    mmRobot.MutateRobotPose(RobotPose.fcartup, RobotPose.restr2r);
+                    mmRobot.MutateRobotPose(RobotJointPose.fcartup, RobotJointPose.restr2r);
                 }
                 else
                 {
-                    mmRobot.MutateRobotPose(RobotPose.fcartup, RobotPose.rest);
+                    mmRobot.MutateRobotPose(RobotJointPose.fcartup, RobotJointPose.rest);
                 }
                 yield return new WaitForSeconds(longRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
@@ -311,11 +313,11 @@ namespace KhiDemo
                 if (Interrupt(launchMode)) yield break;
 
                 robstatus = RobStatus.busy;
-                mmRobot.RealiseRobotPose(RobotPose.ecartup);
+                mmRobot.RealiseRobotPose(RobotJointPose.ecartup);
                 yield return new WaitForSeconds(shortRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
 
-                mmRobot.RealiseRobotPose(RobotPose.ecartdn);
+                mmRobot.RealiseRobotPose(RobotJointPose.ecartdn);
                 yield return new WaitForSeconds(longRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
 
@@ -324,17 +326,17 @@ namespace KhiDemo
                 {
                     sled.AttachBoxToSled(box);
                 }
-                mmRobot.RealiseRobotPose(RobotPose.ecartup);
+                mmRobot.RealiseRobotPose(RobotJointPose.ecartup);
                 yield return new WaitForSeconds(shortRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
 
                 if (mmMode == MmMode.SimuRailToRail)
                 {
-                    mmRobot.RealiseRobotPose(RobotPose.restr2r);
+                    mmRobot.RealiseRobotPose(RobotJointPose.restr2r);
                 }
                 else
                 {
-                    mmRobot.RealiseRobotPose(RobotPose.rest);
+                    mmRobot.RealiseRobotPose(RobotJointPose.rest);
                 }
                 yield return new WaitForSeconds(longRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
@@ -355,7 +357,7 @@ namespace KhiDemo
                 if (Interrupt(launchMode)) yield break;
 
                 robstatus = RobStatus.busy;
-                var (poseup, posedn) = mmRobot.GetPoses(TrayRowColPos);
+                var (poseup, posedn) = mmRobot.GetTrayUpAndDownPoses(TrayRowColPos);
                 mmRobot.RealiseRobotPose(poseup);
                 yield return new WaitForSeconds(shortRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
@@ -374,7 +376,7 @@ namespace KhiDemo
                 yield return new WaitForSeconds(shortRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
 
-                mmRobot.RealiseRobotPose(RobotPose.rest);
+                mmRobot.RealiseRobotPose(RobotJointPose.rest);
                 yield return new WaitForSeconds(longRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
 
@@ -395,7 +397,7 @@ namespace KhiDemo
                 yield return new WaitUntil(() => robstatus == RobStatus.idle);
                 if (Interrupt(launchMode)) yield break;
                 robstatus = RobStatus.busy;
-                var (poseup, posedn) = mmRobot.GetPoses(TrayRowColPos);
+                var (poseup, posedn) = mmRobot.GetTrayUpAndDownPoses(TrayRowColPos);
                 mmRobot.RealiseRobotPose(poseup);
                 yield return new WaitForSeconds(shortRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
@@ -413,7 +415,7 @@ namespace KhiDemo
                 yield return new WaitForSeconds(shortRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
 
-                mmRobot.RealiseRobotPose(RobotPose.rest);
+                mmRobot.RealiseRobotPose(RobotJointPose.rest);
                 yield return new WaitForSeconds(longRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
             }
@@ -648,6 +650,8 @@ namespace KhiDemo
 
         public void ProcessStep()
         {
+            if (magmo.mmRobot.definingEffectorPoses) return; // Don't process steps while this is ongoing
+
             CheckConsistency();
             //if (!processStep) return;
             //processStep = false;

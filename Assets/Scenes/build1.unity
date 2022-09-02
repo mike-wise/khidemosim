@@ -699,8 +699,11 @@ MonoBehaviour:
   loadState: 0
   magmo: {fileID: 0}
   vgriptrans: {fileID: 0}
+  tooltrans: {fileID: 0}
   box: {fileID: 0}
   currentRobotPose: 0
+  effector: {fileID: 0}
+  definingEffectorPoses: 0
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
@@ -1715,8 +1718,10 @@ MonoBehaviour:
   positionOnFloor: 0
   enclosureOn: 0
   enclosureLoaded: 0
+  effectorPoseMarkers: 1
   mmtgo: {fileID: 0}
   mmtctrlgo: {fileID: 0}
+  mmRobotMoveMode: 0
   mmMode: 3
   stopSimulation: 0
   enablePlanning: 0

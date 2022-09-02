@@ -248,6 +248,8 @@ namespace KhiDemo
                             boxclr = UnityUt.GetSequentialColorString();
                             var gobx = UnityUt.CreateCube(null, boxclr, size: 0.02f);
                             gobx.name = "markercube";
+
+                            gobx.transform.localScale = new Vector3(0.03f, 0.01f, 0.03f);
                             gobx.transform.position = new Vector3(0, 0.0164f, 0);
                             gobx.transform.SetParent(go1.transform, worldPositionStays: false);
                         }

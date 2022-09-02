@@ -125,25 +125,25 @@ namespace KhiDemo
             // Find left and right fingers
             var rightGripperName = linkName + "/tool_link/gripper_base/servo_head/control_rod_right/right_gripper";
             var leftGripperName = linkName + "/tool_link/gripper_base/servo_head/control_rod_left/left_gripper";
-            var vacGripperName = linkName + "/tool_link/GRIPPER v5_1";
+            //var vacGripperName = linkName + "/tool_link/GRIPPER v5_1";
+            var vacGripperName = linkName + "/tool_link";
             var rgrip = m_RobotModel.transform.Find(rightGripperName);
             var lgrip = m_RobotModel.transform.Find(leftGripperName);
             vgriptrans = m_RobotModel.transform.Find(vacGripperName);
-            if (vgriptrans == null)
-            {
-                vacGripperName = linkName + "/tool_link/gripper_base/Visuals/unnamed/RS007_Gripper_C_u";
-                vgriptrans = m_RobotModel.transform.Find(vacGripperName);
-            }
-
-
+            //if (vgriptrans == null)
+            //{
+            //    vacGripperName = linkName + "/tool_link/gripper_base/Visuals/unnamed/RS007_Gripper_C_u";
+            //    vgriptrans = m_RobotModel.transform.Find(vacGripperName);
+            //}
             if (vgriptrans != null)
             {
                 //Debug.Log($"Vacuum Gripper found gameObject.name:{vgriptrans.name}");
+                Debug.Log($"vacGripperName:{vacGripperName}");
                 MmGripperType = MmGripperType.Vacuum;
                 m_VacGripper = vgriptrans.gameObject;
                 //m_PickPoseOffset = Vector3.up * 0.1865f;
-                m_PlacePoseOffset = Vector3.up * 0.22f;
                 m_PickPoseOffset = Vector3.up * 0.22f;
+                m_PlacePoseOffset = Vector3.up * 0.22f;
                 MmGripperTrigger = MmGripperTrigger.OnCommand;
                 if (Target != null)
                 {
@@ -169,6 +169,8 @@ namespace KhiDemo
                 Debug.LogError("No Gripper found");
                 MmGripperType = MmGripperType.None;
             }
+            StartCoroutine(magmo.mmRobot.DefineEffectorPoses());
+
         }
 
         public void PositionJoint(int idx, float joint)
@@ -265,16 +267,16 @@ namespace KhiDemo
         }
 
 
-        Rs007MoveitJointsAndPoseSeqMsg AddPoses(Rs007MoveitJointsAndPoseSeqMsg orig, PoseMsg p1, PoseMsg p2, PoseMsg p3, PoseMsg p4)
-        {
-            // var joints = new NiryoMoveitJointsMsg();
-            var poses = new PoseMsg[] { p1, p2, p3, p4 };
-            var rv = new Rs007MoveitJointsAndPoseSeqMsg(1, 2, 3, orig.joints, poses );
-            return rv;
-        }
+        //Rs007MoveitJointsAndPoseSeqMsg AddPoses(Rs007MoveitJointsAndPoseSeqMsg orig, PoseMsg p1, PoseMsg p2, PoseMsg p3, PoseMsg p4)
+        //{
+        //    // var joints = new NiryoMoveitJointsMsg();
+        //    var poses = new PoseMsg[] { p1, p2, p3, p4 };
+        //    var rv = new Rs007MoveitJointsAndPoseSeqMsg(1, 2, 3, orig.joints, poses );
+        //    return rv;
+        //}
 
 
-        public Vector3 TransformToRobotCoordinates(Vector3 pt, string cmt = "", string frcolor = "blue", string toculor = "cyan")
+        public Vector3 TransformToRobotCoordinates(Vector3 pt)
         {
             var rm = this.RobotModel;
             if (rm == null)
@@ -305,7 +307,7 @@ namespace KhiDemo
             request.joints_input.opt3 = 3;
 
             // Pick Pose
-            var targpos = TransformToRobotCoordinates(m_Target.transform.position, "pickpose", "blue", "cyan");
+            var targpos = TransformToRobotCoordinates(m_Target.transform.position);
             var pt1 = (targpos + m_PickPoseOffset).To<FLU>();
             var or1 = Quaternion.Euler(180, m_Target.transform.eulerAngles.y, 0).To<FLU>();
             request.pick_pose = new PoseMsg
@@ -322,7 +324,7 @@ namespace KhiDemo
             Debug.Log(msg1);
 
             // Place Pose
-            var placepos = TransformToRobotCoordinates(m_TargetPlacement.transform.position, "placepose", "red", "magenta");
+            var placepos = TransformToRobotCoordinates(m_TargetPlacement.transform.position);
             var pt2 = (placepos + m_PlacePoseOffset).To<FLU>();
             var or2 = Quaternion.Euler(180, 0, 0).To<FLU>();
             request.place_pose = new PoseMsg
@@ -334,10 +336,38 @@ namespace KhiDemo
             Debug.Log(msg2);
 
             var p1 = request.pick_pose;
-            var pm2 = new PointMsg(p1.position.x, p1.position.y, p1.position.z - 0.05f);
+            var pm2 = new PointMsg(p1.position.x, p1.position.y, p1.position.z - 0.085f);
             var p2 = new PoseMsg(pm2, p1.orientation);
             var p3 = request.place_pose;
             request.joints_input.poses = new PoseMsg[] { p1, p2, p1, p3 };
+
+            var msg3 = $"opt1:{request.joints_input.opt1}  opt2:{request.joints_input.opt2}  opt3:{request.joints_input.opt3}";
+            Debug.Log(msg3);
+
+            magmo.rosconnection.SendServiceMessage<MoverServiceResponse>(serviceName, request, TrajectoryResponse);
+        }
+
+        public void PlanAndMoveToEffectorPose(Vector3 p,Quaternion q)
+        {
+            var request = new MoverServiceRequest();
+            request.joints_input = CurrentJointConfig();
+            request.joints_input.opt1 = 2;
+            request.joints_input.opt2 = 3;
+            request.joints_input.opt3 = 4;
+
+            // New Position
+            var targpos = TransformToRobotCoordinates(p);
+            var pt1 = (targpos + m_PickPoseOffset).To<FLU>();
+            var or1 = q.To<FLU>();
+            var pp = new PoseMsg
+            {
+                position = pt1,
+                orientation = or1
+            };
+            var msg0 = $"newpos:{p:f3}";
+            Debug.Log(msg0);
+
+            request.joints_input.poses = new PoseMsg[] { pp };
 
             var msg3 = $"opt1:{request.joints_input.opt1}  opt2:{request.joints_input.opt2}  opt3:{request.joints_input.opt3}";
             Debug.Log(msg3);
@@ -360,7 +390,7 @@ namespace KhiDemo
         }
         string[] poses = { "PreGrasp", "Grasp", "Pickup", "Place" };
 
-        void RealizeJointsMagicMovement(float[] joints)
+        public void RealizeJointsMagicMovement(float[] joints)
         {
             int i = 0;
             var q = Quaternion.identity;

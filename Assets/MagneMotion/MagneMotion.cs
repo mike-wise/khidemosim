@@ -11,6 +11,7 @@ using NetMQ.Sockets;
 
 namespace KhiDemo
 {
+    public enum MmRobotMoveMode { Sudden, Planned }
     public enum MmBoxMode { RealPooled, FakePooled }
 
     public enum MmSegForm { None, Straight, Curved }
@@ -41,12 +42,14 @@ namespace KhiDemo
         public bool positionOnFloor = false;
         public bool enclosureOn = false;
         public bool enclosureLoaded = false;
+        public bool effectorPoseMarkers = false;
 
         [Header("Components")]
         public GameObject mmtgo;
         public GameObject mmtctrlgo;
 
         [Header("Behaviour")]
+        public MmRobotMoveMode mmRobotMoveMode = MmRobotMoveMode.Sudden;
         public MmMode mmMode = MmMode.None;
         public bool stopSimulation = false;
 
@@ -520,6 +523,11 @@ namespace KhiDemo
                 if (fontsize > 30) fontsize = 30;
                 //plusHitTime = Time.time;
             }
+            if (ctrlhit && Input.GetKeyDown(KeyCode.I))
+            {
+                Debug.Log("Rotate Info");
+                infoLineMode = nextInfoLineMode[(int) infoLineMode];
+            }
             if (ctrlhit && Input.GetKeyDown(KeyCode.Z))
             {
                 Debug.Log("Unzoom text");
@@ -742,6 +750,7 @@ namespace KhiDemo
             "Ctrl-- (minus) Decrease text size",
             "",
             "Ctrl-H Toggle Help Screen",
+            "Ctrl-I Rotate Info Type",
             "Ctrl-Q Ctrl-Q Quit Application"
         };
 
@@ -758,6 +767,52 @@ namespace KhiDemo
             "--mode rail2tray",
         };
 
+
+        enum InfoLineMode {  None, Network, RobotPose, EffectorPose }
+        List<InfoLineMode> nextInfoLineMode = new List<InfoLineMode>() { InfoLineMode.Network, InfoLineMode.RobotPose, InfoLineMode.EffectorPose, InfoLineMode.None };
+        InfoLineMode infoLineMode = InfoLineMode.Network;
+
+        string ang(float f)
+        {
+            var rv = f.ToString("f1");
+            return rv;
+        }
+
+        string GetInfoLine()
+        {
+            switch (infoLineMode)
+            {
+                default:
+                case InfoLineMode.Network:
+                    var ntxt = $"zmqpub:{ this.zmqPublishedCount}  rosrec: { this.rosReceivedCount}";
+                    return ntxt;
+                case InfoLineMode.RobotPose:
+                    var j = mmRobot.GetRobotPos();
+                    var jtxt = "joints - ";
+                    for (int i=0; i<6; i++)
+                    {
+                        jtxt += ang(j[i])+" ";
+                    }
+                    return jtxt;
+                case InfoLineMode.EffectorPose:
+                    var (ok,p,q) = mmRobot.GetEffectorPose();
+                    var eftxt = "effector - ";
+                    var ptxt = p.ToString("f3");
+                    var qtxt = q.ToString("f3");
+                    if (ok)
+                    {
+                        eftxt += $" p:{ptxt} q:{qtxt}";
+                    }
+                    else
+                    {
+                        eftxt += " not set";
+                    }
+                    return eftxt;
+                case InfoLineMode.None:
+                    return "";
+            }
+        }
+
         static int fontsize = 16;
         public void DoHelpScreen()
         {
@@ -768,7 +823,7 @@ namespace KhiDemo
             textstyle.fontStyle = FontStyle.Bold;
             textstyle.normal.textColor = UnityUt.GetColorByName("indigo");
 
-            var w = 400;
+            var w = 600;
             var h = 20;
             var dy = textstyle.fontSize*1.1f;
             var x1 = Screen.width / 2 - 270;
@@ -795,7 +850,12 @@ namespace KhiDemo
             }
             else
             {
-                var msg = $"Ctrl-H For Help - zmqpub:{this.zmqPublishedCount} rosrec:{this.rosReceivedCount}";
+                var itxt = GetInfoLine();
+                var msg = $"Ctrl-H For Help";
+                if (itxt!="")
+                {
+                    msg += $" - {itxt}";
+                }
                 GUI.Label(new Rect(x1, y, w, h), msg, textstyle);
             }
 

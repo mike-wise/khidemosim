@@ -45,7 +45,7 @@ namespace KhiDemo
         }
     }
 
-    public enum RobotPose { 
+    public enum RobotJointPose { 
         zero, deg10, rest, restr2r, key, ecartup,ecartdn, fcartup, fcartdn, 
         key00up, key00dn, key01up, key01dn, key02up, key02dn, key03up, key03dn,
         key10up, key10dn, key11up, key11dn, key12up, key12dn, key13up, key13dn,
@@ -57,9 +57,12 @@ namespace KhiDemo
         public bool loadState;
         public MagneMotion magmo;
         public Transform vgriptrans;
+        public Transform tooltrans;
         public MmBox box;
 
-        public RobotPose currentRobotPose;
+        public RobotJointPose currentRobotPose;
+
+        public MmEffector effector;
 
         void Start()
         {
@@ -69,10 +72,18 @@ namespace KhiDemo
                 magmo.ErrMsg($"MmRobot counld not find object of type MagneMotion");
             }
             var vacGripperName = "world/base_link/link1/link2/link3/link4/link5/link6/tool_link/gripper_base/Visuals/unnamed/RS007_Gripper_C_u";
+            var tooltransName = "world/base_link/link1/link2/link3/link4/link5/link6/tool_link";
             vgriptrans = transform.Find(vacGripperName);
+            tooltrans = transform.Find(tooltransName);
             InitializePoses();
+            //DefineEffectorPoses(); // can't do this until later
 
             //magmo.rosconnection.RegisterPublisher<RsJ6Msg>("Rs007Joints6");
+
+            var gob = new GameObject("Effector");
+            effector = gob.AddComponent<MmEffector>();
+            effector.Init(this);
+
         }
 
         public void SubcribeToRos()
@@ -97,7 +108,7 @@ namespace KhiDemo
             if (magmo.publishMovementsRos)
             {
                 var ang = GetRobotPosDouble();
-                var j6msg = new RsJ6Msg(ang);
+                // var j6msg = new RsJ6Msg(ang);
                 //magmo.rosconnection.Publish("Rs007Joints6", j6msg);
             }
         }
@@ -147,27 +158,29 @@ namespace KhiDemo
             }
         }
 
-        Dictionary<RobotPose, float []> poses;
-        Dictionary<(int,int),(RobotPose,RobotPose)> kez;
+        Dictionary<RobotJointPose, float []> jointPoses;
+        Dictionary<(int,int),(RobotJointPose,RobotJointPose)> TrayUpDownJointPoses;
+        Dictionary<RobotJointPose, (Vector3, Quaternion)> effPoses;
 
-        public void p1(RobotPose pose,(double a1, double a2, double a3, double a4, double a5, double a6) ptd)
+        public void DefineJointPose(RobotJointPose pose,(double a1, double a2, double a3, double a4, double a5, double a6) ptd)
         {
+            //  Note we convert from doubles to floats here to make life easier
             var poseTuple = new float [6] { (float)ptd.a1, (float)ptd.a2, (float)ptd.a3, (float)ptd.a4, (float)ptd.a5, (float)ptd.a6 };
-            poses[pose] = poseTuple;
+            jointPoses[pose] = poseTuple;
         }
-        public void k1((int,int) key,(RobotPose,RobotPose) poses)
+        public void SetUpDownPoseForTrayPos((int,int) key,(RobotJointPose,RobotJointPose) poses)
         {
-            kez[key] = poses;
+            TrayUpDownJointPoses[key] = poses;
         }
-        public (RobotPose rpup,RobotPose rpdn) GetPoses((int,int) key)
+        public (RobotJointPose rpup,RobotJointPose rpdn) GetTrayUpAndDownPoses((int,int) TrayRowColPos)
         {
-            return kez[key];
+            return TrayUpDownJointPoses[TrayRowColPos];
         }
 
-        public float[] InterpolatePoses(RobotPose p1, RobotPose p2,float lamb)
+        public float[] InterpolatePoses(RobotJointPose p1, RobotJointPose p2,float lamb)
         {
-            var a1 = poses[p1];
-            var a2 = poses[p1];
+            var a1 = jointPoses[p1];
+            var a2 = jointPoses[p1];
             var res = new List<float>();
             for (int i=0; i<a1.Length; i++)
             {
@@ -178,66 +191,133 @@ namespace KhiDemo
         }
         public void InitializePoses()
         {
-            poses = new Dictionary<RobotPose, float[]>();
-            p1(RobotPose.zero, (0, 0, 0, 0, 0, 0));
-            p1(RobotPose.deg10, (10, 10, 10, 10, 10, 10));
-            p1(RobotPose.rest, (-16.805, 16.073, -100.892, 0, -63.021, 106.779));
+            jointPoses = new Dictionary<RobotJointPose, float[]>();
+            DefineJointPose(RobotJointPose.zero, (0, 0, 0, 0, 0, 0));
+            DefineJointPose(RobotJointPose.deg10, (10, 10, 10, 10, 10, 10));
+            DefineJointPose(RobotJointPose.rest, (-16.805, 16.073, -100.892, 0, -63.021, 106.779));
 
             
-            p1(RobotPose.fcartup, (-26.76, 32.812, -74.172, 0, -73.061, 26.755));
-            p1(RobotPose.fcartdn, (-26.749, 40.511, -80.809, 0, -58.682, 26.75));
+            DefineJointPose(RobotJointPose.fcartup, (-26.76, 32.812, -74.172, 0, -73.061, 26.755));
+            DefineJointPose(RobotJointPose.fcartdn, (-26.749, 40.511, -80.809, 0, -58.682, 26.75));
 
-            p1(RobotPose.ecartup, (-50.35, 49.744, -46.295, 0, -83.959, 50.347));
-            p1(RobotPose.ecartdn, (-50.351, 55.206, -54.692, 0, -70.107, 50.352));
+            DefineJointPose(RobotJointPose.ecartup, (-50.35, 49.744, -46.295, 0, -83.959, 50.347));
+            DefineJointPose(RobotJointPose.ecartdn, (-50.351, 55.206, -54.692, 0, -70.107, 50.352));
 
-            p1(RobotPose.key00up, (-14.864, 26.011, -87.161, 0, -66.826, 102.537));
-            p1(RobotPose.key00dn, (-14.48, 28.642, -89.821, 0, -61.519, 104.49));
-            p1(RobotPose.key01up, (-16.88, 16.142, -101.146, 0, -62.727, 106.877));
-            p1(RobotPose.key01dn, (-16.808, 19.303, -103.537, 0, -57.146, 106.813));
-            p1(RobotPose.key02up, (-20.924, 3.754, -115.647, -0.001, -60.607, 110.92));
-            p1(RobotPose.key02dn, (-20.921, 7.105, -118.181, -0.001, -54.702, 110.919));
-            p1(RobotPose.key03up, (-25.945, -6.875, -125.815, -0.001, -61.063, 115.944));
-            p1(RobotPose.key03dn, (-25.942, -1.839, -129.447, -0.001, -52.394, 115.943));
+            DefineJointPose(RobotJointPose.key00up, (-14.864, 26.011, -87.161, 0, -66.826, 102.537));
+            DefineJointPose(RobotJointPose.key00dn, (-14.48, 28.642, -89.821, 0, -61.519, 104.49));
+            DefineJointPose(RobotJointPose.key01up, (-16.88, 16.142, -101.146, 0, -62.727, 106.877));
+            DefineJointPose(RobotJointPose.key01dn, (-16.808, 19.303, -103.537, 0, -57.146, 106.813));
+            DefineJointPose(RobotJointPose.key02up, (-20.924, 3.754, -115.647, -0.001, -60.607, 110.92));
+            DefineJointPose(RobotJointPose.key02dn, (-20.921, 7.105, -118.181, -0.001, -54.702, 110.919));
+            DefineJointPose(RobotJointPose.key03up, (-25.945, -6.875, -125.815, -0.001, -61.063, 115.944));
+            DefineJointPose(RobotJointPose.key03dn, (-25.942, -1.839, -129.447, -0.001, -52.394, 115.943));
 
-            p1(RobotPose.key10up, (-3.833, 24.123, -90.829, 0, -65.057, 93.834));
-            p1(RobotPose.key10dn, (-3.839, 27.028, -93.268, 0, -59.685, 93.835));
-            p1(RobotPose.key11up, (-4.485, 16.308, -106.377, 0, -57.305, 94.482));
-            p1(RobotPose.key11dn, (-4.487, 17.444, -107.108, 0, -55.446, 94.486));
-            p1(RobotPose.key12up, (-5.674, 2.826, -121.133, 0, -56.032, 95.67));
-            p1(RobotPose.key12dn, (-5.677, 4.939, -122.452, 0, -52.61, 95.675));
-            p1(RobotPose.key13up, (-7.204, -11.615, -129.863, 0, -61.795, 97.205));
-            p1(RobotPose.key13dn, (-7.207, -7.853, -132.776, 0, -55.074, 97.205));
+            DefineJointPose(RobotJointPose.key10up, (-3.833, 24.123, -90.829, 0, -65.057, 93.834));
+            DefineJointPose(RobotJointPose.key10dn, (-3.839, 27.028, -93.268, 0, -59.685, 93.835));
+            DefineJointPose(RobotJointPose.key11up, (-4.485, 16.308, -106.377, 0, -57.305, 94.482));
+            DefineJointPose(RobotJointPose.key11dn, (-4.487, 17.444, -107.108, 0, -55.446, 94.486));
+            DefineJointPose(RobotJointPose.key12up, (-5.674, 2.826, -121.133, 0, -56.032, 95.67));
+            DefineJointPose(RobotJointPose.key12dn, (-5.677, 4.939, -122.452, 0, -52.61, 95.675));
+            DefineJointPose(RobotJointPose.key13up, (-7.204, -11.615, -129.863, 0, -61.795, 97.205));
+            DefineJointPose(RobotJointPose.key13dn, (-7.207, -7.853, -132.776, 0, -55.074, 97.205));
 
-            p1(RobotPose.key20up, (7.072, 24.158, -89.905, 0, -65.933, 82.92));
-            p1(RobotPose.key20dn, (7.07, 27.478, -92.784, 0, -59.743, 82.929));
-            p1(RobotPose.key21up, (8.251, 16.929, -105.936, 0, -57.122, 81.753));
-            p1(RobotPose.key21dn, (8.249, 17.868, -106.538, 0, -55.594, 81.752));
-            p1(RobotPose.key22up, (8.251, 16.929, -105.936, 0, -57.122, 81.753));
-            p1(RobotPose.key22dn, (8.249, 17.868, -106.538, 0, -55.594, 81.752));
-            p1(RobotPose.key23up, (-7.204, -11.615, -129.863, 0, -61.795, 97.205));
-            p1(RobotPose.key23dn, (-7.207, -7.853, -132.776, 0, -55.074, 97.205));
+            DefineJointPose(RobotJointPose.key20up, (7.072, 24.158, -89.905, 0, -65.933, 82.92));
+            DefineJointPose(RobotJointPose.key20dn, (7.07, 27.478, -92.784, 0, -59.743, 82.929));
+            DefineJointPose(RobotJointPose.key21up, (8.251, 16.929, -105.936, 0, -57.122, 81.753));
+            DefineJointPose(RobotJointPose.key21dn, (8.249, 17.868, -106.538, 0, -55.594, 81.752));
+            DefineJointPose(RobotJointPose.key22up, (8.251, 16.929, -105.936, 0, -57.122, 81.753));
+            DefineJointPose(RobotJointPose.key22dn, (8.249, 17.868, -106.538, 0, -55.594, 81.752));
+            DefineJointPose(RobotJointPose.key23up, (-7.204, -11.615, -129.863, 0, -61.795, 97.205));
+            DefineJointPose(RobotJointPose.key23dn, (-7.207, -7.853, -132.776, 0, -55.074, 97.205));
 
             //p1(RobotPose.restr2r, (-21.7, 55.862, -39.473, -0.008, -84.678, 13.565));
-            var a = InterpolatePoses(RobotPose.fcartup, RobotPose.ecartup, 0.5f);
-            p1(RobotPose.restr2r, (a[0], a[1], a[2], a[3], a[4], a[5]));
+            var a = InterpolatePoses(RobotJointPose.fcartup, RobotJointPose.ecartup, 0.5f);
+            DefineJointPose(RobotJointPose.restr2r, (a[0], a[1], a[2], a[3], a[4], a[5]));
 
 
 
-            kez = new Dictionary<(int, int), (RobotPose,RobotPose)>();
-            k1((0, 0), (RobotPose.key00up, RobotPose.key00dn));
-            k1((0, 1), (RobotPose.key01up, RobotPose.key01dn));
-            k1((0, 2), (RobotPose.key02up, RobotPose.key02dn));
-            k1((0, 3), (RobotPose.key03up, RobotPose.key03dn));
+            TrayUpDownJointPoses = new Dictionary<(int, int), (RobotJointPose,RobotJointPose)>();
+            SetUpDownPoseForTrayPos((0, 0), (RobotJointPose.key00up, RobotJointPose.key00dn));
+            SetUpDownPoseForTrayPos((0, 1), (RobotJointPose.key01up, RobotJointPose.key01dn));
+            SetUpDownPoseForTrayPos((0, 2), (RobotJointPose.key02up, RobotJointPose.key02dn));
+            SetUpDownPoseForTrayPos((0, 3), (RobotJointPose.key03up, RobotJointPose.key03dn));
 
-            k1((1, 0), (RobotPose.key10up, RobotPose.key10dn));
-            k1((1, 1), (RobotPose.key11up, RobotPose.key11dn));
-            k1((1, 2), (RobotPose.key12up, RobotPose.key12dn));
-            k1((1, 3), (RobotPose.key13up, RobotPose.key13dn));
+            SetUpDownPoseForTrayPos((1, 0), (RobotJointPose.key10up, RobotJointPose.key10dn));
+            SetUpDownPoseForTrayPos((1, 1), (RobotJointPose.key11up, RobotJointPose.key11dn));
+            SetUpDownPoseForTrayPos((1, 2), (RobotJointPose.key12up, RobotJointPose.key12dn));
+            SetUpDownPoseForTrayPos((1, 3), (RobotJointPose.key13up, RobotJointPose.key13dn));
 
-            k1((2, 0), (RobotPose.key20up, RobotPose.key20dn));
-            k1((2, 1), (RobotPose.key21up, RobotPose.key21dn));
-            k1((2, 2), (RobotPose.key22up, RobotPose.key22dn));
-            k1((2, 3), (RobotPose.key23up, RobotPose.key23dn));
+            SetUpDownPoseForTrayPos((2, 0), (RobotJointPose.key20up, RobotJointPose.key20dn));
+            SetUpDownPoseForTrayPos((2, 1), (RobotJointPose.key21up, RobotJointPose.key21dn));
+            SetUpDownPoseForTrayPos((2, 2), (RobotJointPose.key22up, RobotJointPose.key22dn));
+            SetUpDownPoseForTrayPos((2, 3), (RobotJointPose.key23up, RobotJointPose.key23dn));
+        }
+
+        public Vector3 TransformToRobotCoordinates(Vector3 pt)
+        {
+            var rot = Quaternion.Inverse(transform.rotation);
+            var pivotpt = transform.position;
+            var tpt = rot * (pt - pivotpt);
+
+            // Debug.Log($"TransformToRobotCoordinates rot:{rot} pivotpt:{pivotpt:f3} mapped:{pt:f3} to {tpt:f3}");
+
+            return tpt;
+        }
+        public bool definingEffectorPoses = false;
+        public IEnumerator DefineEffectorPoses(float sleepsecs = 0.5f)
+        {
+            definingEffectorPoses = true;
+            yield return new WaitForSeconds(sleepsecs); // wait for others to pick up on signal
+
+            GameObject effroot = null;
+            if (magmo.effectorPoseMarkers)
+            {
+                effroot = new GameObject("EffectorMarkers");
+            }
+
+            effPoses = new Dictionary<RobotJointPose, (Vector3, Quaternion)>();
+            foreach (var key in jointPoses.Keys)
+            {
+                var joints = jointPoses[key];
+
+                //magmo.planner.RealizeJointsMagicMovement(joints);
+                this.RealiseRobotPose(key);
+                yield return new WaitForSeconds(sleepsecs);
+
+                var (ok,pwc, q) = this.GetEffectorPose();
+                var p = pwc;
+                //var p = TransformToRobotCoordinates(pwc);
+                var eftxt = "effector - ";
+                var ptxt = p.ToString("f3");
+                var qtxt = q.ToString("f3");
+                if (ok)
+                {
+                    eftxt += $" p:{ptxt} q:{qtxt}";
+                }
+                else
+                {
+                    eftxt += " not set";
+                }
+                effPoses[key] = (p, q);
+                if (magmo.effectorPoseMarkers)
+                {
+                    var sz = 0.2f / 10;
+                    var sz2 = sz / 2;
+                    var ego = UnityUt.CreateSphere(null, "limegreen", sz);
+                    ego.name = "Sph-" + key.ToString();
+                    var xax = UnityUt.CreateSphere(ego, "red", sz / 5);
+                    xax.transform.position += new Vector3(sz2, 0, 0);
+                    var yax = UnityUt.CreateSphere(ego, "green", sz / 5);
+                    yax.transform.position += new Vector3(0, sz2, 0);
+                    var zax = UnityUt.CreateSphere(ego, "blue", sz / 5);
+                    zax.transform.position += new Vector3(0, 0, sz2);
+                    ego.transform.position = p;
+                    ego.transform.rotation = q;
+                    ego.transform.parent = effroot.transform;
+                }
+                Debug.Log($"{key} {eftxt}");
+            }
+            definingEffectorPoses = false;
         }
 
         public void AddBoxToRobot()
@@ -274,7 +354,8 @@ namespace KhiDemo
             Debug.Log($"Attaching Box to Robot - {box.boxid1} {box.boxid2} {box.boxclr})");
             box.transform.parent = null;
             box.transform.localRotation = Quaternion.Euler(90, 0, 0);
-            box.transform.localPosition = new Vector3(0, -0.14f, 0);
+            //box.transform.localPosition = new Vector3(0, -0.14f, 0);
+            box.transform.localPosition = new Vector3(0, -0.16f, 0);
             box.transform.SetParent(vgriptrans, worldPositionStays: false);
             loadState = true;
             box.SetBoxStatus(BoxStatus.onRobot);
@@ -328,24 +409,38 @@ namespace KhiDemo
             return rv;
         }
 
-        public void MutateRobotPose(RobotPose startpose,RobotPose endpose)
+        public void MutateRobotPose(RobotJointPose startpose,RobotJointPose endpose)
         {
             RealiseRobotPose(endpose);
         }
 
-        public void RealiseRobotPose(RobotPose pose)
+        public void RealiseRobotPose(RobotJointPose pose)
         {
-            if (!poses.ContainsKey(pose))
+            if (!jointPoses.ContainsKey(pose))
             {
                 magmo.ErrMsg($"MmRobot.AssumpPose pose {pose} not assigned");
                 return;
             }
-            var angles = poses[pose];
+            var angles = jointPoses[pose];
             var planner = magmo.planner;
             for (int i = 0; i < angles.Length; i++)
             {
                 planner.PositionJoint(i, angles[i]);
             }
+        }
+
+        public (bool, Vector3, Quaternion) GetEffectorPose()
+        {
+            var p = Vector3.zero;
+            var q = Quaternion.identity;
+            var ok = false;
+            if (tooltrans != null)
+            {
+                p = this.tooltrans.position;
+                q = this.tooltrans.rotation;
+                ok = true;
+            }
+            return (ok, p, q);
         }
 
         public float [] GetRobotPos()
@@ -384,7 +479,7 @@ namespace KhiDemo
             }
         }
 
-        RobotPose oldPoseTuple;
+        RobotJointPose oldPoseTuple;
         int updatecount;
         void Update()
         {
