@@ -132,3 +132,24 @@ The application has different modes:
    - Enter: `khidemosim --mode echo --roshost localhost --rosport 10005`
    - The upper left communication HUD IP window should be showing green communication arrows
 
+## Make a package out of this
+ - Exported package with dependncies
+   - Menu Assets/Export Package
+     - MagneMotion
+     - Scripts
+     - Environment
+     - Check ROS Messages
+   
+ - created new test project (KhiDemoSimPackageTest1)
+ - imported package
+ - added robotics urdf urls"https://github.com/Unity-Technologies/URDF-Importer.git?path=/com.unity.robotics.urdf-importer#v0.5.2"
+ - added robotics urdf urls "https://github.com/Unity-Technologies/ROS-TCP-Connector.git?path=/com.unity.robotics.ros-tcp-connector#v0.7.0"
+ - restarted to get Robotics entry in menu
+ - added reference to ROS pointing to RS007 and built msgs and srv
+ - added reference to ROS pointing to moveit and built msgs, srv, actions (everything)
+ - manuall added "com.unity.nuget.newtonsoft-json": "2.0.0" to packages/manifist.json
+ - manuall added nuget (https://github.com/GlitchEnzo/NuGetForUnity)
+    - downloaded
+    - made sure only one instance of Unity running
+    - clicked on .unitypackage
+    - restarted to get NuGet entry in menu
