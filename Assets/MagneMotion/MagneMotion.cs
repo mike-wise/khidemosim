@@ -16,6 +16,8 @@ namespace KhiDemo
 
     public enum MmSegForm { None, Straight, Curved }
 
+    public enum MmHoldMethod { Hierarchy, Coded }
+
     public enum MmTableStyle {  MftDemo, Simple }
 
     public enum MmMode { None, Echo, Planning, SimuRailToRail, StartRailToTray, StartTrayToRail }
@@ -49,6 +51,7 @@ namespace KhiDemo
         public GameObject mmtctrlgo;
 
         [Header("Behaviour")]
+        public MmHoldMethod mmHoldMethod = MmHoldMethod.Coded;
         public MmRobotMoveMode mmRobotMoveMode = MmRobotMoveMode.Sudden;
         public MmMode mmMode = MmMode.None;
         public bool stopSimulation = false;
