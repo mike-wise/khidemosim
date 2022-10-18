@@ -61,6 +61,7 @@ namespace KhiDemo
         public Transform vgriptrans;
         public Transform tooltrans;
         public MmBox box;
+        public Vector3 lastboxposition;
 
         public RobotJointPose currentRobotPose;
 
@@ -100,6 +101,7 @@ namespace KhiDemo
             {
                 MmBox.ReturnToPool(box);
                 box = null;
+                lastboxposition = Vector3.zero;
             }
             loadState = false;
         }
@@ -375,6 +377,7 @@ namespace KhiDemo
                     }
             }
         }
+        Vector3 robotoffset = new Vector3(0, -0.16f, 0);
         public void AttachBoxToRobot(MmBox box)
         {
             if (vgriptrans == null)
@@ -394,16 +397,17 @@ namespace KhiDemo
                 Debug.Log($"Attaching Box to Robot - coded");
                 box.transform.parent = null;
                 box.transform.localRotation = Quaternion.Euler(90, 0, 0);
-                box.transform.localPosition = new Vector3(0, -0.16f, 0);
+                box.transform.localPosition = robotoffset;
                 box.transform.SetParent(vgriptrans, worldPositionStays: false);
             }
             else
             {
                 Debug.Log($"Attaching Box to Robot - hierarchy");
-                box.transform.parent = null;
-                box.transform.localRotation = Quaternion.Euler(90, 0, 0);
-                box.transform.localPosition = new Vector3(0, -0.16f, 0);
-                box.transform.SetParent(vgriptrans, worldPositionStays: false);
+                //box.transform.parent = null;
+                box.transform.rotation = transform.rotation * Quaternion.Euler(90, 0, 0);
+                box.transform.position = transform.position + robotoffset;
+                lastboxposition = box.transform.position;
+                //box.transform.SetParent(vgriptrans, worldPositionStays: false);
             }
             loadState = true;
             box.SetBoxStatus(BoxStatus.onRobot);
@@ -524,6 +528,11 @@ namespace KhiDemo
             {
                 RealiseRobotPose(currentRobotPose);
                 oldPoseTuple = currentRobotPose;
+            }
+            if (box!=null && magmo.mmHoldMethod== MmHoldMethod.Hierarchy)
+            {
+                box.transform.position = transform.position + robotoffset;
+                lastboxposition = box.transform.position;
             }
         }
 

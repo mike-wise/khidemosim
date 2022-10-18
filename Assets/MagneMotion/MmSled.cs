@@ -213,7 +213,7 @@ namespace KhiDemo
                 magmo.ErrMsg("AttachBoxToSled - tryied to attach null box");
                 return;
             }
-            Debug.Log($"Attaching Box to Sled - {box.boxid1} {box.boxid2} {box.boxclr} {magmo.mmHoldMethod})");
+            Debug.Log($"Attaching Box to Sled - {box.boxid1} {box.boxid2} {box.boxclr} {magmo.mmHoldMethod}");
             this.box = box;
 
             if (magmo.mmHoldMethod == MmHoldMethod.Coded)
@@ -227,10 +227,10 @@ namespace KhiDemo
             else
             {
                 Debug.Log($"Attaching Box to Sled - heirarchy");
-                box.transform.parent = null;
+                //box.transform.parent = null;
                 box.transform.rotation = Quaternion.Euler(0, 0, 0);
-                box.transform.position = Vector3.zero;
-                box.transform.SetParent(formgo.transform, worldPositionStays: false);
+                box.transform.position = formgo.transform.position;
+                //box.transform.SetParent(formgo.transform, worldPositionStays: false);
             }
             box.SetBoxStatus(BoxStatus.onSled);
             loadState = true;
@@ -421,13 +421,16 @@ namespace KhiDemo
         //        boxgo.SetActive(loadState);
         //    }
         //}
-        //int updatecount = 0;
+        int updatecount = 0;
         // Update is called once per frame
 
-        // void Update()
-        //{
-        //    SyncLoadState();
-        //    updatecount++;
-        //}
+        void Update()
+        {
+            if (box!=null && magmo.mmHoldMethod== MmHoldMethod.Hierarchy)
+            {
+                box.transform.position = formgo.transform.position;
+            }
+            updatecount++;
+        }
     }
 }

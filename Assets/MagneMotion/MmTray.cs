@@ -246,16 +246,15 @@ namespace KhiDemo
             }
         }
 
-        public void AttachBoxToTraySlot((int,int) slotkey, MmBox box)
+        public void AttachBoxToTraySlot((int, int) slotkey, MmBox box)
         {
-            Debug.Log($"Attaching Box to AttachBoxToTraySlot - {slotkey} {box.boxid2} {box.boxclr} {magmo.mmHoldMethod})");
+            Debug.Log($"Attaching Box to AttachBoxToTraySlot - {slotkey} {box.boxid2} {box.boxclr} {magmo.mmHoldMethod}");
             var slot = trayslots[slotkey];
             trayboxes[slotkey] = box;
 
             if (magmo.mmHoldMethod == MmHoldMethod.Coded)
             {
                 Debug.Log($"Attaching Box to Trayslot - coded");
-
                 box.transform.parent = null;
                 box.transform.rotation = Quaternion.Euler(90, 0, 0);
                 box.transform.position = Vector3.zero;
@@ -264,11 +263,10 @@ namespace KhiDemo
             else
             {
                 Debug.Log($"Attaching Box to Trayslot - hierarchy");
-
-                box.transform.parent = null;
+                //box.transform.parent = null;
                 box.transform.rotation = Quaternion.Euler(90, 0, 0);
-                box.transform.position = Vector3.zero;
-                box.transform.SetParent(slot.transform, worldPositionStays: false);
+                box.transform.position = slot.transform.position;
+                //box.transform.SetParent(slot.transform, worldPositionStays: false);
             }
 
             loadState[slotkey] = true;
