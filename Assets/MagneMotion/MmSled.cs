@@ -228,7 +228,7 @@ namespace KhiDemo
             {
                 Debug.Log($"Attaching Box to Sled - heirarchy");
                 //box.transform.parent = null;
-                box.transform.rotation = Quaternion.Euler(0, 0, 0);
+                box.transform.rotation = Quaternion.Euler(90, 0, 0);
                 box.transform.position = formgo.transform.position;
                 //box.transform.SetParent(formgo.transform, worldPositionStays: false);
             }

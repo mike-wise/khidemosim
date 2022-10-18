@@ -405,7 +405,7 @@ namespace KhiDemo
                 Debug.Log($"Attaching Box to Robot - hierarchy");
                 //box.transform.parent = null;
                 box.transform.rotation = transform.rotation * Quaternion.Euler(90, 0, 0);
-                box.transform.position = transform.position + robotoffset;
+                box.transform.position = vgriptrans.transform.position + robotoffset;
                 lastboxposition = box.transform.position;
                 //box.transform.SetParent(vgriptrans, worldPositionStays: false);
             }
@@ -531,7 +531,7 @@ namespace KhiDemo
             }
             if (box!=null && magmo.mmHoldMethod== MmHoldMethod.Hierarchy)
             {
-                box.transform.position = transform.position + robotoffset;
+                box.transform.position = vgriptrans.transform.position + robotoffset;
                 lastboxposition = box.transform.position;
             }
         }
