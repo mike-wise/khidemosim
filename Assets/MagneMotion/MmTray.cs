@@ -248,14 +248,29 @@ namespace KhiDemo
 
         public void AttachBoxToTraySlot((int,int) slotkey, MmBox box)
         {
+            Debug.Log($"Attaching Box to AttachBoxToTraySlot - {slotkey} {box.boxid2} {box.boxclr} {magmo.mmHoldMethod})");
             var slot = trayslots[slotkey];
-            //box.transform.localRotation = Quaternion.Euler(90, 0, 0);
-            //box.transform.parent = null;
-            box.transform.parent = null;
-            box.transform.rotation = Quaternion.Euler(90, 0, 0);
-            box.transform.position = Vector3.zero;
-            box.transform.SetParent(slot.transform, worldPositionStays: false);
             trayboxes[slotkey] = box;
+
+            if (magmo.mmHoldMethod == MmHoldMethod.Coded)
+            {
+                Debug.Log($"Attaching Box to Trayslot - coded");
+
+                box.transform.parent = null;
+                box.transform.rotation = Quaternion.Euler(90, 0, 0);
+                box.transform.position = Vector3.zero;
+                box.transform.SetParent(slot.transform, worldPositionStays: false);
+            }
+            else
+            {
+                Debug.Log($"Attaching Box to Trayslot - hierarchy");
+
+                box.transform.parent = null;
+                box.transform.rotation = Quaternion.Euler(90, 0, 0);
+                box.transform.position = Vector3.zero;
+                box.transform.SetParent(slot.transform, worldPositionStays: false);
+            }
+
             loadState[slotkey] = true;
             box.SetBoxStatus(BoxStatus.onTray);
         }

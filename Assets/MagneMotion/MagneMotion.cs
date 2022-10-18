@@ -726,7 +726,8 @@ namespace KhiDemo
         {
             KeyProcessing();
             ChangeSledFormIfRequested();
-            ChangeBoxFormIfRequested();
+            // Can't do this anymore as it messues up our markerbox non-marker box logic
+            // ChangeBoxFormIfRequested(); 
             if (calculatePoses)
             {
                 StartCalculatingPoses();

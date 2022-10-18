@@ -18,7 +18,6 @@ namespace KhiDemo
         public bool visible;
         SledForm sledform;
         GameObject formgo;
-        GameObject boxgo;
         public MmBox box;
         public bool loadState;
         public int sledidx;
@@ -98,9 +97,9 @@ namespace KhiDemo
             //    box = MmBox.ConstructBox(magmo, sledid, stat: BoxStatus.onSled);
             //    boxgo = box.gameObject;
             //}
-            if (boxgo != null)
+            if (box?.gameObject != null)
             {
-                boxgo.SetActive(loadState);
+                box.gameObject.SetActive(loadState);
                 if (cascadeToRobot)
                 {
                     magmo.mmRobot.ActivateRobBox(!loadState);
@@ -174,7 +173,7 @@ namespace KhiDemo
                             //box.transform.position = new Vector3(0.0f, 0.0f, -0.16f) * ska8;
                             //box.transform.localScale = new Vector3(0.43f, 0.56f, 0.27f) * ska8;
                             //boxgo = box;
-                            var box = MmBox.ConstructBox(mmt.magmo, mmt.magmo.boxForm, sledid, BoxStatus.onSled);
+                            var box = MmBox.ConstructBox(mmt.magmo, mmt.magmo.boxForm, "Hmm", sledid, BoxStatus.onSled);
                             AttachBoxToSled(box);
                         }
 
@@ -192,7 +191,7 @@ namespace KhiDemo
 
                         if (addBox)
                         {
-                            var box = MmBox.ConstructBox(mmt.magmo, mmt.magmo.boxForm, sledid, BoxStatus.onSled );
+                            var box = MmBox.ConstructBox(mmt.magmo, mmt.magmo.boxForm, "Hmm", sledid, BoxStatus.onSled );
                             AttachBoxToSled(box);
                         }
 
@@ -209,17 +208,30 @@ namespace KhiDemo
 
         public void AttachBoxToSled(MmBox box)
         {
-            this.box = box;
             if (box==null)
             {
                 magmo.ErrMsg("AttachBoxToSled - tryied to attach null box");
                 return;
             }
-            boxgo = box.gameObject;
-            box.transform.parent = null;
-            box.transform.rotation = Quaternion.Euler(0, 0, 0);
-            box.transform.position = Vector3.zero;
-            box.transform.SetParent(formgo.transform, worldPositionStays:false );
+            Debug.Log($"Attaching Box to Sled - {box.boxid1} {box.boxid2} {box.boxclr} {magmo.mmHoldMethod})");
+            this.box = box;
+
+            if (magmo.mmHoldMethod == MmHoldMethod.Coded)
+            {
+                Debug.Log($"Attaching Box to Sled - coded");
+                box.transform.parent = null;
+                box.transform.rotation = Quaternion.Euler(0, 0, 0);
+                box.transform.position = Vector3.zero;
+                box.transform.SetParent(formgo.transform, worldPositionStays: false);
+            }
+            else
+            {
+                Debug.Log($"Attaching Box to Sled - heirarchy");
+                box.transform.parent = null;
+                box.transform.rotation = Quaternion.Euler(0, 0, 0);
+                box.transform.position = Vector3.zero;
+                box.transform.SetParent(formgo.transform, worldPositionStays: false);
+            }
             box.SetBoxStatus(BoxStatus.onSled);
             loadState = true;
         }
@@ -232,7 +244,6 @@ namespace KhiDemo
                 oldbox.SetBoxStatus(BoxStatus.free);
             }
             box = null;
-            boxgo = null;
             loadState = false;
             return oldbox;
         }

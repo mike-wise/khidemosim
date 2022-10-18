@@ -387,13 +387,24 @@ namespace KhiDemo
                 magmo.ErrMsg("AttachBoxToRobot - Box is null");
                 return;
             }
+            Debug.Log($"Attaching Box to Robot - {box.boxid1} {box.boxid2} {box.boxclr} {magmo.mmHoldMethod})");
             this.box = box;
-            Debug.Log($"Attaching Box to Robot - {box.boxid1} {box.boxid2} {box.boxclr})");
-            box.transform.parent = null;
-            box.transform.localRotation = Quaternion.Euler(90, 0, 0);
-            //box.transform.localPosition = new Vector3(0, -0.14f, 0);
-            box.transform.localPosition = new Vector3(0, -0.16f, 0);
-            box.transform.SetParent(vgriptrans, worldPositionStays: false);
+            if (magmo.mmHoldMethod == MmHoldMethod.Coded)
+            {
+                Debug.Log($"Attaching Box to Robot - coded");
+                box.transform.parent = null;
+                box.transform.localRotation = Quaternion.Euler(90, 0, 0);
+                box.transform.localPosition = new Vector3(0, -0.16f, 0);
+                box.transform.SetParent(vgriptrans, worldPositionStays: false);
+            }
+            else
+            {
+                Debug.Log($"Attaching Box to Robot - hierarchy");
+                box.transform.parent = null;
+                box.transform.localRotation = Quaternion.Euler(90, 0, 0);
+                box.transform.localPosition = new Vector3(0, -0.16f, 0);
+                box.transform.SetParent(vgriptrans, worldPositionStays: false);
+            }
             loadState = true;
             box.SetBoxStatus(BoxStatus.onRobot);
         }
