@@ -253,10 +253,6 @@ namespace KhiDemo
                 case BoxForm.PrefabWithMarkerCube:
                 case BoxForm.Prefab:
                     {
-                        if (transform.name=="RealBox-26")
-                        {
-                            Debug.Log($"Here I am");
-                        }
                         var prefab1 = (GameObject)Resources.Load("Prefabs/Box1");
                         var go1 = Instantiate<GameObject>(prefab1);
                         go1.name = $"prefabbox";

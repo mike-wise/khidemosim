@@ -143,7 +143,7 @@ The application has different modes:
  - created new test project (KhiDemoSimPackageTest1)
  - imported package
  - added robotics urdf urls"https://github.com/Unity-Technologies/URDF-Importer.git?path=/com.unity.robotics.urdf-importer#v0.5.2"
- - added robotics urdf urls "https://github.com/Unity-Technologies/ROS-TCP-Connector.git?path=/com.unity.robotics.ros-tcp-connector#v0.7.0"
+ - added robotics tcp-connector urls "https://github.com/Unity-Technologies/ROS-TCP-Connector.git?path=/com.unity.robotics.ros-tcp-connector#v0.7.0"
  - restarted to get Robotics entry in menu
  - added reference to ROS pointing to RS007 and built msgs and srv
  - added reference to ROS pointing to moveit and built msgs, srv, actions (everything)

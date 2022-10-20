@@ -701,6 +701,7 @@ MonoBehaviour:
   vgriptrans: {fileID: 0}
   tooltrans: {fileID: 0}
   box: {fileID: 0}
+  lastboxposition: {x: 0, y: 0, z: 0}
   currentRobotPose: 0
   effector: {fileID: 0}
   definingEffectorPoses: 0
@@ -1721,6 +1722,7 @@ MonoBehaviour:
   effectorPoseMarkers: 1
   mmtgo: {fileID: 0}
   mmtctrlgo: {fileID: 0}
+  mmHoldMethod: 0
   mmRobotMoveMode: 0
   mmMode: 3
   stopSimulation: 0
@@ -1737,3 +1739,4 @@ MonoBehaviour:
   zmqactivated: 0
   zmqhost: localhost
   zmqport: 10006
+  calculatePoses: 0

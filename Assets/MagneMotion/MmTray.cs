@@ -248,11 +248,11 @@ namespace KhiDemo
 
         public void AttachBoxToTraySlot((int, int) slotkey, MmBox box)
         {
-            Debug.Log($"Attaching Box to AttachBoxToTraySlot - {slotkey} {box.boxid2} {box.boxclr} {magmo.mmHoldMethod}");
+            Debug.Log($"Attaching Box to AttachBoxToTraySlot - {slotkey} {box.boxid2} {box.boxclr} {magmo.GetHoldMethod()}");
             var slot = trayslots[slotkey];
             trayboxes[slotkey] = box;
 
-            if (magmo.mmHoldMethod == MmHoldMethod.Coded)
+            if (magmo.GetHoldMethod() == MmHoldMethod.Hierarchy)
             {
                 Debug.Log($"Attaching Box to Trayslot - coded");
                 box.transform.parent = null;

@@ -16,7 +16,7 @@ namespace KhiDemo
 
     public enum MmSegForm { None, Straight, Curved }
 
-    public enum MmHoldMethod { Hierarchy, Coded }
+    public enum MmHoldMethod { Dragged, Hierarchy }
 
     public enum MmTableStyle {  MftDemo, Simple }
 
@@ -51,7 +51,8 @@ namespace KhiDemo
         public GameObject mmtctrlgo;
 
         [Header("Behaviour")]
-        public MmHoldMethod mmHoldMethod = MmHoldMethod.Coded;
+        public MmHoldMethod mmInitialHoldMethod = MmHoldMethod.Hierarchy;
+        MmHoldMethod mmHoldMethod = MmHoldMethod.Hierarchy;
         public MmRobotMoveMode mmRobotMoveMode = MmRobotMoveMode.Sudden;
         public MmMode mmMode = MmMode.None;
         public bool stopSimulation = false;
@@ -96,6 +97,15 @@ namespace KhiDemo
                 return null;
             }
             return cango;
+        }
+
+        public MmHoldMethod GetHoldMethod()
+        {
+            return mmHoldMethod;
+        }
+        public void SetHoldMethod()
+        {
+            mmHoldMethod = mmInitialHoldMethod;
         }
 
         private void Awake()

@@ -390,11 +390,11 @@ namespace KhiDemo
                 magmo.ErrMsg("AttachBoxToRobot - Box is null");
                 return;
             }
-            Debug.Log($"Attaching Box to Robot - {box.boxid1} {box.boxid2} {box.boxclr} {magmo.mmHoldMethod})");
+            Debug.Log($"Attaching Box to Robot - {box.boxid1} {box.boxid2} {box.boxclr} {magmo.GetHoldMethod()})");
             this.box = box;
-            if (magmo.mmHoldMethod == MmHoldMethod.Coded)
+            if (magmo.GetHoldMethod() == MmHoldMethod.Hierarchy)
             {
-                Debug.Log($"Attaching Box to Robot - coded");
+                Debug.Log($"Attaching Box to Robot - dragged");
                 box.transform.parent = null;
                 box.transform.localRotation = Quaternion.Euler(90, 0, 0);
                 box.transform.localPosition = robotoffset;
@@ -529,10 +529,15 @@ namespace KhiDemo
                 RealiseRobotPose(currentRobotPose);
                 oldPoseTuple = currentRobotPose;
             }
-            if (box!=null && magmo.mmHoldMethod== MmHoldMethod.Hierarchy)
+            if (box != null)
             {
-                box.transform.position = vgriptrans.transform.position + robotoffset;
-                lastboxposition = box.transform.position;
+                if (magmo.GetHoldMethod() == MmHoldMethod.Dragged)
+                {
+                    box.transform.position = vgriptrans.transform.position + robotoffset;
+                    box.transform.rotation = vgriptrans.transform.rotation * Quaternion.Euler(90,0,0);
+
+                    lastboxposition = box.transform.position;
+                }
             }
         }
 

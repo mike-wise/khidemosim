@@ -137,7 +137,7 @@ namespace KhiDemo
             p4.MakeCircSeg("n", "cw");
             p4.MakeCircSeg("w", "ccw");
             p2.LinkToContinuationPath(p4);
-            p4.SetLoadedStopPoint(5.0f);
+            p4.SetLoadedStopPoint(5.12f);
 
             var p5 = mmt.MakePath("path5", p1.End());
             p5.MakeLineSeg("e", 2);
@@ -145,7 +145,7 @@ namespace KhiDemo
             p5.MakeLineSeg("e", 2);
             p1.LinkToContinuationPath(p5);
             p1.SetPreferedUnloadedPath(p5);
-            p5.SetUnloadedStopPoint(6.0f);
+            p5.SetUnloadedStopPoint(6.1825f);
 
             var p6 = mmt.MakePath("path6", p5.End());
             p6.MakeLineSeg("e", 2);
