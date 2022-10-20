@@ -128,6 +128,12 @@ namespace KhiDemo
             mmtraygo = UnityUt.CreateCube(mmtrayrep, "gray", size: 1, wps: false);
             mmtraygo.name = "mmtraygo";
             mmtraygo.transform.localScale = new Vector3(0.289f, 0.017f, 0.314f);
+            if (magmo.mmRigidMode != MmRigidMode.None)
+            {
+                var rig = mmtraygo.AddComponent<Rigidbody>();
+                rig.isKinematic = true;
+            }
+
         }
         float slotw;
         float sloth;

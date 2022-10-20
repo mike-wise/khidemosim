@@ -25,6 +25,8 @@ namespace KhiDemo
 
     public enum InfoType {  Info, Warn, Error }
 
+    public enum MmRigidMode {  None, Sleds,SledsBox }
+
     public class MagneMotion : MonoBehaviour
     {
         [Header("Scene Elements")]
@@ -55,6 +57,7 @@ namespace KhiDemo
         MmHoldMethod mmHoldMethod = MmHoldMethod.Hierarchy;
         public MmRobotMoveMode mmRobotMoveMode = MmRobotMoveMode.Sudden;
         public MmMode mmMode = MmMode.None;
+        public MmRigidMode mmRigidMode = MmRigidMode.None;
         public bool stopSimulation = false;
 
         [Header("Network ROS")]

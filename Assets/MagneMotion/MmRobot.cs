@@ -529,12 +529,16 @@ namespace KhiDemo
                 RealiseRobotPose(currentRobotPose);
                 oldPoseTuple = currentRobotPose;
             }
+        }
+
+        private void FixedUpdate()
+        {
             if (box != null)
             {
                 if (magmo.GetHoldMethod() == MmHoldMethod.Dragged)
                 {
                     box.transform.position = vgriptrans.transform.position + robotoffset;
-                    box.transform.rotation = vgriptrans.transform.rotation * Quaternion.Euler(90,0,0);
+                    box.transform.rotation = vgriptrans.transform.rotation * Quaternion.Euler(90, 0, 0);
 
                     lastboxposition = box.transform.position;
                 }

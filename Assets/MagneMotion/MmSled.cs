@@ -195,6 +195,11 @@ namespace KhiDemo
                             AttachBoxToSled(box);
                         }
 
+                        if (magmo.mmRigidMode== MmRigidMode.Sleds)
+                        {
+                            var rig = go.AddComponent<Rigidbody>();
+                            rig.isKinematic = true;
+                        }
                         break;
                     }
             }
@@ -421,10 +426,8 @@ namespace KhiDemo
         //        boxgo.SetActive(loadState);
         //    }
         //}
-        int updatecount = 0;
-        // Update is called once per frame
 
-        void Update()
+        void FixedUpdate()
         {
             if (box != null)
             {
@@ -434,7 +437,6 @@ namespace KhiDemo
                     box.transform.rotation = formgo.transform.rotation;
                 }
             }
-            updatecount++;
         }
     }
 }
