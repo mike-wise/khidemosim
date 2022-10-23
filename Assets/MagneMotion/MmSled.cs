@@ -25,6 +25,7 @@ namespace KhiDemo
         public string sledInFront;
         public float sledInFrontDist;
         public bool stopped;
+        public Rigidbody rigbod;
 
         public static MmSled ConstructSled(MagneMotion magmo, int sledidx, string sledid, int pathnum, float pathdist, bool loaded, bool addbox = false)
         {
@@ -195,11 +196,9 @@ namespace KhiDemo
                             AttachBoxToSled(box);
                         }
 
-                        if (magmo.mmRigidMode== MmRigidMode.Sleds)
-                        {
-                            var rig = go.AddComponent<Rigidbody>();
-                            rig.isKinematic = true;
-                        }
+                        rigbod = go.AddComponent<Rigidbody>();
+                        rigbod.isKinematic = true;
+                        var boxcol = go.AddComponent<BoxCollider>();
                         break;
                     }
             }
@@ -220,22 +219,28 @@ namespace KhiDemo
             }
             Debug.Log($"Attaching Box to Sled - {box.boxid1} {box.boxid2} {box.boxclr} {magmo.GetHoldMethod()}");
             this.box = box;
-
-            if (magmo.GetHoldMethod() == MmHoldMethod.Hierarchy)
+            switch (magmo.GetHoldMethod())
             {
-                Debug.Log($"Attaching Box to Sled - heirarchy");
-                box.transform.parent = null;
-                box.transform.rotation = Quaternion.Euler(0, 0, 0);
-                box.transform.position = Vector3.zero;
-                box.transform.SetParent(formgo.transform, worldPositionStays: false);
-            }
-            else
-            {
-                Debug.Log($"Attaching Box to Sled - dragged");
-                //box.transform.parent = null;
-                box.transform.rotation = Quaternion.Euler(90, 0, 0);
-                box.transform.position = formgo.transform.position;
-                //box.transform.SetParent(formgo.transform, worldPositionStays: false);
+                case MmHoldMethod.Hierarchy:
+                    Debug.Log($"Attaching Box to Sled - Hheirarchy");
+                    box.rigbod.isKinematic = true;
+                    box.transform.parent = null;
+                    box.transform.rotation = Quaternion.Euler(0, 0, 0);
+                    box.transform.position = Vector3.zero;
+                    box.transform.SetParent(formgo.transform, worldPositionStays: false);
+                    break;
+                case MmHoldMethod.Physics:
+                    Debug.Log($"Associating Box to Sled - Physics");
+                    box.rigbod.isKinematic = false;
+                    box.rigbod.useGravity = true;
+                    break;
+                case MmHoldMethod.Dragged:
+                default:
+                    Debug.Log($"Associating Box to Sled - Dragged");
+                    box.rigbod.isKinematic = true;
+                    box.transform.rotation = Quaternion.Euler(90, 0, 0);
+                    box.transform.position = formgo.transform.position;
+                    break;
             }
             box.SetBoxStatus(BoxStatus.onSled);
             loadState = true;
@@ -431,10 +436,12 @@ namespace KhiDemo
         {
             if (box != null)
             {
-                if (magmo.GetHoldMethod() == MmHoldMethod.Dragged)
+                switch (magmo.GetHoldMethod())
                 {
-                    box.transform.position = formgo.transform.position;
-                    box.transform.rotation = formgo.transform.rotation;
+                    case MmHoldMethod.Dragged: // FixedUpdate
+                        box.transform.position = formgo.transform.position;
+                        box.transform.rotation = formgo.transform.rotation;
+                        break;
                 }
             }
         }

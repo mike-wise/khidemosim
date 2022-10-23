@@ -392,22 +392,24 @@ namespace KhiDemo
             }
             Debug.Log($"Attaching Box to Robot - {box.boxid1} {box.boxid2} {box.boxclr} {magmo.GetHoldMethod()})");
             this.box = box;
-            if (magmo.GetHoldMethod() == MmHoldMethod.Hierarchy)
+            switch (magmo.GetHoldMethod())
             {
-                Debug.Log($"Attaching Box to Robot - dragged");
-                box.transform.parent = null;
-                box.transform.localRotation = Quaternion.Euler(90, 0, 0);
-                box.transform.localPosition = robotoffset;
-                box.transform.SetParent(vgriptrans, worldPositionStays: false);
-            }
-            else
-            {
-                Debug.Log($"Attaching Box to Robot - hierarchy");
-                //box.transform.parent = null;
-                box.transform.rotation = transform.rotation * Quaternion.Euler(90, 0, 0);
-                box.transform.position = vgriptrans.transform.position + robotoffset;
-                lastboxposition = box.transform.position;
-                //box.transform.SetParent(vgriptrans, worldPositionStays: false);
+                case MmHoldMethod.Hierarchy:
+                    Debug.Log($"Attaching Box to Robot - Hierarchy");
+                    box.transform.parent = null;
+                    box.transform.localRotation = Quaternion.Euler(90, 0, 0);
+                    box.transform.localPosition = robotoffset;
+                    box.transform.SetParent(vgriptrans, worldPositionStays: false);
+                    break;
+                case MmHoldMethod.Physics:
+                case MmHoldMethod.Dragged:
+                default:
+                    // the proper way to do Physics for a vaccume gripper would involve Fluid Dynamics and we are not going there
+                    Debug.Log($"Associating Box to Robot - Dragged and Physics");
+                    box.transform.rotation = transform.rotation * Quaternion.Euler(90, 0, 0);
+                    box.transform.position = vgriptrans.transform.position + robotoffset;
+                    lastboxposition = box.transform.position;
+                    break;
             }
             loadState = true;
             box.SetBoxStatus(BoxStatus.onRobot);
@@ -535,12 +537,14 @@ namespace KhiDemo
         {
             if (box != null)
             {
-                if (magmo.GetHoldMethod() == MmHoldMethod.Dragged)
-                {
-                    box.transform.position = vgriptrans.transform.position + robotoffset;
-                    box.transform.rotation = vgriptrans.transform.rotation * Quaternion.Euler(90, 0, 0);
+                switch(magmo.GetHoldMethod())
+                { 
+                    case MmHoldMethod.Dragged:  // FixedUpdate
+                        box.transform.position = vgriptrans.transform.position + robotoffset;
+                        box.transform.rotation = vgriptrans.transform.rotation * Quaternion.Euler(90, 0, 0);
 
-                    lastboxposition = box.transform.position;
+                        lastboxposition = box.transform.position;
+                        break;
                 }
             }
         }

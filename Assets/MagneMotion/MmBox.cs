@@ -24,7 +24,7 @@ namespace KhiDemo
         public bool destroyedOnClear;
         public PoolStatus poolStatus;
 
-        public Rigidbody rig;
+        public Rigidbody rigbod;
 
         static MmBox[] boxes = null;
 
@@ -273,11 +273,9 @@ namespace KhiDemo
                             gobx.transform.position = new Vector3(0, 0.0164f, 0);
                             gobx.transform.SetParent(go1.transform, worldPositionStays: false);
                         }
-                        if (magmo.mmRigidMode == MmRigidMode.SledsBox)
-                        {
-                            rig = go1.AddComponent<Rigidbody>();
-                            rig.isKinematic = true;
-                        }
+                        rigbod = go1.AddComponent<Rigidbody>();
+                        rigbod.isKinematic = true;
+                        var boxcol = go1.AddComponent<BoxCollider>();
                         break;
                     }
             }

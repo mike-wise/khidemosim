@@ -22,6 +22,8 @@ namespace KhiDemo
         Dictionary<(int, int), MmBox> trayboxes = new Dictionary<(int, int), MmBox>();
         Dictionary<(int, int), GameObject> trayslots = new Dictionary<(int, int), GameObject>();
 
+        public Rigidbody rigbod;
+
         public MmTray()
         {
             InitVals();
@@ -128,12 +130,9 @@ namespace KhiDemo
             mmtraygo = UnityUt.CreateCube(mmtrayrep, "gray", size: 1, wps: false);
             mmtraygo.name = "mmtraygo";
             mmtraygo.transform.localScale = new Vector3(0.289f, 0.017f, 0.314f);
-            if (magmo.mmRigidMode != MmRigidMode.None)
-            {
-                var rig = mmtraygo.AddComponent<Rigidbody>();
-                rig.isKinematic = true;
-            }
-
+            rigbod = mmtraygo.AddComponent<Rigidbody>();
+            rigbod.isKinematic = true;
+            var boxcol = mmtraygo.AddComponent<BoxCollider>();
         }
         float slotw;
         float sloth;
@@ -258,21 +257,28 @@ namespace KhiDemo
             var slot = trayslots[slotkey];
             trayboxes[slotkey] = box;
 
-            if (magmo.GetHoldMethod() == MmHoldMethod.Hierarchy)
+            switch (magmo.GetHoldMethod())
             {
-                Debug.Log($"Attaching Box to Trayslot - coded");
-                box.transform.parent = null;
-                box.transform.rotation = Quaternion.Euler(90, 0, 0);
-                box.transform.position = Vector3.zero;
-                box.transform.SetParent(slot.transform, worldPositionStays: false);
-            }
-            else
-            {
-                Debug.Log($"Attaching Box to Trayslot - hierarchy");
-                //box.transform.parent = null;
-                box.transform.rotation = Quaternion.Euler(90, 0, 0);
-                box.transform.position = slot.transform.position;
-                //box.transform.SetParent(slot.transform, worldPositionStays: false);
+                case MmHoldMethod.Hierarchy:
+                    Debug.Log($"Attaching Box to Trayslot - Hierarchy");
+                    box.rigbod.isKinematic = true;
+                    box.transform.parent = null;
+                    box.transform.rotation = Quaternion.Euler(90, 0, 0);
+                    box.transform.position = Vector3.zero;
+                    box.transform.SetParent(slot.transform, worldPositionStays: false);
+                    break;
+                case MmHoldMethod.Physics:
+                    Debug.Log($"Associating Box to Trayslot - Physics - doing nothing");
+                    box.rigbod.isKinematic = false;
+                    box.rigbod.useGravity = true;
+                    break;
+                case MmHoldMethod.Dragged:
+                default:
+                    Debug.Log($"Associating Box to Trayslot - Dragged");
+                    box.rigbod.isKinematic = true;
+                    box.transform.rotation = Quaternion.Euler(90, 0, 0);
+                    box.transform.position = slot.transform.position;
+                    break;
             }
 
             loadState[slotkey] = true;

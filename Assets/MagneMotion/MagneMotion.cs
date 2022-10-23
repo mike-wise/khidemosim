@@ -16,7 +16,7 @@ namespace KhiDemo
 
     public enum MmSegForm { None, Straight, Curved }
 
-    public enum MmHoldMethod { Dragged, Hierarchy }
+    public enum MmHoldMethod { Hierarchy, Dragged, Physics }
 
     public enum MmTableStyle {  MftDemo, Simple }
 
