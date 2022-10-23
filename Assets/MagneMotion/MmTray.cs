@@ -232,7 +232,7 @@ namespace KhiDemo
                         var box = MmBox.GetFreePooledBox( BoxStatus.onTray);
                         if (box != null)
                         {
-                            AttachBoxToTraySlot(key, box);
+                            AttachBoxToTraySlot(key, box, firstTime:true);
                             trayboxes[key] = box;
                             loadState[key] = true;
                             ncreated++;
@@ -275,7 +275,7 @@ namespace KhiDemo
                         box.transform.rotation = Quaternion.Euler(90, 0, 0);
                         box.transform.position = slot.transform.position;
                     }
-                    box.rigbod.isKinematic = false;
+                    box.rigbod.isKinematic = true;
                     box.rigbod.useGravity = true;
                     break;
                 case MmHoldMethod.Dragged:

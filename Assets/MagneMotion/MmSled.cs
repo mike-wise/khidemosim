@@ -237,7 +237,7 @@ namespace KhiDemo
                         box.transform.rotation = Quaternion.Euler(90, 0, 0);
                         box.transform.position = formgo.transform.position;
                     }
-                    box.rigbod.isKinematic = false;
+                    box.rigbod.isKinematic = true;
                     box.rigbod.useGravity = true;
                     break;
                 case MmHoldMethod.Dragged:
@@ -444,6 +444,9 @@ namespace KhiDemo
             {
                 switch (magmo.GetHoldMethod())
                 {
+                    case MmHoldMethod.Physics: // FixedUpdate
+                        //box.rigbod.isKinematic = false;
+                        break;
                     case MmHoldMethod.Dragged: // FixedUpdate
                         box.transform.position = formgo.transform.position;
                         box.transform.rotation = formgo.transform.rotation;
