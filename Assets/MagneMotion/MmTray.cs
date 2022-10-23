@@ -251,7 +251,7 @@ namespace KhiDemo
             }
         }
 
-        public void AttachBoxToTraySlot((int, int) slotkey, MmBox box)
+        public void AttachBoxToTraySlot((int, int) slotkey, MmBox box,bool firstTime=false)
         {
             Debug.Log($"Attaching Box to AttachBoxToTraySlot - {slotkey} {box.boxid2} {box.boxclr} {magmo.GetHoldMethod()}");
             var slot = trayslots[slotkey];
@@ -268,7 +268,13 @@ namespace KhiDemo
                     box.transform.SetParent(slot.transform, worldPositionStays: false);
                     break;
                 case MmHoldMethod.Physics:
-                    Debug.Log($"Associating Box to Trayslot - Physics - doing nothing");
+                    Debug.Log($"Associating Box to Trayslot - Physics");
+                    if (firstTime)
+                    {
+                        box.rigbod.isKinematic = true;
+                        box.transform.rotation = Quaternion.Euler(90, 0, 0);
+                        box.transform.position = slot.transform.position;
+                    }
                     box.rigbod.isKinematic = false;
                     box.rigbod.useGravity = true;
                     break;

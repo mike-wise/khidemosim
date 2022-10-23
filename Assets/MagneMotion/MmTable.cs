@@ -265,13 +265,13 @@ namespace KhiDemo
                             case SledLoadDistrib.allLoaded:
                                 foreach (var s in sleds)
                                 {
-                                    s.AssignedPooledBox(true);
+                                    s.AssignedPooledBox(true,firstTime:true);
                                 }
                                 break;
                             case SledLoadDistrib.allUnloaded:
                                 foreach (var s in sleds)
                                 {
-                                    s.AssignedPooledBox(false);
+                                    s.AssignedPooledBox(false, firstTime: true);
                                 }
                                 break;
                             case SledLoadDistrib.alternateLoadedUnloaded:
@@ -279,7 +279,7 @@ namespace KhiDemo
                                 foreach (var s in sleds)
                                 {
                                     bool val = (id % 2 == 0) ? true : false;
-                                    s.AssignedPooledBox(val);
+                                    s.AssignedPooledBox(val, firstTime: true);
                                     //Debug.Log($"Assigned {s.sledid} to loadstate:{val}");
                                     id++;
                                 }

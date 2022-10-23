@@ -273,9 +273,9 @@ namespace KhiDemo
                             gobx.transform.position = new Vector3(0, 0.0164f, 0);
                             gobx.transform.SetParent(go1.transform, worldPositionStays: false);
                         }
-                        rigbod = go1.AddComponent<Rigidbody>();
+                        rigbod = gameObject.AddComponent<Rigidbody>();
                         rigbod.isKinematic = true;
-                        var boxcol = go1.AddComponent<BoxCollider>();
+                        var boxcol = gameObject.AddComponent<BoxCollider>();
                         break;
                     }
             }

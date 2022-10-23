@@ -109,14 +109,14 @@ namespace KhiDemo
         }
 
 
-        public void AssignedPooledBox(bool newLoadState)
+        public void AssignedPooledBox(bool newLoadState,bool firstTime=false)
         {
             if (newLoadState)
             {
                 box = MmBox.GetFreePooledBox(BoxStatus.onSled);
                 if (box != null)
                 {
-                    AttachBoxToSled(box);
+                    AttachBoxToSled(box,firstTime:firstTime);
                 }
                 else
                 {
@@ -210,7 +210,7 @@ namespace KhiDemo
             //Debug.Log($"ConstructSledForm sledForm:{sledform} id:{sledid}");
         }
 
-        public void AttachBoxToSled(MmBox box)
+        public void AttachBoxToSled(MmBox box,bool firstTime=false)
         {
             if (box == null)
             {
@@ -231,6 +231,12 @@ namespace KhiDemo
                     break;
                 case MmHoldMethod.Physics:
                     Debug.Log($"Associating Box to Sled - Physics");
+                    if (firstTime)
+                    {
+                        box.rigbod.isKinematic = true;
+                        box.transform.rotation = Quaternion.Euler(90, 0, 0);
+                        box.transform.position = formgo.transform.position;
+                    }
                     box.rigbod.isKinematic = false;
                     box.rigbod.useGravity = true;
                     break;
