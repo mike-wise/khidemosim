@@ -201,8 +201,17 @@ namespace KhiDemo
                         var boxcol_base = go.AddComponent<BoxCollider>();
                         boxcol_base.size = new Vector3( 0.08f, 0.018f, 0.09f );
                         var boxcol_back = go.AddComponent<BoxCollider>();
-                        boxcol_back.size = new Vector3(0.002f, 0.08f, 0.04f);
+                        boxcol_back.size = new Vector3(0.002f, 0.08f, 0.06f);
                         boxcol_back.center = new Vector3(-0.04f, 0.02f, 0.00f);
+                        var boxcol_frnt = go.AddComponent<BoxCollider>();
+                        boxcol_frnt.size = new Vector3(0.002f, 0.08f, 0.06f);
+                        boxcol_frnt.center = new Vector3(+0.04f, 0.02f, 0.00f);
+                        var boxcol_lside = go.AddComponent<BoxCollider>();
+                        boxcol_lside.size = new Vector3(0.06f, 0.08f, 0.002f);
+                        boxcol_lside.center = new Vector3(0.00f, 0.02f, +0.04f);
+                        var boxcol_rside = go.AddComponent<BoxCollider>();
+                        boxcol_rside.size = new Vector3(0.06f, 0.08f, 0.002f);
+                        boxcol_rside.center = new Vector3(0.00f, 0.02f, -0.04f);
                         break;
                     }
             }

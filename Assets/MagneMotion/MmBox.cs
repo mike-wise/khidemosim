@@ -276,7 +276,9 @@ namespace KhiDemo
                         rigbod = gameObject.AddComponent<Rigidbody>();
                         rigbod.isKinematic = true;
                         var boxcol = gameObject.AddComponent<BoxCollider>();
-                        boxcol.size = new Vector3(0.054f, 0.07f, 0.033f);
+                        //boxcol.size = new Vector3(0.054f, 0.07f, 0.033f);
+                        //boxcol.center = new Vector3(0, 0, -0.02f);
+                        boxcol.size = new Vector3(0.054f, 0.065f, 0.033f);
                         boxcol.center = new Vector3(0, 0, -0.02f);
                         break;
                     }
