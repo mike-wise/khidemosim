@@ -127,7 +127,7 @@ namespace KhiDemo
 
             mmtrayrep.transform.SetParent(parent, worldPositionStays: false);
 
-            mmtraygo = UnityUt.CreateCube(mmtrayrep, "gray", size: 1, wps: false);
+            mmtraygo = UnityUt.CreateCube(mmtrayrep, "gray", size: 1, wps: false, collider:true);
             mmtraygo.name = "mmtraygo";
             mmtraygo.transform.localScale = new Vector3(0.289f, 0.017f, 0.314f);
             rigbod = mmtraygo.AddComponent<Rigidbody>();
@@ -177,11 +177,11 @@ namespace KhiDemo
             slotgo.transform.position = pt;
             slotgo.transform.SetParent(mmtrayrep.transform, worldPositionStays: false);
 
-            var slotformgo = UnityUt.CreateCube(null, "gray", size: 1);
+            var slotformgo = UnityUt.CreateCube(null, "gray", size: 1, collider:false);
             slotformgo.transform.localScale = new Vector3(slotw, 0.005f, sloth);
             slotformgo.transform.SetParent(slotgo.transform, worldPositionStays: false);
 
-            var gobx = UnityUt.CreateCube(null, "red", size: 0.01f);
+            var gobx = UnityUt.CreateCube(null, "red", size: 0.01f, collider:false);
             gobx.name = "centercube";
             gobx.transform.position = new Vector3(0, 0.0164f, 0);
             gobx.transform.SetParent(slotformgo.transform, worldPositionStays: false);
@@ -275,7 +275,7 @@ namespace KhiDemo
                         box.transform.rotation = Quaternion.Euler(90, 0, 0);
                         box.transform.position = slot.transform.position;
                     }
-                    box.rigbod.isKinematic = true;
+                    box.rigbod.isKinematic = false;  // should be false
                     box.rigbod.useGravity = true;
                     break;
                 case MmHoldMethod.Dragged:

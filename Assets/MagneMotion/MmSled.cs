@@ -161,7 +161,7 @@ namespace KhiDemo
                         //var go = UnityUt.CreateCube(formgo, "gray", size: sphrad / 3);
                         //go.transform.localScale = new Vector3(0.88f, 0.52f, 0.16f);
                         // 6.5x11.0x2cm
-                        var go = UnityUt.CreateCube(formgo, "gray", size: 1);
+                        var go = UnityUt.CreateCube(formgo, "gray", size: 1, collider:false);
                         go.transform.position = new Vector3(0.0f, 0.0f, 0.09f) * ska8;
                         go.transform.localScale = new Vector3(0.9f, 0.53f, 0.224f) * ska8;
                         go.name = $"tray";
@@ -198,7 +198,11 @@ namespace KhiDemo
 
                         rigbod = go.AddComponent<Rigidbody>();
                         rigbod.isKinematic = true;
-                        var boxcol = go.AddComponent<BoxCollider>();
+                        var boxcol_base = go.AddComponent<BoxCollider>();
+                        boxcol_base.size = new Vector3( 0.08f, 0.018f, 0.09f );
+                        var boxcol_back = go.AddComponent<BoxCollider>();
+                        boxcol_back.size = new Vector3(0.002f, 0.08f, 0.04f);
+                        boxcol_back.center = new Vector3(-0.04f, 0.02f, 0.00f);
                         break;
                     }
             }
@@ -217,7 +221,7 @@ namespace KhiDemo
                 magmo.ErrMsg("AttachBoxToSled - tryied to attach null box");
                 return;
             }
-            Debug.Log($"Attaching Box to Sled - {box.boxid1} {box.boxid2} {box.boxclr} {magmo.GetHoldMethod()}");
+            Debug.Log($"Attaching/associating Box to Sled - {box.boxid1} {box.boxid2} {box.boxclr} {magmo.GetHoldMethod()}");
             this.box = box;
             switch (magmo.GetHoldMethod())
             {
@@ -236,8 +240,15 @@ namespace KhiDemo
                         box.rigbod.isKinematic = true;
                         box.transform.rotation = Quaternion.Euler(90, 0, 0);
                         box.transform.position = formgo.transform.position;
+                        box.rigbod.isKinematic = false;
                     }
-                    box.rigbod.isKinematic = true;
+                    else
+                    {
+                        //box.rigbod.isKinematic = true; // should be false 
+                        //box.transform.rotation = Quaternion.Euler(90, 0, 0);
+                        //box.transform.position = formgo.transform.position;
+                        box.rigbod.isKinematic = false;
+                    }
                     box.rigbod.useGravity = true;
                     break;
                 case MmHoldMethod.Dragged:
@@ -442,14 +453,24 @@ namespace KhiDemo
         {
             if (box != null)
             {
-                switch (magmo.GetHoldMethod())
+                var meth = magmo.GetHoldMethod();
+                switch (meth)
                 {
                     case MmHoldMethod.Physics: // FixedUpdate
-                        //box.rigbod.isKinematic = false;
-                        break;
+                        box.rigbod.isKinematic = false;
+                         break;
                     case MmHoldMethod.Dragged: // FixedUpdate
-                        box.transform.position = formgo.transform.position;
-                        box.transform.rotation = formgo.transform.rotation;
+                        if (box?.rigbod != null)
+                        {
+                            if (meth==MmHoldMethod.Physics)
+                            {
+                                box.rigbod.isKinematic = false;
+                            }
+                            //box.transform.position = formgo.transform.position;
+                            //box.transform.rotation = formgo.transform.rotation;
+                            box.rigbod.MovePosition(formgo.transform.position);
+                            box.rigbod.MoveRotation(formgo.transform.rotation);
+                        }
                         break;
                 }
             }

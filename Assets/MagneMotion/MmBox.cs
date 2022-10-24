@@ -245,7 +245,7 @@ namespace KhiDemo
             {
                 case BoxForm.CubeBased:
                     {
-                        var gobx = UnityUt.CreateCube(formgo, "yellow", size: 1);
+                        var gobx = UnityUt.CreateCube(formgo, "yellow", size: 1, collider:false);
                         gobx.name = $"box";
                         // 7x5.4x4.3.5
                         gobx.transform.position = new Vector3(0.0f, 0.0f, -0.16f)*1f/8;
@@ -266,7 +266,7 @@ namespace KhiDemo
                         if (boxform == BoxForm.PrefabWithMarkerCube)
                         {
                             boxclr = UnityUt.GetSequentialColorString();
-                            var gobx = UnityUt.CreateCube(null, boxclr, size: 0.02f);
+                            var gobx = UnityUt.CreateCube(null, boxclr, size: 0.02f, collider:false);
                             gobx.name = "markercube";
 
                             gobx.transform.localScale = new Vector3(0.03f, 0.01f, 0.03f);
@@ -276,6 +276,8 @@ namespace KhiDemo
                         rigbod = gameObject.AddComponent<Rigidbody>();
                         rigbod.isKinematic = true;
                         var boxcol = gameObject.AddComponent<BoxCollider>();
+                        boxcol.size = new Vector3(0.054f, 0.07f, 0.033f);
+                        boxcol.center = new Vector3(0, 0, -0.02f);
                         break;
                     }
             }
@@ -305,6 +307,23 @@ namespace KhiDemo
                 UnityUt.AddFltTextMeshGameObject(formgo, Vector3.zero, txt2, "black", rot3, off3, ska1, meth, goname: "BoxIdTxt2");
             }
         }
+        //private void FixedUpdate()
+        //{
+        //    switch (magmo.mmMode)
+        //    {
+        //        case MmMode.SimuRailToRail:
+        //        case MmMode.StartRailToTray:
+        //        case MmMode.StartTrayToRail:
+        //            switch (magmo.GetHoldMethod())
+        //            {
+        //                case MmHoldMethod.Physics:
+        //                    {
+        //                    }
+        //                    break;
+        //            }
+        //            break;
+        //    }
+        //}
 
     }
 }

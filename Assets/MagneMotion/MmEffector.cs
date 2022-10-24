@@ -21,14 +21,14 @@ namespace KhiDemo
             mmrobot = robot;
             var sz = 0.05f;
             var sz2 = sz / 2;
-            formbase = UnityUt.CreateSphere(formbase, "lilac",sz);
+            formbase = UnityUt.CreateSphere(formbase, "lilac",sz, collider:false);
             formbase.name = "formbase";
             formbase.transform.parent = this.transform;
-            var xax = UnityUt.CreateSphere(formbase, "red", sz/10);
+            var xax = UnityUt.CreateSphere(formbase, "red", sz/10, collider: false);
             xax.transform.position += new Vector3(sz2, 0, 0);
-            var yax = UnityUt.CreateSphere(formbase, "green", sz / 10);
+            var yax = UnityUt.CreateSphere(formbase, "green", sz/10, collider: false);
             yax.transform.position += new Vector3(0, sz2, 0);
-            var zax = UnityUt.CreateSphere(formbase, "blue", sz / 10);
+            var zax = UnityUt.CreateSphere(formbase, "blue", sz/10, collider: false);
             zax.transform.position += new Vector3(0, 0, sz2);
         }
 

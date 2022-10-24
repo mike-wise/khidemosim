@@ -516,6 +516,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mmtrayrep: {fileID: 0}
   mmtraygo: {fileID: 0}
+  rigbod: {fileID: 0}
 --- !u!1001 &703759235
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1722,7 +1723,7 @@ MonoBehaviour:
   effectorPoseMarkers: 1
   mmtgo: {fileID: 0}
   mmtctrlgo: {fileID: 0}
-  mmInitialHoldMethod: 0
+  mmInitialHoldMethod: 2
   mmRobotMoveMode: 0
   mmMode: 3
   mmRigidMode: 2

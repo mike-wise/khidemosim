@@ -282,13 +282,13 @@ public class Rs007TrajectoryPlanner : MonoBehaviour
         //if (cmt != "")
         //{
         //    var sz = 0.02f;
-        //    var go0 = UnityUt.CreateSphere(null, "yellow", size: sz);
+        //    var go0 = UnityUt.CreateSphere(null, "yellow", size: sz, collider: false);
         //    go0.name = $"PivotPoint";
         //    go0.transform.position = pivotpt;
-        //    var go1 = UnityUt.CreateSphere(null, frcolor, size: sz);
+        //    var go1 = UnityUt.CreateSphere(null, frcolor, size: sz, collider: false);
         //    go1.name = $"{cmt} - pt";
         //    go1.transform.position = pt;
-        //    var go2 = UnityUt.CreateSphere(null, toculor, size: sz);
+        //    var go2 = UnityUt.CreateSphere(null, toculor, size: sz, collider: false);
         //    go2.name = $"{cmt} - tpt";
         //    go2.transform.position = tpt;
         //}

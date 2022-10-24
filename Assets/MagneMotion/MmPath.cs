@@ -157,17 +157,17 @@ namespace KhiDemo
         }
         public void MakeGos(GameObject parent)
         {
-            startgo = UnityUt.CreateSphere(parent, "green", size: sphrad);
+            startgo = UnityUt.CreateSphere(parent, "green", size: sphrad, collider: false);
             startgo.name = name;
             startgo.transform.position = strpt;
-            startgo = UnityUt.CreateSphere(parent, "blue", size: sphrad);
+            startgo = UnityUt.CreateSphere(parent, "blue", size: sphrad, collider: false);
             startgo.name = name;
             startgo.transform.position = endpt;
 
 
             if (this.mmSegForm == MmSegForm.Curved)
             {
-                startgo = UnityUt.CreateSphere(parent, "magenta", size: sphrad);
+                startgo = UnityUt.CreateSphere(parent, "magenta", size: sphrad, collider: false);
                 startgo.name = name + "-center";
                 startgo.transform.position = this.cenpt;
                 var npts = 10;
@@ -177,7 +177,7 @@ namespace KhiDemo
                     var ang = angOfLmbDeg(frac);
                     var pt = ptOfLmb(frac);
 
-                    var go = UnityUt.CreateSphere(parent, "white", size: sphrad / 2);
+                    var go = UnityUt.CreateSphere(parent, "white", size: sphrad / 2, collider: false);
                     go.name = $"{name} ang:{ang:f0} frac:{frac:f2}";
                     //go.transform.position = UnitsToMeters(pt);
                     go.transform.position = pt;
@@ -190,7 +190,7 @@ namespace KhiDemo
                 {
                     var frac = i * 1.0f / npts;
                     var pt = frac * (endpt - strpt) + strpt;
-                    var go = UnityUt.CreateSphere(parent, "gray", size: sphrad / 2);
+                    var go = UnityUt.CreateSphere(parent, "gray", size: sphrad / 2, collider: false);
                     go.name = $"{name} line frac:{frac:f2}";
                     //go.transform.position = UnitsToMeters(pt);
                     go.transform.position = pt;
@@ -249,7 +249,7 @@ namespace KhiDemo
                 sz *= mmt.UnitsToMeters;
                 pos *= mmt.UnitsToMeters;
             }
-            startgo = UnityUt.CreateCube(parent, "blue", size: sz);
+            startgo = UnityUt.CreateCube(parent, "blue", size: sz,collider:false);
             startgo.name = $"Start-{name}";
             startgo.transform.position = pos;
             if (seggos)

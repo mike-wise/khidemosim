@@ -44,11 +44,11 @@ namespace KhiDemo
             {
                 case RailForm.Cigar:
                     {
-                        var go = UnityUt.CreateCube(formgo, "gray", size: sphrad / 3);
+                        var go = UnityUt.CreateCube(formgo, "gray", size: sphrad / 3, collider:false);
                         go.name = $"cigar";
                         go.transform.localScale = new Vector3(0.1f, 0.3f, 0.1f);
 
-                        var go1 = UnityUt.CreateCube(formgo, "red", size: sphrad / 3);
+                        var go1 = UnityUt.CreateCube(formgo, "red", size: sphrad / 3, collider: false);
                         go1.name = $"nose";
                         go1.transform.position = new Vector3(0.0f, 0.1f, 0);
                         go1.transform.localScale = new Vector3(0.11f, 0.11f, 0.11f);
@@ -56,13 +56,13 @@ namespace KhiDemo
                     }
                 case RailForm.Box:
                     {
-                        var go = UnityUt.CreateCube(formgo, "gray", size: sphrad / 3);
+                        var go = UnityUt.CreateCube(formgo, "gray", size: sphrad / 3, collider: false);
                         go.name = $"tray";
                         // 6.5x11.0x2cm
                         go.transform.localScale = new Vector3(0.88f, 0.52f, 0.16f);
 
                         var clr = UnityUt.GetRandomColorString();
-                        var go2 = UnityUt.CreateCube(formgo, clr, size: sphrad / 3);
+                        var go2 = UnityUt.CreateCube(formgo, clr, size: sphrad / 3, collider:false);
                         go2.name = $"nose";
                         go2.transform.position = new Vector3(0.0f, 0.2f, -0.16f);
                         go2.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);

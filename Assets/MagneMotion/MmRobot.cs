@@ -339,13 +339,13 @@ namespace KhiDemo
                 {
                     var sz = 0.2f / 10;
                     var sz2 = sz / 2;
-                    var ego = UnityUt.CreateSphere(null, "limegreen", sz);
+                    var ego = UnityUt.CreateSphere(null, "limegreen", sz, collider: false);
                     ego.name = "Sph-" + key.ToString();
-                    var xax = UnityUt.CreateSphere(ego, "red", sz / 5);
+                    var xax = UnityUt.CreateSphere(ego, "red", sz / 5, collider: false);
                     xax.transform.position += new Vector3(sz2, 0, 0);
-                    var yax = UnityUt.CreateSphere(ego, "green", sz / 5);
+                    var yax = UnityUt.CreateSphere(ego, "green", sz / 5, collider: false);
                     yax.transform.position += new Vector3(0, sz2, 0);
-                    var zax = UnityUt.CreateSphere(ego, "blue", sz / 5);
+                    var zax = UnityUt.CreateSphere(ego, "blue", sz / 5, collider: false);
                     zax.transform.position += new Vector3(0, 0, sz2);
                     ego.transform.position = p;
                     ego.transform.rotation = q;
@@ -403,12 +403,11 @@ namespace KhiDemo
                     break;
                 case MmHoldMethod.Physics:
                 case MmHoldMethod.Dragged:
-                default:
                     // the proper way to do Physics for a vaccume gripper would involve Fluid Dynamics and we are not going there
                     Debug.Log($"Associating Box to Robot - Dragged and Physics");
+                    box.rigbod.isKinematic = true;
                     box.transform.rotation = transform.rotation * Quaternion.Euler(90, 0, 0);
                     box.transform.position = vgriptrans.transform.position + robotoffset;
-                    lastboxposition = box.transform.position;
                     break;
             }
             loadState = true;
@@ -538,12 +537,12 @@ namespace KhiDemo
             if (box != null)
             {
                 switch(magmo.GetHoldMethod())
-                { 
+                {
+                    case MmHoldMethod.Physics:  // FixedUpdate
                     case MmHoldMethod.Dragged:  // FixedUpdate
                         box.transform.position = vgriptrans.transform.position + robotoffset;
                         box.transform.rotation = vgriptrans.transform.rotation * Quaternion.Euler(90, 0, 0);
 
-                        lastboxposition = box.transform.position;
                         break;
                 }
             }
