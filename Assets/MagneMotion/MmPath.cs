@@ -274,11 +274,11 @@ namespace KhiDemo
         }
         bool HasLoadedStopPoint()
         {
-            return loadedStopPoint < 0;
+            return loadedStopPoint >= 0;
         }
         bool HasUnoadedStopPoint()
         {
-            return loadedStopPoint < 0;
+            return unloadedStopPoint >= 0;
         }
 
         public float DistanceUntilStopOnPath(float curpathdist, bool loaded)

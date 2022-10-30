@@ -10,6 +10,9 @@ namespace KhiDemo
         MagneMotion magmo;
         MmTable mmt;
         public enum SledForm { BoxCubeBased, Prefab }
+        public bool useNewAccelerationModel = false;
+
+
         public int pathnum;
         public int nextpathnum;
         public float pathUnitDist;
@@ -84,7 +87,6 @@ namespace KhiDemo
             var p = mmt.GetPath(pathnum);
             nextpathnum = p.FindContinuationPathIdx(loadState, alternateIfMultipleChoicesAvaliable: false);
         }
-        bool useNewAccelerationModel = false;
         public void SetRequestedSpeedNew(float newspeed)
         {
             reqestedSledUpsSpeed = newspeed;
@@ -109,11 +111,6 @@ namespace KhiDemo
         {
             if (newLoadState == loadState) return;
             loadState = newLoadState;
-            //if (magmo.mmctrl.mmBoxMode == MmBoxMode.Real && newLoadState && boxgo == null)
-            //{
-            //    box = MmBox.ConstructBox(magmo, sledid, stat: BoxStatus.onSled);
-            //    boxgo = box.gameObject;
-            //}
             if (box?.gameObject != null)
             {
                 box.gameObject.SetActive(loadState);

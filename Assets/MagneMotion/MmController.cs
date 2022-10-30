@@ -153,6 +153,7 @@ namespace KhiDemo
             {
                 default:
                 case MmMode.Echo:
+                    MmBox.ReturnToPoolSidePositions();
                     mmSubMode = MmSubMode.None;
                     magmo.boxForm = MmBox.BoxForm.Prefab;
                     magmo.echoMovementsRos = true;

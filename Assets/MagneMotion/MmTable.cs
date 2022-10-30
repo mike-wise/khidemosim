@@ -265,13 +265,13 @@ namespace KhiDemo
                             case SledLoadDistrib.allLoaded:
                                 foreach (var s in sleds)
                                 {
-                                    s.AssignedPooledBox(true,firstTime:true);
+                                    s.AssignedPooledBox( newLoadState: true,firstTime:true);
                                 }
                                 break;
                             case SledLoadDistrib.allUnloaded:
                                 foreach (var s in sleds)
                                 {
-                                    s.AssignedPooledBox(false, firstTime: true);
+                                    s.AssignedPooledBox( newLoadState:false, firstTime: true);
                                 }
                                 break;
                             case SledLoadDistrib.alternateLoadedUnloaded:
@@ -376,6 +376,7 @@ namespace KhiDemo
                 }
             }
         }
+
 
         public int CountLoadedSleds()
         {

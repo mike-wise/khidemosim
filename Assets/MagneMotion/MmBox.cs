@@ -90,6 +90,19 @@ namespace KhiDemo
             box.transform.position += pos;
         }
 
+        public static void ReturnToPoolSidePositions()
+        {
+            foreach( var box in fakePool )
+            {
+                SetPoolSidePosition(box);
+            }
+            foreach (var box in realPool)
+            {
+                SetPoolSidePosition(box);
+            }
+        }
+
+
         public static void ReturnToPool(MmBox box)
         {
             if (box == null)
