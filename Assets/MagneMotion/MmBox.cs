@@ -90,15 +90,21 @@ namespace KhiDemo
             box.transform.position += pos;
         }
 
-        public static void ReturnToPoolSidePositions()
+        public static void ReturnToPoolSidePositions(bool fakeBoxes=true,bool realBoxes=true)
         {
-            foreach( var box in fakePool )
+            if (fakeBoxes)
             {
-                SetPoolSidePosition(box);
+                foreach (var box in fakePool)
+                {
+                    SetPoolSidePosition(box);
+                }
             }
-            foreach (var box in realPool)
+            if (realBoxes)
             {
-                SetPoolSidePosition(box);
+                foreach (var box in realPool)
+                {
+                    SetPoolSidePosition(box);
+                }
             }
         }
 

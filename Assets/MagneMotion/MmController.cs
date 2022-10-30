@@ -153,7 +153,7 @@ namespace KhiDemo
             {
                 default:
                 case MmMode.Echo:
-                    MmBox.ReturnToPoolSidePositions();
+                    MmBox.ReturnToPoolSidePositions(fakeBoxes:true,realBoxes:true);
                     mmSubMode = MmSubMode.None;
                     magmo.boxForm = MmBox.BoxForm.Prefab;
                     magmo.echoMovementsRos = true;
@@ -168,6 +168,7 @@ namespace KhiDemo
                     mmtray.InitAllLoadstate(nbox: 12); 
                     break;
                 case MmMode.Planning:
+                    MmBox.ReturnToPoolSidePositions(fakeBoxes: true, realBoxes: true);
                     mmSubMode = MmSubMode.None;
                     magmo.boxForm = MmBox.BoxForm.PrefabWithMarkerCube;
                     magmo.echoMovementsRos = false;
@@ -182,6 +183,7 @@ namespace KhiDemo
                     mmtray.InitAllLoadstate(nbox: 5);
                     break;
                 case MmMode.SimuRailToRail:
+                    MmBox.ReturnToPoolSidePositions(fakeBoxes: true, realBoxes: false);
                     mmSubMode = MmSubMode.None;
                     magmo.boxForm = MmBox.BoxForm.PrefabWithMarkerCube;
                     magmo.echoMovementsRos = false;
@@ -198,6 +200,7 @@ namespace KhiDemo
                     mmt.SetupSledLoads(SledLoadDistrib.alternateLoadedUnloaded);
                     break;
                 case MmMode.StartRailToTray:
+                    MmBox.ReturnToPoolSidePositions(fakeBoxes: true, realBoxes: false);
                     mmSubMode = MmSubMode.RailToTray;
                     magmo.echoMovementsRos = false;
                     magmo.enablePlanning = false;
@@ -212,6 +215,7 @@ namespace KhiDemo
                     magmo.mmRobot.RealiseRobotPose(RobotJointPose.rest);
                     break;
                 case MmMode.StartTrayToRail:
+                    MmBox.ReturnToPoolSidePositions(fakeBoxes: true, realBoxes: false);
                     mmSubMode = MmSubMode.TrayToRail;
                     magmo.boxForm = MmBox.BoxForm.PrefabWithMarkerCube;
                     magmo.echoMovementsRos = false;
