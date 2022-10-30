@@ -11,6 +11,7 @@ using NetMQ.Sockets;
 
 namespace KhiDemo
 {
+
     public enum MmRobotMoveMode { Sudden, Planned }
     public enum MmBoxMode { RealPooled, FakePooled }
 
@@ -44,7 +45,7 @@ namespace KhiDemo
         public bool addPathMarkers = false;
         public bool addPathSledsOnStartup = true;
         public bool positionOnFloor = false;
-        public bool enclosureOn = false;
+        public bool enclosureOn = true;
         public bool enclosureLoaded = false;
         public bool effectorPoseMarkers = false;
 
@@ -81,6 +82,7 @@ namespace KhiDemo
 
         [Header("Extras")]
         public bool calculatePoses = false;
+        public bool publishJsonStatesToFile;
 
 
         List<(InfoType intyp, DateTime time, string msg)> messages;
@@ -133,6 +135,7 @@ namespace KhiDemo
             target = InitGo("Target");
             targetPlacement = InitGo("TargetPlacement");
 
+
             rosconnection = ROSConnection.GetOrCreateInstance();
             rosconnection.ShowHud = false;
             rosconnection.ConnectOnStart = false;
@@ -142,6 +145,7 @@ namespace KhiDemo
 
             GetNetworkParms();
             GetOtherParms();
+
             // ZmqSendString("Hello world");
         }
 
@@ -368,7 +372,6 @@ namespace KhiDemo
 
             // Initialize Robot
 
-
             var mmgo = mmt.SetupGeometry(addPathMarkers: addPathMarkers, positionOnFloor: positionOnFloor);
             mmgo.transform.SetParent(transform, false);
             if (addPathSledsOnStartup)
@@ -387,6 +390,12 @@ namespace KhiDemo
             mmctrl = mmtctrlgo.AddComponent<MmController>();
             mmctrl.Init(this);
             mmctrl.SetMode(mmMode,clear:false); // first call should not try and clear
+
+            if (enclosureOn)
+            {
+                CheckEnclosure();
+            }
+
         }
 
         MmSled.SledForm oldsledForm;

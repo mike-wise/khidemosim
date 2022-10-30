@@ -272,39 +272,72 @@ namespace KhiDemo
                 }
             }
         }
+        bool HasLoadedStopPoint()
+        {
+            return loadedStopPoint < 0;
+        }
+        bool HasUnoadedStopPoint()
+        {
+            return loadedStopPoint < 0;
+        }
 
+        public float DistanceUntilStopOnPath(float curpathdist, bool loaded)
+        {
+            if (loaded && HasLoadedStopPoint())
+            {
+                if (curpathdist <= loadedStopPoint )
+                {
+                    var disttostop = loadedStopPoint - curpathdist;
+                    return disttostop;
+                }
+            }
+            if (!loaded && HasUnoadedStopPoint())
+            {
+                if (curpathdist <= unloadedStopPoint )
+                {
+                    var disttostop = unloadedStopPoint - curpathdist;
+                    return disttostop;
+                }
+            }
+            return float.MaxValue;
+        }
 
-
-        public (int newpathidx, float newpathdist, bool atEndOfPath, bool stopped) AdvancePathdistInUnits(float curpathdist, float deltadist, bool loaded)
+        public (int newpathidx, float newpathdist, bool atEndOfPath,  SledMoveStatus sms, float disttostop ) AdvancePathdistInUnits(float curpathdist, float deltadist, bool loaded)
         {
             var newdist = curpathdist + deltadist;
+            var disttostop = float.MaxValue;
+
+            // We are not changing paths
             if (newdist < this.pathLength)
             {
-                if (loaded && loadedStopPoint>0)
+                if (loaded && HasLoadedStopPoint())
                 {
                     if (curpathdist<=loadedStopPoint && loadedStopPoint<newdist)
                     {
-                        return (pidx, loadedStopPoint, atEndOfPath: false, stopped: true);
+                        disttostop = loadedStopPoint - curpathdist;
+                        return (pidx, loadedStopPoint, atEndOfPath: false, SledMoveStatus.Stopped, disttostop );
                     }
                 }
-                if (!loaded && unloadedStopPoint > 0)
+                if (!loaded && HasUnoadedStopPoint())
                 {
                     if (curpathdist <= unloadedStopPoint && unloadedStopPoint < newdist)
                     {
-                        return (pidx, unloadedStopPoint, atEndOfPath: false, stopped: true);
+                        disttostop = unloadedStopPoint - curpathdist;
+                        return (pidx, unloadedStopPoint, atEndOfPath: false, SledMoveStatus.Stopped, disttostop);
                     }
                 }
-                return (pidx, newdist, atEndOfPath:false, stopped:false);
+                return (pidx, newdist, atEndOfPath:false, SledMoveStatus.Moving, disttostop);
             }
-            var restdist = newdist - this.pathLength;
 
+            // We are changing paths
+            var restdist = newdist - this.pathLength;
             if (continuationPaths.Count == 0)
             {
-                return (pidx, this.pathLength, atEndOfPath: true, stopped: false);
+                return (pidx, this.pathLength, atEndOfPath: true, SledMoveStatus.Moving, disttostop);
             }
             var nxpidx = FindContinuationPathIdx(loaded, alternateIfMultipleChoicesAvaliable: true);
 
-            return (nxpidx, restdist, atEndOfPath: false, stopped: false);
+            return (nxpidx, restdist, atEndOfPath: false, SledMoveStatus.Moving, disttostop);
         }
 
         int selcount = 0;

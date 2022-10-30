@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace KhiDemo
 {
+    public enum SledMoveStatus { Unset, Stopped, Moving };
     public class MmSled : MonoBehaviour
     {
         MagneMotion magmo;
@@ -13,7 +14,7 @@ namespace KhiDemo
         public int nextpathnum;
         public float pathUnitDist;
         bool markedForDeletion = false;
-        public float sledUpsSpeed;
+        public float sledUnitsPerSecSpeed;
         public float reqestedSledUpsSpeed;
         public bool visible;
         SledForm sledform;
@@ -24,7 +25,7 @@ namespace KhiDemo
         public string sledid;
         public string sledInFront;
         public float sledInFrontDist;
-        public bool stopped;
+        public SledMoveStatus sledMoveStatus = SledMoveStatus.Unset;
         public Rigidbody rigbod;
 
         public static MmSled ConstructSled(MagneMotion magmo, int sledidx, string sledid, int pathnum, float pathdist, bool loaded, bool addbox = false)
@@ -44,14 +45,14 @@ namespace KhiDemo
             sled.magmo = magmo;
             sled.mmt = mmt;
             // Set default state
-            sled.sledUpsSpeed = 0;
+            sled.sledUnitsPerSecSpeed = 0;
             sled.reqestedSledUpsSpeed = 0;
             sled.pathnum = 0;
             sled.nextpathnum = -1;
             sled.pathUnitDist = 0;
             sled.loadState = true;
             sled.visible = true;
-            sled.stopped = false;
+            sled.sledMoveStatus = SledMoveStatus.Moving;
 
             sled.ConstructSledForm(sledform, addbox);
             sled.AdjustSledOnPathDist(pathnum, pathdist);
@@ -83,11 +84,26 @@ namespace KhiDemo
             var p = mmt.GetPath(pathnum);
             nextpathnum = p.FindContinuationPathIdx(loadState, alternateIfMultipleChoicesAvaliable: false);
         }
-
-        public void SetSpeed(float newspeed)
+        bool useNewAccelerationModel = false;
+        public void SetRequestedSpeedNew(float newspeed)
         {
             reqestedSledUpsSpeed = newspeed;
-            sledUpsSpeed = newspeed;
+        }
+        public void SetRequestedSpeedOld(float newspeed)
+        {
+            reqestedSledUpsSpeed = newspeed;
+            sledUnitsPerSecSpeed = newspeed;
+        }
+        public void SetRequestedSpeed(float newspeed)
+        {
+            if (useNewAccelerationModel)
+            {
+                SetRequestedSpeedNew(newspeed);
+            }
+            else
+            {
+                SetRequestedSpeedOld(newspeed);
+            }
         }
         public void SetLoadState(bool newLoadState, bool cascadeToRobot = false)
         {
@@ -152,7 +168,7 @@ namespace KhiDemo
             this.sledform = sledform;
 
             formgo = new GameObject("sledform");
-            var ska8 = 1f / 8;
+            var unitsToMetersFak = 1f / 8;
 
             switch (this.sledform)
             {
@@ -162,8 +178,8 @@ namespace KhiDemo
                         //go.transform.localScale = new Vector3(0.88f, 0.52f, 0.16f);
                         // 6.5x11.0x2cm
                         var go = UnityUt.CreateCube(formgo, "gray", size: 1, collider:false);
-                        go.transform.position = new Vector3(0.0f, 0.0f, 0.09f) * ska8;
-                        go.transform.localScale = new Vector3(0.9f, 0.53f, 0.224f) * ska8;
+                        go.transform.position = new Vector3(0.0f, 0.0f, 0.09f) * unitsToMetersFak;
+                        go.transform.localScale = new Vector3(0.9f, 0.53f, 0.224f) * unitsToMetersFak;
                         go.name = $"tray";
 
                         if (addBox)
@@ -171,8 +187,8 @@ namespace KhiDemo
                             //var box = UnityUt.CreateCube(formgo, "yellow", size: 1);
                             //box.name = $"box";
                             //// 7x5.4x4.3.5
-                            //box.transform.position = new Vector3(0.0f, 0.0f, -0.16f) * ska8;
-                            //box.transform.localScale = new Vector3(0.43f, 0.56f, 0.27f) * ska8;
+                            //box.transform.position = new Vector3(0.0f, 0.0f, -0.16f) * unitsToMetersFak;
+                            //box.transform.localScale = new Vector3(0.43f, 0.56f, 0.27f) * unitsToMetersFak;
                             //boxgo = box;
                             var box = MmBox.ConstructBox(mmt.magmo, mmt.magmo.boxForm, "Hmm", sledid, BoxStatus.onSled);
                             AttachBoxToSled(box);
@@ -286,15 +302,15 @@ namespace KhiDemo
 
         void AddSledIdToSledForm()
         {
-            var ska = 1f / 8;
+            var unitsToMetersFak = 1f / 8;
             var rot1 = new Vector3(0, 90, -90);
             var rot2 = -rot1;
-            var off1 = new Vector3(-0.27f, 0, -0.12f) * ska;
-            var off2 = new Vector3(+0.27f, 0, -0.12f) * ska;
+            var off1 = new Vector3(-0.27f, 0, -0.12f) * unitsToMetersFak;
+            var off2 = new Vector3(+0.27f, 0, -0.12f) * unitsToMetersFak;
             var txt = $"{sledid}";
             var meth = UnityUt.FltTextImpl.TextPro;
-            UnityUt.AddFltTextMeshGameObject(formgo, Vector3.zero, txt, "yellow", rot1, off1, ska, meth, goname: "SledidTxt");
-            UnityUt.AddFltTextMeshGameObject(formgo, Vector3.zero, txt, "yellow", rot2, off2, ska, meth, goname: "SledidTxt");
+            UnityUt.AddFltTextMeshGameObject(formgo, Vector3.zero, txt, "yellow", rot1, off1, unitsToMetersFak, meth, goname: "SledidTxt");
+            UnityUt.AddFltTextMeshGameObject(formgo, Vector3.zero, txt, "yellow", rot2, off2, unitsToMetersFak, meth, goname: "SledidTxt");
         }
 
         void AdjustSledOnPathDist(int pathnum, float pathdist)
@@ -333,28 +349,60 @@ namespace KhiDemo
             SetLoadState(new_loaded, cascadeToRobot: true);
             AdjustSledOnPathDist(new_pathnum, new_pathdist);
         }
-
-        const float sledMinGap = 8 * 0.10f;// 10 cm
-        public float deltDistToMove;
-        public float maxDistToMove;
-        public void AdvanceSledBySpeed()
+        float speedLastCaled=0;
+        public void AdjustSpeed()
         {
+            var delttime = Time.time - speedLastCaled;
+            if (delttime<=0)
+            {
+                Debug.LogError($"Sled.AdjustSpeed - delttime less than or equal to zero:{delttime}");
+            }
+            speedLastCaled = Time.time;
+            var maxaccel = 8; // Ups
+            var maxdecel = 8;
+            if (reqestedSledUpsSpeed > sledUnitsPerSecSpeed)
+            {
+                var deltspeed = maxaccel * delttime;
+                sledUnitsPerSecSpeed += deltspeed;
+                if (sledUnitsPerSecSpeed > reqestedSledUpsSpeed)
+                {
+                    sledUnitsPerSecSpeed = reqestedSledUpsSpeed;
+                }
+            }
+            else if (reqestedSledUpsSpeed < sledUnitsPerSecSpeed)
+            {
+                var deltspeed = maxdecel * delttime;
+                sledUnitsPerSecSpeed -= deltspeed;
+                if (sledUnitsPerSecSpeed < reqestedSledUpsSpeed)
+                {
+                    sledUnitsPerSecSpeed = reqestedSledUpsSpeed;
+                }
+            }
+        }
+        const float UnitsPerMeter = 8;
+        const float sledMinGap = UnitsPerMeter * 0.10f;// 10 cm
+        public float deltUnitsDistToMove;
+        public float maxDistToMove;
+        public void AdvanceSledBySpeedNew()
+        {
+            AdjustSpeed();
             if (pathnum >= 0)
             {
-                deltDistToMove = 8 * this.sledUpsSpeed * Time.deltaTime;
+                deltUnitsDistToMove = UnitsPerMeter * this.sledUnitsPerSecSpeed * Time.deltaTime;
                 if (sledInFront != "")
                 {
                     maxDistToMove = sledInFrontDist - sledMinGap;
-                    deltDistToMove = Mathf.Min(maxDistToMove, deltDistToMove);
-                    if (deltDistToMove < 0)
+                    deltUnitsDistToMove = Mathf.Min(maxDistToMove, deltUnitsDistToMove);
+                    if (deltUnitsDistToMove < 0)
                     {
-                        deltDistToMove = 0;
+                        deltUnitsDistToMove = 0;
                     }
                 }
                 var path = mmt.GetPath(pathnum);
                 bool atEndOfPath;
                 int oldpath = pathnum;
-                (pathnum, pathUnitDist, atEndOfPath, stopped) = path.AdvancePathdistInUnits(pathUnitDist, deltDistToMove, loadState);
+                float distInUnitsToStop = 0;
+                (pathnum, pathUnitDist, atEndOfPath, sledMoveStatus, distInUnitsToStop) = path.AdvancePathdistInUnits(pathUnitDist, deltUnitsDistToMove, loadState);
                 if (oldpath != pathnum)
                 {
                     // pathchanged
@@ -375,6 +423,57 @@ namespace KhiDemo
                 }
             }
         }
+        public void AdvanceSledBySpeedOld()
+        {
+            if (pathnum >= 0)
+            {
+                deltUnitsDistToMove = UnitsPerMeter * this.sledUnitsPerSecSpeed * Time.deltaTime;
+                if (sledInFront != "")
+                {
+                    maxDistToMove = sledInFrontDist - sledMinGap;
+                    deltUnitsDistToMove = Mathf.Min(maxDistToMove, deltUnitsDistToMove);
+                    if (deltUnitsDistToMove < 0)
+                    {
+                        deltUnitsDistToMove = 0;
+                    }
+                }
+                var path = mmt.GetPath(pathnum);
+                bool atEndOfPath;
+                int oldpath = pathnum;
+                float distInUnitsToStop = 0;
+                (pathnum, pathUnitDist, atEndOfPath, sledMoveStatus, distInUnitsToStop) = path.AdvancePathdistInUnits(pathUnitDist, deltUnitsDistToMove, loadState);
+                if (oldpath != pathnum)
+                {
+                    // pathchanged
+                    var newpath = mmt.GetPath(pathnum);
+                    nextpathnum = newpath.FindContinuationPathIdx(loadState, alternateIfMultipleChoicesAvaliable: false);
+                    if (nextpathnum == pathnum)
+                    {
+                        magmo.WarnMsg($"AdvancePathBySpped sledid:{sledid} nextpathnum {nextpathnum} cannot be equal to pathnum:{pathnum}");
+                    }
+                }
+                if (atEndOfPath)
+                {
+                    this.MarkForDeletion();
+                }
+                else
+                {
+                    AdjustSledOnPathDist(pathnum, pathUnitDist);
+                }
+            }
+        }
+        public void AdvanceSledBySpeed()
+        {
+            if (useNewAccelerationModel)
+            {
+                AdvanceSledBySpeedNew();
+            }
+            else
+            {
+                AdvanceSledBySpeedOld();
+            }
+        }
+
         public bool CheckConsistency()
         {
             if (magmo.mmctrl.mmBoxMode == MmBoxMode.RealPooled)

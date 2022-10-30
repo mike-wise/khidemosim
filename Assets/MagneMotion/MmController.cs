@@ -6,6 +6,36 @@ using UnityEngine;
 
 namespace KhiDemo
 {
+    public class MmJsonState
+    {
+        public string now;
+        public float simtime;
+        public float[] robjoints;
+        public (Vector3 pos, Vector3 ori)[] carts;
+        public void FillWithData()
+        {
+            now = DateTime.Now.ToShortTimeString();
+            simtime = 3.14159f;
+            var njoints = 6;
+            robjoints = new float[njoints];
+            for (var i = 0; i < njoints; i++)
+            {
+                robjoints[i] = i * 10f;
+            }
+            var ncarts = 10;
+            carts = new (Vector3 pos, Vector3 ori)[ncarts];
+            for (var i = 0; i < ncarts; i++)
+            {
+                carts[i].pos = new Vector3(i, i, i);
+                carts[i].ori = new Vector3(0, i * 10, 0);
+            }
+        }
+        public string SaveToString()
+        {
+            return JsonUtility.ToJson(this);
+        }
+    }
+
 
     public enum RobStatus { busy,idle }
     public class MmController : MonoBehaviour
@@ -649,6 +679,11 @@ namespace KhiDemo
             }
         }
 
+        public void DoJson()
+        {
+
+        }
+
         public void ProcessStep()
         {
             if (magmo.mmRobot.definingEffectorPoses) return; // Don't process steps while this is ongoing
@@ -657,6 +692,12 @@ namespace KhiDemo
             //if (!processStep) return;
             //processStep = false;
             if (!CheckIfOkayForNextProcessStep()) return;
+
+            if (magmo.publishJsonStatesToFile)
+            {
+                DoJson();
+            }
+
             //Debug.Log($"ProcessStep mode:{mmMode}");
             if (Time.time - coroutineStart < 0.1f) return;
 

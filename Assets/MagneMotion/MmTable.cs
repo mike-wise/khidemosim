@@ -238,7 +238,7 @@ namespace KhiDemo
                 case SledSpeedDistrib.fixedValue:
                     foreach (var s in sleds)
                     {
-                        s.SetSpeed(sledspeed);
+                        s.SetRequestedSpeed(sledspeed);
                     }
                     break;
                 case SledSpeedDistrib.alternateHiLo:
@@ -247,7 +247,7 @@ namespace KhiDemo
                     {
                         float val = (id % 2 == 0) ? sledspeed : sledspeed / 2;
                         //Debug.Log($"Set {s.sledid} speed to {val}");
-                        s.SetSpeed(val);
+                        s.SetRequestedSpeed(val);
                         id++;
                     }
                     break;
@@ -298,8 +298,8 @@ namespace KhiDemo
         {
             foreach (var s in sleds)
             {
-                var speed = s.sledUpsSpeed;
-                s.SetSpeed(speed*fak);
+                var speed = s.sledUnitsPerSecSpeed;
+                s.SetRequestedSpeed(speed*fak);
             }
         }
 
@@ -396,7 +396,7 @@ namespace KhiDemo
             var nunloadedstopped = 0;
             foreach (var s in sleds)
             {
-                if (s.stopped)
+                if (s.sledMoveStatus== SledMoveStatus.Stopped)
                 {
                     if (s.loadState)
                     {
@@ -415,7 +415,7 @@ namespace KhiDemo
         {
             foreach(var s in sleds)
             {
-                if (s.stopped && neededLoadState==s.loadState)
+                if (s.sledMoveStatus == SledMoveStatus.Stopped && neededLoadState==s.loadState)
                 {
                     return s;
                 }

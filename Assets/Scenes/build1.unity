@@ -1722,7 +1722,7 @@ MonoBehaviour:
   effectorPoseMarkers: 1
   mmtgo: {fileID: 0}
   mmtctrlgo: {fileID: 0}
-  mmInitialHoldMethod: 2
+  mmInitialHoldMethod: 1
   mmRobotMoveMode: 0
   mmMode: 5
   mmRigidMode: 2
