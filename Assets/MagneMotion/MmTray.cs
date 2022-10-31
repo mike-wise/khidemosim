@@ -253,14 +253,14 @@ namespace KhiDemo
 
         public void AttachBoxToTraySlot((int, int) slotkey, MmBox box,bool firstTime=false)
         {
-            Debug.Log($"Attaching Box to AttachBoxToTraySlot - {slotkey} {box.boxid2} {box.boxclr} {magmo.GetHoldMethod()}");
+            //Debug.Log($"Attaching Box to AttachBoxToTraySlot - {slotkey} {box.boxid2} {box.boxclr} {magmo.GetHoldMethod()}");
             var slot = trayslots[slotkey];
             trayboxes[slotkey] = box;
 
             switch (magmo.GetHoldMethod())
             {
                 case MmHoldMethod.Hierarchy:
-                    Debug.Log($"Attaching Box to Trayslot - Hierarchy");
+                    // Debug.Log($"Attaching Box to Trayslot - Hierarchy");
                     box.rigbod.isKinematic = true;
                     box.transform.parent = null;
                     box.transform.rotation = Quaternion.Euler(90, 0, 0);
@@ -268,7 +268,7 @@ namespace KhiDemo
                     box.transform.SetParent(slot.transform, worldPositionStays: false);
                     break;
                 case MmHoldMethod.Physics:
-                    Debug.Log($"Associating Box to Trayslot - Physics");
+                    // Debug.Log($"Associating Box to Trayslot - Physics");
                     if (firstTime)
                     {
                         box.rigbod.isKinematic = true;
@@ -280,7 +280,7 @@ namespace KhiDemo
                     break;
                 case MmHoldMethod.Dragged:
                 default:
-                    Debug.Log($"Associating Box to Trayslot - Dragged");
+                    // Debug.Log($"Associating Box to Trayslot - Dragged");
                     box.rigbod.isKinematic = true;
                     box.transform.rotation = Quaternion.Euler(90, 0, 0);
                     box.transform.position = slot.transform.position;

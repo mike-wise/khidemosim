@@ -56,6 +56,11 @@ namespace KhiDemo
             sled.loadState = true;
             sled.visible = true;
             sled.sledMoveStatus = SledMoveStatus.Moving;
+            sled.useNewAccelerationModel = true;
+            if (sledid == "5")
+            {
+                sled.useNewAccelerationModel = true;
+            }
 
             sled.ConstructSledForm(sledform, addbox);
             sled.AdjustSledOnPathDist(pathnum, pathdist);
@@ -216,15 +221,23 @@ namespace KhiDemo
                         var boxcol_back = go.AddComponent<BoxCollider>();
                         boxcol_back.size = new Vector3(0.002f, 0.08f, 0.06f);
                         boxcol_back.center = new Vector3(-0.04f, 0.02f, 0.00f);
+                        boxcol_back.material.dynamicFriction = magmo.dynamicFriction;
+                        boxcol_back.material.staticFriction = magmo.staticFriction;
                         var boxcol_frnt = go.AddComponent<BoxCollider>();
                         boxcol_frnt.size = new Vector3(0.002f, 0.08f, 0.06f);
                         boxcol_frnt.center = new Vector3(+0.04f, 0.02f, 0.00f);
+                        boxcol_frnt.material.dynamicFriction = magmo.dynamicFriction;
+                        boxcol_frnt.material.staticFriction = magmo.staticFriction;
                         var boxcol_lside = go.AddComponent<BoxCollider>();
                         boxcol_lside.size = new Vector3(0.06f, 0.08f, 0.002f);
                         boxcol_lside.center = new Vector3(0.00f, 0.02f, +0.04f);
+                        boxcol_lside.material.dynamicFriction = magmo.dynamicFriction;
+                        boxcol_lside.material.staticFriction = magmo.staticFriction;
                         var boxcol_rside = go.AddComponent<BoxCollider>();
                         boxcol_rside.size = new Vector3(0.06f, 0.08f, 0.002f);
                         boxcol_rside.center = new Vector3(0.00f, 0.02f, -0.04f);
+                        boxcol_rside.material.dynamicFriction = magmo.dynamicFriction;
+                        boxcol_rside.material.staticFriction = magmo.staticFriction;
                         break;
                     }
             }
@@ -248,7 +261,7 @@ namespace KhiDemo
             switch (magmo.GetHoldMethod())
             {
                 case MmHoldMethod.Hierarchy:
-                    Debug.Log($"Attaching Box to Sled - Hheirarchy");
+                    // Debug.Log($"Attaching Box to Sled - Hheirarchy");
                     box.rigbod.isKinematic = true;
                     box.transform.parent = null;
                     box.transform.rotation = Quaternion.Euler(0, 0, 0);
@@ -256,7 +269,7 @@ namespace KhiDemo
                     box.transform.SetParent(formgo.transform, worldPositionStays: false);
                     break;
                 case MmHoldMethod.Physics:
-                    Debug.Log($"Associating Box to Sled - Physics");
+                    // Debug.Log($"Associating Box to Sled - Physics");
                     if (firstTime)
                     {
                         box.rigbod.isKinematic = true;
@@ -275,7 +288,7 @@ namespace KhiDemo
                     break;
                 case MmHoldMethod.Dragged:
                 default:
-                    Debug.Log($"Associating Box to Sled - Dragged");
+                    // Debug.Log($"Associating Box to Sled - Dragged");
                     box.rigbod.isKinematic = true;
                     box.transform.rotation = Quaternion.Euler(90, 0, 0);
                     box.transform.position = formgo.transform.position;
@@ -349,14 +362,19 @@ namespace KhiDemo
         float speedLastCaled=0;
         public void AdjustSpeed()
         {
+            var oldspeed = sledUnitsPerSecSpeed;
+            if (sledMoveStatus== SledMoveStatus.Stopped)
+            {
+                return;
+            }
             var delttime = Time.time - speedLastCaled;
             if (delttime<=0)
             {
                 Debug.LogError($"Sled.AdjustSpeed - delttime less than or equal to zero:{delttime}");
             }
             speedLastCaled = Time.time;
-            var maxaccel = 8; // Ups
-            var maxdecel = 8;
+            var maxaccel = 0.1f; // Ups
+            var maxdecel = 2f;
             if (reqestedSledUpsSpeed > sledUnitsPerSecSpeed)
             {
                 var deltspeed = maxaccel * delttime;
@@ -374,6 +392,11 @@ namespace KhiDemo
                 {
                     sledUnitsPerSecSpeed = reqestedSledUpsSpeed;
                 }
+            }
+            var delt = sledUnitsPerSecSpeed - oldspeed;
+            if (delt != 0)
+            {
+                Debug.Log($"Adjust speed time:{Time.time:f3} sld:{sledid} old:{oldspeed:f2}  new:{sledUnitsPerSecSpeed:f2}   delt:{delt:f3}");
             }
         }
         const float UnitsPerMeter = 8;
@@ -393,6 +416,7 @@ namespace KhiDemo
                     if (deltUnitsDistToMove < 0)
                     {
                         deltUnitsDistToMove = 0;
+                        //sledUnitsPerSecSpeed = 0;
                     }
                 }
                 var path = mmt.GetPath(pathnum);
@@ -400,6 +424,10 @@ namespace KhiDemo
                 int oldpath = pathnum;
                 float distInUnitsToStop = 0;
                 (pathnum, pathUnitDist, atEndOfPath, sledMoveStatus, distInUnitsToStop) = path.AdvancePathdistInUnits(pathUnitDist, deltUnitsDistToMove, loadState);
+                if ((sledMoveStatus==SledMoveStatus.Stopped) && useNewAccelerationModel)
+                {
+                    sledUnitsPerSecSpeed = 0;
+                }
                 if (oldpath != pathnum)
                 {
                     // pathchanged

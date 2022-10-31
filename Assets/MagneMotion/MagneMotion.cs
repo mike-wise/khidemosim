@@ -60,6 +60,8 @@ namespace KhiDemo
         public MmMode mmMode = MmMode.None;
         public MmRigidMode mmRigidMode = MmRigidMode.None;
         public bool stopSimulation = false;
+        public float staticFriction = 0.1f;
+        public float dynamicFriction = 0.1f;
 
         [Header("Network ROS")]
         public bool enablePlanning = false;

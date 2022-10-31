@@ -395,7 +395,7 @@ namespace KhiDemo
             switch (magmo.GetHoldMethod())
             {
                 case MmHoldMethod.Hierarchy:
-                    Debug.Log($"Attaching Box to Robot - Hierarchy");
+                    // Debug.Log($"Attaching Box to Robot - Hierarchy");
                     box.transform.parent = null;
                     box.transform.localRotation = Quaternion.Euler(90, 0, 0);
                     box.transform.localPosition = robotoffset;
@@ -404,7 +404,7 @@ namespace KhiDemo
                 case MmHoldMethod.Physics:
                 case MmHoldMethod.Dragged:
                     // the proper way to do Physics for a vaccume gripper would involve Fluid Dynamics and we are not going there
-                    Debug.Log($"Associating Box to Robot - Dragged and Physics");
+                    // Debug.Log($"Associating Box to Robot - Dragged and Physics");
                     box.rigbod.isKinematic = true;
                     box.transform.rotation = transform.rotation * Quaternion.Euler(90, 0, 0);
                     box.transform.position = vgriptrans.transform.position + robotoffset;
@@ -418,7 +418,7 @@ namespace KhiDemo
             var oldbox = box;
             if (oldbox != null)
             {
-                Debug.Log($"Detaching Box from Robot - {oldbox.boxid1} {oldbox.boxid2} {oldbox.boxclr})");
+                // Debug.Log($"Detaching Box from Robot - {oldbox.boxid1} {oldbox.boxid2} {oldbox.boxclr})");
                 oldbox.SetBoxStatus(BoxStatus.free);
             }
             else

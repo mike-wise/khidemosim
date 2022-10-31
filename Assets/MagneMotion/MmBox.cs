@@ -299,6 +299,8 @@ namespace KhiDemo
                         //boxcol.center = new Vector3(0, 0, -0.02f);
                         boxcol.size = new Vector3(0.054f, 0.065f, 0.033f);
                         boxcol.center = new Vector3(0, 0, -0.02f);
+                        boxcol.material.dynamicFriction = magmo.dynamicFriction;
+                        boxcol.material.staticFriction = magmo.staticFriction;
                         break;
                     }
             }

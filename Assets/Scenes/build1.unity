@@ -1722,7 +1722,7 @@ MonoBehaviour:
   effectorPoseMarkers: 1
   mmtgo: {fileID: 0}
   mmtctrlgo: {fileID: 0}
-  mmInitialHoldMethod: 1
+  mmInitialHoldMethod: 2
   mmRobotMoveMode: 0
   mmMode: 5
   mmRigidMode: 2
@@ -1741,3 +1741,4 @@ MonoBehaviour:
   zmqhost: localhost
   zmqport: 10006
   calculatePoses: 0
+  publishJsonStatesToFile: 0
