@@ -37,6 +37,8 @@ namespace KhiDemo
         public MmTray mmtray = null;
         public GameObject mmego = null;
         public MmTrajPlan planner = null;
+        public GameObject floor = null;
+        public GameObject floorobject = null;
 
         [Header("Scene Element Forms")]
         public MmSled.SledForm sledForm = MmSled.SledForm.Prefab;
@@ -60,8 +62,14 @@ namespace KhiDemo
         public MmMode mmMode = MmMode.None;
         public MmRigidMode mmRigidMode = MmRigidMode.None;
         public bool stopSimulation = false;
-        public float staticFriction = 0.1f;
-        public float dynamicFriction = 0.1f;
+        public float initialSleedSpeed = 1.0f;
+
+
+        [Header("Physics Material")]
+        public float staticFriction = 0.9f;
+        public float dynamicFriction = 0.9f;
+        public float bounciness = 0f;
+
 
         [Header("Network ROS")]
         public bool enablePlanning = false;
@@ -86,6 +94,7 @@ namespace KhiDemo
         public bool calculatePoses = false;
         public bool publishJsonStatesToFile;
 
+        public PhysicMaterial physMat;
 
         List<(InfoType intyp, DateTime time, string msg)> messages;
 
@@ -94,7 +103,7 @@ namespace KhiDemo
         GameObject targetPlacement;
 
 
-        GameObject InitGo(string seekname)
+        GameObject InitChildGo(string seekname)
         {
             //Debug.Log($"Seeking Name {seekname}");
             var cango = GameObject.Find(seekname);
@@ -133,9 +142,11 @@ namespace KhiDemo
                 ErrMsg("no MnRobot in scene");
             }
 
-            planningCanvas = InitGo("PlanningCanvas");
-            target = InitGo("Target");
-            targetPlacement = InitGo("TargetPlacement");
+            floor = GameObject.Find("Floor");
+
+            planningCanvas = InitChildGo("PlanningCanvas");
+            target = InitChildGo("Target");
+            targetPlacement = InitChildGo("TargetPlacement");
 
 
             rosconnection = ROSConnection.GetOrCreateInstance();
@@ -147,6 +158,12 @@ namespace KhiDemo
 
             GetNetworkParms();
             GetOtherParms();
+
+            physMat = new PhysicMaterial();
+            physMat.staticFriction = staticFriction;
+            physMat.dynamicFriction = dynamicFriction;
+            physMat.bounciness = bounciness;
+
 
             // ZmqSendString("Hello world");
         }
@@ -354,6 +371,7 @@ namespace KhiDemo
         {
 
             mmtgo = new GameObject("MmTable");
+            mmtgo.transform.SetParent(floor.transform, worldPositionStays: true);
             mmt = mmtgo.AddComponent<MmTable>();
             mmt.Init(this);
 
@@ -393,11 +411,16 @@ namespace KhiDemo
             mmctrl.Init(this);
             mmctrl.SetMode(mmMode,clear:false); // first call should not try and clear
 
-            if (enclosureOn)
+            floorobject = GameObject.Find("FloorObject");
+            if (floorobject != null)
             {
-                CheckEnclosure();
+                var boxcol = floorobject.GetComponent<BoxCollider>();
+                boxcol.material = physMat;
+                Debug.Log($"Assigned physMat to floorobject");
             }
 
+
+            CheckEnclosure();
         }
 
         MmSled.SledForm oldsledForm;
@@ -692,6 +715,7 @@ namespace KhiDemo
 
         public void CheckEnclosure()
         {
+
             if (!enclosureLoaded)
             {
                 var prefab = Resources.Load<GameObject>("Enclosure/Models/RS007_Enclosure");
@@ -712,20 +736,19 @@ namespace KhiDemo
             }
             if (mmego != null)
             {
-                mmt.pathgos.SetActive(!enclosureOn);
-                mmego.SetActive(enclosureOn);
-                var fgo = GameObject.Find("FloorObject");
-                if (fgo != null)
+                if (floorobject != null)
                 {
                     if (enclosureOn)
                     {
-                        fgo.transform.localScale = new Vector3(0.02f, 1, 0.02f);
+                        floorobject.transform.localScale = new Vector3(0.02f, 1, 0.02f);
                     }
                     else
                     {
-                        fgo.transform.localScale = new Vector3(1, 1, 1);
+                        floorobject.transform.localScale = new Vector3(1, 1, 1);
                     }
                 }
+                mmt.pathgos.SetActive(!enclosureOn);
+                mmego.SetActive(enclosureOn);
             }
         }
 

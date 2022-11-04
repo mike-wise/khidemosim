@@ -193,7 +193,7 @@ namespace KhiDemo
 
 
                     magmo.mmRobot.RealiseRobotPose(RobotJointPose.rest);
-                    mmt.SetupSledSpeeds(SledSpeedDistrib.alternateHiLo, 0.5f);
+                    mmt.SetupSledSpeeds(SledSpeedDistrib.alternateHiLo, magmo.initialSleedSpeed );
 
                     mmRobot.InitRobotBoxState(startLoadState: false);
                     mmtray.InitAllLoadstate(nbox: 5);
@@ -209,7 +209,7 @@ namespace KhiDemo
 
                     magmo.boxForm = MmBox.BoxForm.PrefabWithMarkerCube;
                     mmRobot.InitRobotBoxState(startLoadState: false);
-                    mmt.SetupSledSpeeds( SledSpeedDistrib.alternateHiLo, 0.5f);
+                    mmt.SetupSledSpeeds( SledSpeedDistrib.alternateHiLo, magmo.initialSleedSpeed);
                     mmt.SetupSledLoads(SledLoadDistrib.allLoaded);
                     mmtray.InitAllLoadstate(nbox: 0);
                     magmo.mmRobot.RealiseRobotPose(RobotJointPose.rest);
@@ -224,7 +224,7 @@ namespace KhiDemo
                     magmo.publishMovementsZmq = true;
 
                     mmRobot.InitRobotBoxState(startLoadState: false);
-                    mmt.SetupSledSpeeds( SledSpeedDistrib.alternateHiLo, 0.5f);
+                    mmt.SetupSledSpeeds( SledSpeedDistrib.alternateHiLo, magmo.initialSleedSpeed);
                     mmt.SetupSledLoads(SledLoadDistrib.allUnloaded);
                     mmtray.InitAllLoadstate(nbox: 10);
                     magmo.mmRobot.RealiseRobotPose(RobotJointPose.rest);

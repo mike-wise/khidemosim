@@ -2,6 +2,7 @@ using RosMessageTypes.Geometry;
 // using RosMessageTypes.NiryoMoveit;
 using RosMessageTypes.Rs007Control;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using Unity.Robotics.ROSTCPConnector;
 using Unity.Robotics.ROSTCPConnector.ROSGeometry;
@@ -170,6 +171,22 @@ namespace KhiDemo
                 MmGripperType = MmGripperType.None;
             }
 
+        }
+
+        public (List<string> linkNames, List<Transform> xforms) GetLinkNamesAndXforms()
+        {
+            List<string> linkNames = new List<string>();
+            List<Transform> xforms = new List<Transform>();
+            var curname = "";
+            foreach (var linkName in Rs007SourceDestinationPublisher.LinkNames)
+            {
+                curname += linkName;
+                linkNames.Add(curname);
+                var xform = m_RobotModel.transform.Find(curname);
+                xforms.Add(xform);
+            }
+            Debug.Log($"Got {linkNames.Count} linknames and {xforms.Count} xforms ");
+            return (linkNames, xforms);
         }
 
         public void PositionJoint(int idx, float joint)

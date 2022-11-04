@@ -294,13 +294,14 @@ namespace KhiDemo
                         }
                         rigbod = gameObject.AddComponent<Rigidbody>();
                         rigbod.isKinematic = true;
+                        rigbod.centerOfMass = new Vector3(0, 0, -0.02f);
+                        rigbod.mass = 1f;
                         var boxcol = gameObject.AddComponent<BoxCollider>();
                         //boxcol.size = new Vector3(0.054f, 0.07f, 0.033f);
                         //boxcol.center = new Vector3(0, 0, -0.02f);
                         boxcol.size = new Vector3(0.054f, 0.065f, 0.033f);
                         boxcol.center = new Vector3(0, 0, -0.02f);
-                        boxcol.material.dynamicFriction = magmo.dynamicFriction;
-                        boxcol.material.staticFriction = magmo.staticFriction;
+                        boxcol.material = magmo.physMat;
                         break;
                     }
             }

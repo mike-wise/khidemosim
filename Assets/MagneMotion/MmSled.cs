@@ -30,6 +30,7 @@ namespace KhiDemo
         public float sledInFrontDist;
         public SledMoveStatus sledMoveStatus = SledMoveStatus.Unset;
         public Rigidbody rigbod;
+        public Matrix4x4 localToWorld;
 
         public static MmSled ConstructSled(MagneMotion magmo, int sledidx, string sledid, int pathnum, float pathdist, bool loaded, bool addbox = false)
         {
@@ -216,28 +217,26 @@ namespace KhiDemo
 
                         rigbod = go.AddComponent<Rigidbody>();
                         rigbod.isKinematic = true;
+                        rigbod.mass = 1f;
                         var boxcol_base = go.AddComponent<BoxCollider>();
                         boxcol_base.size = new Vector3( 0.08f, 0.018f, 0.09f );
+                        boxcol_base.material = magmo.physMat;
                         var boxcol_back = go.AddComponent<BoxCollider>();
                         boxcol_back.size = new Vector3(0.002f, 0.08f, 0.06f);
                         boxcol_back.center = new Vector3(-0.04f, 0.02f, 0.00f);
-                        boxcol_back.material.dynamicFriction = magmo.dynamicFriction;
-                        boxcol_back.material.staticFriction = magmo.staticFriction;
+                        boxcol_back.material = magmo.physMat;
                         var boxcol_frnt = go.AddComponent<BoxCollider>();
                         boxcol_frnt.size = new Vector3(0.002f, 0.08f, 0.06f);
                         boxcol_frnt.center = new Vector3(+0.04f, 0.02f, 0.00f);
-                        boxcol_frnt.material.dynamicFriction = magmo.dynamicFriction;
-                        boxcol_frnt.material.staticFriction = magmo.staticFriction;
+                        boxcol_frnt.material = magmo.physMat;
                         var boxcol_lside = go.AddComponent<BoxCollider>();
                         boxcol_lside.size = new Vector3(0.06f, 0.08f, 0.002f);
                         boxcol_lside.center = new Vector3(0.00f, 0.02f, +0.04f);
-                        boxcol_lside.material.dynamicFriction = magmo.dynamicFriction;
-                        boxcol_lside.material.staticFriction = magmo.staticFriction;
+                        boxcol_lside.material = magmo.physMat;
                         var boxcol_rside = go.AddComponent<BoxCollider>();
                         boxcol_rside.size = new Vector3(0.06f, 0.08f, 0.002f);
                         boxcol_rside.center = new Vector3(0.00f, 0.02f, -0.04f);
-                        boxcol_rside.material.dynamicFriction = magmo.dynamicFriction;
-                        boxcol_rside.material.staticFriction = magmo.staticFriction;
+                        boxcol_rside.material = magmo.physMat;
                         break;
                     }
             }
@@ -405,6 +404,10 @@ namespace KhiDemo
         public float maxDistToMove;
         public void AdvanceSledBySpeedNew()
         {
+            if (!rigbod.isKinematic)
+            {
+                return;
+            }
             AdjustSpeed();
             if (pathnum >= 0)
             {
@@ -584,22 +587,23 @@ namespace KhiDemo
 
         void FixedUpdate()
         {
+            localToWorld = transform.localToWorldMatrix;
             if (box != null)
             {
                 var meth = magmo.GetHoldMethod();
                 switch (meth)
                 {
                     case MmHoldMethod.Physics: // FixedUpdate
-                        box.rigbod.isKinematic = false;
+                        //box.rigbod.isKinematic = false;
                          break;
                     case MmHoldMethod.Dragged: // FixedUpdate
                         if (box?.rigbod != null)
                         {
-                            if (meth==MmHoldMethod.Physics)
-                            {
-                                box.rigbod.isKinematic = false;
-                            }
-                            //box.transform.position = formgo.transform.position;
+                            //if (meth==MmHoldMethod.Physics)
+                            //{
+                            //    box.rigbod.isKinematic = false;
+                            //}
+                            ////box.transform.position = formgo.transform.position;
                             //box.transform.rotation = formgo.transform.rotation;
                             box.rigbod.MovePosition(formgo.transform.position);
                             box.rigbod.MoveRotation(formgo.transform.rotation);

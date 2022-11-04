@@ -133,6 +133,7 @@ namespace KhiDemo
             rigbod = mmtraygo.AddComponent<Rigidbody>();
             rigbod.isKinematic = true;
             var boxcol = mmtraygo.AddComponent<BoxCollider>();
+            boxcol.material = magmo.physMat;
         }
         float slotw;
         float sloth;

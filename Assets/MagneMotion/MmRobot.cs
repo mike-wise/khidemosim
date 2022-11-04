@@ -67,6 +67,10 @@ namespace KhiDemo
 
         public MmEffector effector;
 
+        public List<string> linknames;
+        public List<Transform> xforms;
+        public List<Matrix4x4> locToWorldMat;
+
         void Start()
         {
             magmo = FindObjectOfType<MagneMotion>();
@@ -87,6 +91,13 @@ namespace KhiDemo
             effector = gob.AddComponent<MmEffector>();
             effector.Init(this);
 
+            var mmTrajPlan = FindObjectOfType<MmTrajPlan>();
+            (linknames, xforms) = mmTrajPlan.GetLinkNamesAndXforms();
+            locToWorldMat = new List<Matrix4x4>();
+            foreach(var xf in xforms)
+            {
+                locToWorldMat.Add(xf.localToWorldMatrix);
+            }
         }
 
         public void SubcribeToRos()
@@ -546,6 +557,46 @@ namespace KhiDemo
                         break;
                 }
             }
+            int i = 0;
+            foreach (var xf in xforms)
+            {
+                locToWorldMat[i] = CopyMatrix(xf.localToWorldMatrix);
+                i++;
+            }
+        }
+
+        float filt(float f)
+        {
+            if (Mathf.Abs(f)<1e-6)
+            {
+                return 0;
+            }
+            return f;
+        }
+
+        Matrix4x4 CopyMatrix(Matrix4x4 m)
+        {
+            Matrix4x4 rv;
+            rv.m00 = filt(m.m00);
+            rv.m01 = filt(m.m01);
+            rv.m02 = filt(m.m02);
+            rv.m03 = filt(m.m03);
+
+            rv.m10 = filt(m.m10);
+            rv.m11 = filt(m.m11);
+            rv.m12 = filt(m.m12);
+            rv.m13 = filt(m.m13);
+
+            rv.m20 = filt(m.m20);
+            rv.m21 = filt(m.m21);
+            rv.m22 = filt(m.m22);
+            rv.m23 = filt(m.m23);
+
+            rv.m30 = filt(m.m30);
+            rv.m31 = filt(m.m31);
+            rv.m32 = filt(m.m32);
+            rv.m33 = filt(m.m33);
+            return rv;
         }
 
         RobotJointPose oldPoseTuple;

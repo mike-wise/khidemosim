@@ -2,6 +2,7 @@ using RosMessageTypes.Geometry;
 // using RosMessageTypes.NiryoMoveit;
 using RosMessageTypes.Rs007Control;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using Unity.Robotics.ROSTCPConnector;
 using Unity.Robotics.ROSTCPConnector.ROSGeometry;
@@ -36,6 +37,7 @@ public class Rs007TrajectoryPlanner : MonoBehaviour
     [SerializeField]
     GameObject m_TargetPlacement;
     public GameObject TargetPlacement { get => m_TargetPlacement; set => m_TargetPlacement = value; }
+    public string [] linkNames;
 
 
     public float posePauseSecs = 2;
@@ -85,6 +87,7 @@ public class Rs007TrajectoryPlanner : MonoBehaviour
         {
             Debug.Log($"Robot name:{m_RobotModel.name}");
         }
+       
 
         var linkName = string.Empty;
         for (var i = 0; i < k_NumRobotJoints; i++)
@@ -153,6 +156,8 @@ public class Rs007TrajectoryPlanner : MonoBehaviour
         //Debug.Log("Finished Rs007TrajectoryPlanner Start");
         //OpenGripper();
     }
+
+
 
     public void PositionJoint(int idx, float joint)
     {

@@ -294,6 +294,11 @@ namespace KhiDemo
             }
         }
 
+        public void SetSpeedFactor(float speed)
+        {
+            
+        }
+
         public void AdjustSledSpeedFactor(float fak)
         {
             foreach (var s in sleds)
