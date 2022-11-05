@@ -28,6 +28,9 @@ namespace KhiDemo
 
     public enum MmRigidMode {  None, Sleds,SledsBox }
 
+    public enum MmSledMoveMethod { SetPosition, MovePosition };
+
+
     public class MagneMotion : MonoBehaviour
     {
         [Header("Scene Elements")]
@@ -61,6 +64,7 @@ namespace KhiDemo
         public MmRobotMoveMode mmRobotMoveMode = MmRobotMoveMode.Sudden;
         public MmMode mmMode = MmMode.None;
         public MmRigidMode mmRigidMode = MmRigidMode.None;
+        public MmSledMoveMethod mmSledMoveMethod = MmSledMoveMethod.SetPosition;
         public bool stopSimulation = false;
         public float initialSleedSpeed = 1.0f;
 

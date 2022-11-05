@@ -5,12 +5,15 @@ using UnityEngine;
 namespace KhiDemo
 {
     public enum SledMoveStatus { Unset, Stopped, Moving };
+
     public class MmSled : MonoBehaviour
     {
         MagneMotion magmo;
         MmTable mmt;
         public enum SledForm { BoxCubeBased, Prefab }
         public bool useNewAccelerationModel = false;
+
+
 
 
         public int pathnum;
@@ -22,6 +25,7 @@ namespace KhiDemo
         public bool visible;
         SledForm sledform;
         GameObject formgo;
+        GameObject traygo;
         public MmBox box;
         public bool loadState;
         public int sledidx;
@@ -58,10 +62,6 @@ namespace KhiDemo
             sled.visible = true;
             sled.sledMoveStatus = SledMoveStatus.Moving;
             sled.useNewAccelerationModel = true;
-            if (sledid == "5")
-            {
-                sled.useNewAccelerationModel = true;
-            }
 
             sled.ConstructSledForm(sledform, addbox);
             sled.AdjustSledOnPathDist(pathnum, pathdist);
@@ -202,38 +202,41 @@ namespace KhiDemo
                 case SledForm.Prefab:
                     {
                         var prefab = Resources.Load<GameObject>("Prefabs/Sled");
-                        var go = Instantiate(prefab);
-                        go.name = $"tray";
+                        traygo = Instantiate(prefab);
+                        traygo.name = $"tray";
                         // 6.5x11.0x2cm
-                        go.transform.parent = formgo.transform;
-                        go.transform.position = new Vector3(0.0f, 0.0f, 0.011f);
-                        go.transform.localRotation = Quaternion.Euler(180, 90, -90);
+                        traygo.transform.parent = formgo.transform;
+                        traygo.transform.position = new Vector3(0.0f, 0.0f, 0.011f);
+                        if (magmo.mmSledMoveMethod == MmSledMoveMethod.SetPosition)
+                        {
+                            traygo.transform.localRotation = Quaternion.Euler(180, 90, -90);
+                        }
 
                         if (addBox)
                         {
                             var box = MmBox.ConstructBox(mmt.magmo, mmt.magmo.boxForm, "Hmm", sledid, BoxStatus.onSled);
                             AttachBoxToSled(box);
                         }
-
-                        rigbod = go.AddComponent<Rigidbody>();
+                        var rgo = traygo;
+                        rigbod = rgo.AddComponent<Rigidbody>();
                         rigbod.isKinematic = true;
                         rigbod.mass = 1f;
-                        var boxcol_base = go.AddComponent<BoxCollider>();
+                        var boxcol_base = rgo.AddComponent<BoxCollider>();
                         boxcol_base.size = new Vector3( 0.08f, 0.018f, 0.09f );
                         boxcol_base.material = magmo.physMat;
-                        var boxcol_back = go.AddComponent<BoxCollider>();
+                        var boxcol_back = rgo.AddComponent<BoxCollider>();
                         boxcol_back.size = new Vector3(0.002f, 0.08f, 0.06f);
                         boxcol_back.center = new Vector3(-0.04f, 0.02f, 0.00f);
                         boxcol_back.material = magmo.physMat;
-                        var boxcol_frnt = go.AddComponent<BoxCollider>();
+                        var boxcol_frnt = rgo.AddComponent<BoxCollider>();
                         boxcol_frnt.size = new Vector3(0.002f, 0.08f, 0.06f);
                         boxcol_frnt.center = new Vector3(+0.04f, 0.02f, 0.00f);
                         boxcol_frnt.material = magmo.physMat;
-                        var boxcol_lside = go.AddComponent<BoxCollider>();
+                        var boxcol_lside = rgo.AddComponent<BoxCollider>();
                         boxcol_lside.size = new Vector3(0.06f, 0.08f, 0.002f);
                         boxcol_lside.center = new Vector3(0.00f, 0.02f, +0.04f);
                         boxcol_lside.material = magmo.physMat;
-                        var boxcol_rside = go.AddComponent<BoxCollider>();
+                        var boxcol_rside = rgo.AddComponent<BoxCollider>();
                         boxcol_rside.size = new Vector3(0.06f, 0.08f, 0.002f);
                         boxcol_rside.center = new Vector3(0.00f, 0.02f, -0.04f);
                         boxcol_rside.material = magmo.physMat;
@@ -241,7 +244,7 @@ namespace KhiDemo
                     }
             }
 
-            AddSledIdToSledForm();
+            AddTextIdToSledForm();
 
             formgo.transform.SetParent(transform, worldPositionStays: false);
 
@@ -309,17 +312,23 @@ namespace KhiDemo
             return oldbox;
         }
 
-        void AddSledIdToSledForm()
+        void AddTextIdToSledForm()
         {
             var unitsToMetersFak = 1f / 8;
-            var rot1 = new Vector3(0, 90, -90);
-            var rot2 = -rot1;
-            var off1 = new Vector3(-0.27f, 0, -0.12f) * unitsToMetersFak;
-            var off2 = new Vector3(+0.27f, 0, -0.12f) * unitsToMetersFak;
+            // These commented out values are what were used when we made the text subordinate to formgo, we now use traygo
+            //var rot1 = new Vector3(0, 90, -90);
+            // var rot2 = -rot1;
+            //var off1 = new Vector3(-0.27f, 0, -0.12f) * unitsToMetersFak;
+            //var off2 = new Vector3(+0.27f, 0, -0.12f) * unitsToMetersFak;
+
+            var rot1 = new Vector3(0, 180, 0);
+            var rot2 = new Vector3(0, 0, 0);
+            var off1 = new Vector3(0, 0.20f, +0.27f) * unitsToMetersFak;
+            var off2 = new Vector3(0, 0.20f, -0.27f) * unitsToMetersFak;
             var txt = $"{sledid}";
             var meth = UnityUt.FltTextImpl.TextPro;
-            UnityUt.AddFltTextMeshGameObject(formgo, Vector3.zero, txt, "yellow", rot1, off1, unitsToMetersFak, meth, goname: "SledidTxt");
-            UnityUt.AddFltTextMeshGameObject(formgo, Vector3.zero, txt, "yellow", rot2, off2, unitsToMetersFak, meth, goname: "SledidTxt");
+            UnityUt.AddFltTextMeshGameObject(traygo, Vector3.zero, txt, "yellow", rot1, off1, unitsToMetersFak, meth, goname: "SledidTxt");
+            UnityUt.AddFltTextMeshGameObject(traygo, Vector3.zero, txt, "yellow", rot2, off2, unitsToMetersFak, meth, goname: "SledidTxt");
         }
 
         void AdjustSledOnPathDist(int pathnum, float pathdist)
@@ -334,16 +343,29 @@ namespace KhiDemo
             formgo.SetActive(visible);
         }
 
+
         void AdjustSledPositionAndOrientation(Vector3 pt, float ang)
         {
-            var geomparenttrans = transform.parent;
-            transform.parent = null;
-
-            transform.position = pt;
-            transform.rotation = Quaternion.Euler(0, 0, -ang);
-            transform.localScale = Vector3.one;
-            transform.SetParent(geomparenttrans, worldPositionStays: false);
-            transform.SetAsFirstSibling();
+            if (magmo.mmSledMoveMethod == MmSledMoveMethod.SetPosition)
+            {
+                var geomparenttrans = transform.parent;
+                transform.parent = null;
+                transform.position = pt;
+                transform.rotation = Quaternion.Euler(0, 0, -ang);
+                transform.localScale = Vector3.one;
+                transform.SetParent(geomparenttrans, worldPositionStays: false);
+                transform.SetAsFirstSibling();
+            }
+            else
+            {
+                if (transform.parent != null)
+                {
+                    var npt = transform.parent.TransformPoint(pt);
+                    rigbod.MovePosition(npt);
+                    var rot = Quaternion.Euler(0, ang - 90, 0);
+                    rigbod.MoveRotation(rot);
+                }
+            }
         }
 
         public void EchoUpdateSled(int new_pathnum, float new_pathdist, bool new_loaded)
