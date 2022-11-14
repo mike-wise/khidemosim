@@ -226,7 +226,7 @@ public class UnityUt : MonoBehaviour
         ngo.transform.position = off;
         ngo.transform.localScale = new Vector3(ska,ska,ska);
         ngo.transform.SetParent(go.transform, worldPositionStays:wps);
-        var txgo = new GameObject("TextMesh");
+        var txgo = new GameObject($"TextMesh_{text}");
         txgo.transform.SetParent(ngo.transform,worldPositionStays:false);
         AddFltTextMeshComponent(txgo, Vector3.zero, text, colorname, lfltTextImpl, wps:false);
         //var cgo = CreateSphere(ngo, "limegreen", size: 0.2f, wps: false, collider: false);

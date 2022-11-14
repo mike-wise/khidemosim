@@ -15,16 +15,23 @@ namespace KhiDemo
         static GameObject realPoolRoot;
         public enum BoxForm { CubeBased, Prefab, PrefabWithMarkerCube }
         BoxForm boxform;
+
+        [Header("ID")]
         public string boxid1;
         public string boxid2;
         public string boxclr="none";
         public int seqnum;
+
+
+        [Header("State")]
         public BoxStatus lastStatus;
         public BoxStatus boxStatus;
         public bool destroyedOnClear;
         public PoolStatus poolStatus;
-
         public Rigidbody rigbod;
+
+        [Header("Action")]
+        public bool pubState = false;
 
         static MmBox[] boxes = null;
 
@@ -48,10 +55,11 @@ namespace KhiDemo
             }
         }
 
-        public static void AllocatePools(MagneMotion magmo)
+        public static void AllocateBoxPools(MagneMotion magmo)
         {
-            fakePoolRoot = new GameObject("FakePoolRoot");
-            fakePoolRoot.transform.localPosition += new Vector3(0.5f, 0, 0);
+            fakePoolRoot = new GameObject("FakeBoxPool");
+            fakePoolRoot.transform.position += new Vector3(0.5f, 0, 0);
+            fakePoolRoot.transform.SetParent(magmo.floor.transform, worldPositionStays: true);
             fakePool = new List<MmBox>();
             var nfakePool = 12 + 1 + 10;
             for (int i = 0; i < nfakePool; i++)
@@ -63,8 +71,9 @@ namespace KhiDemo
                 SetPoolSidePosition(box);
                 fakePool.Add(box);
             }
-            realPoolRoot = new GameObject("RealPoolRoot");
-            realPoolRoot.transform.localPosition += new Vector3(-0.5f, 0, 0);
+            realPoolRoot = new GameObject("RealBoxPool");
+            realPoolRoot.transform.position += new Vector3(-0.5f, 0, 0);
+            realPoolRoot.transform.SetParent(magmo.floor.transform, worldPositionStays: true);
             realPool = new List<MmBox>();
             var nrealPool = 10;
             for (int i = 0; i < nrealPool; i++)
@@ -155,7 +164,7 @@ namespace KhiDemo
         {
             var mmt = magmo.mmt;
             clas_seqnum++;
-            var boxname = $"{prefix}Box-{clas_seqnum:D2}";
+            var boxname = $"{prefix}Box_{clas_seqnum:D2}";
             var boxgeomgo = new GameObject(boxname);
             boxgeomgo.transform.position = Vector3.zero;
             boxgeomgo.transform.rotation = Quaternion.identity;
@@ -329,6 +338,14 @@ namespace KhiDemo
                 UnityUt.AddFltTextMeshGameObject(formgo, Vector3.zero, txt1, "black", rot1, off1, ska1, meth, goname: "BoxIdTxt1");
                 UnityUt.AddFltTextMeshGameObject(formgo, Vector3.zero, txt1, "black", rot2, off2, ska1, meth, goname: "BoxIdTxt1");
                 UnityUt.AddFltTextMeshGameObject(formgo, Vector3.zero, txt2, "black", rot3, off3, ska1, meth, goname: "BoxIdTxt2");
+            }
+        }
+        private void Update()
+        {
+            if (pubState)
+            {
+                magmo.PublishState(this.gameObject,"MmBox");
+                pubState = false;
             }
         }
         //private void FixedUpdate()

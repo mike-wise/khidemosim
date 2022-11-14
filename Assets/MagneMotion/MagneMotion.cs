@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -97,6 +98,7 @@ namespace KhiDemo
         [Header("Extras")]
         public bool calculatePoses = false;
         public bool publishJsonStatesToFile;
+        public string jsonStatesFile = "";
 
         public PhysicMaterial physMat;
 
@@ -105,6 +107,7 @@ namespace KhiDemo
         GameObject planningCanvas;
         GameObject target;
         GameObject targetPlacement;
+
 
 
         GameObject InitChildGo(string seekname)
@@ -370,16 +373,96 @@ namespace KhiDemo
             Debug.Log(msg);
         }
 
+
+        public class MmObjectState
+        {
+            public string pathname;
+            public string typ;
+            public string now;
+            public string simtime;
+            public Vector3 scale;
+            public Vector3 eulerangles;
+            public Vector3 position;
+
+            public void Init(string pathname, string typ, Vector3 scale, Vector3 eulerangles, Vector3 position)
+            {
+                this.pathname = pathname;
+                this.typ = typ;
+                this.now = DateTime.Now.ToString("O");
+                this.simtime = Time.time.ToString("F6");
+                this.scale = scale;
+                this.eulerangles = eulerangles;
+                this.position = position;
+            }
+            public string MakeJsonString()
+            {
+                return JsonUtility.ToJson(this);
+            }
+        }
+
+        bool jsonStateFileInited = false;
+        string nl = Environment.NewLine;
+        public bool InitJsonStateFile()
+        {
+            if (!jsonStateFileInited)
+            {
+                try
+                {
+                    var ds = DateTime.Now.ToString("s");
+                    ds = ds.Replace(':', '-');
+                    jsonStatesFile = $"JsonState/gobs-{ds}";
+                    jsonStateFileInited = true;
+                    File.AppendAllText(jsonStatesFile, $"# JsonStateFile {ds}{nl}");
+                }
+                catch(Exception ex)
+                {
+                    Debug.LogError(ex.Message);
+                    return false;
+                }
+            }
+            return true;
+        }   
+         
+        public void PublishState(GameObject go,string typ)
+        {
+            var ok = InitJsonStateFile();
+            if (ok)
+            {
+                var ostate = new MmObjectState();
+                var t = go.transform;
+                var pname = $"{go.name}";
+                var gop = go.transform.parent;
+                while (gop != null && gop.name!="floor")
+                {
+                    pname = $"{gop.name}/{pname}";
+                    gop = gop.transform.parent;
+                }
+                var pathname = $"/{pname}";
+                ostate.Init(pathname, typ, t.localScale, t.eulerAngles, t.position);
+                var ostr = ostate.MakeJsonString()+nl;
+                File.AppendAllText(jsonStatesFile,ostr);
+            }
+        }
+
         // Start is called before the first frame update
         void Start()
         {
+
+            floorobject = GameObject.Find("FloorObject");
+            if (floorobject != null)
+            {
+                var boxcol = floorobject.GetComponent<BoxCollider>();
+                boxcol.material = physMat;
+                Debug.Log($"Assigned physMat to floorobject");
+            }
+
+            MmBox.AllocateBoxPools(this);
 
             mmtgo = new GameObject("MmTable");
             mmtgo.transform.SetParent(floor.transform, worldPositionStays: true);
             mmt = mmtgo.AddComponent<MmTable>();
             mmt.Init(this);
 
-            MmBox.AllocatePools(this);
 
             MmPathSeg.InitDicts();
 
@@ -394,10 +477,11 @@ namespace KhiDemo
                     break;
             }
 
-            // Initialize Robot
+
 
             var mmgo = mmt.SetupGeometry(addPathMarkers: addPathMarkers, positionOnFloor: positionOnFloor);
             mmgo.transform.SetParent(transform, false);
+            mmgo.transform.SetParent(floor.transform, true);
             if (addPathSledsOnStartup)
             {
                 mmt.AddSleds();
@@ -415,13 +499,7 @@ namespace KhiDemo
             mmctrl.Init(this);
             mmctrl.SetMode(mmMode,clear:false); // first call should not try and clear
 
-            floorobject = GameObject.Find("FloorObject");
-            if (floorobject != null)
-            {
-                var boxcol = floorobject.GetComponent<BoxCollider>();
-                boxcol.material = physMat;
-                Debug.Log($"Assigned physMat to floorobject");
-            }
+
 
 
             CheckEnclosure();
@@ -751,7 +829,7 @@ namespace KhiDemo
                         floorobject.transform.localScale = new Vector3(1, 1, 1);
                     }
                 }
-                mmt.pathgos.SetActive(!enclosureOn);
+                mmt.pathgos.SetActive(!enclosureOn);// turn off the cigars-noses
                 mmego.SetActive(enclosureOn);
             }
         }

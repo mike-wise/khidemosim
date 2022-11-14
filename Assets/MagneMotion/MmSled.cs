@@ -40,7 +40,7 @@ namespace KhiDemo
         {
 
             var mmt = magmo.mmt;
-            var sname1 = $"sledid:{sledid}";
+            var sname1 = $"sledid_{sledid}";
             var sledgo = new GameObject(sname1);
             //var (pt, ang) = mmt.GetPositionAndOrientation(pathnum, pathdist);
             //sledgo.transform.position = pt;
@@ -327,8 +327,8 @@ namespace KhiDemo
             var off2 = new Vector3(0, 0.20f, -0.27f) * unitsToMetersFak;
             var txt = $"{sledid}";
             var meth = UnityUt.FltTextImpl.TextPro;
-            UnityUt.AddFltTextMeshGameObject(traygo, Vector3.zero, txt, "yellow", rot1, off1, unitsToMetersFak, meth, goname: "SledidTxt");
-            UnityUt.AddFltTextMeshGameObject(traygo, Vector3.zero, txt, "yellow", rot2, off2, unitsToMetersFak, meth, goname: "SledidTxt");
+            UnityUt.AddFltTextMeshGameObject(traygo, Vector3.zero, txt, "yellow", rot1, off1, unitsToMetersFak, meth, goname: "SledidTxt-Port");
+            UnityUt.AddFltTextMeshGameObject(traygo, Vector3.zero, txt, "yellow", rot2, off2, unitsToMetersFak, meth, goname: "SledidTxt-Strb");
         }
 
         void AdjustSledOnPathDist(int pathnum, float pathdist)
@@ -342,30 +342,53 @@ namespace KhiDemo
             visible = pathnum >= 0;
             formgo.SetActive(visible);
         }
-
-
         void AdjustSledPositionAndOrientation(Vector3 pt, float ang)
         {
+            if (transform.parent == null) return;
             if (magmo.mmSledMoveMethod == MmSledMoveMethod.SetPosition)
             {
-                var geomparenttrans = transform.parent;
+                var ptrans = transform.parent;
                 transform.parent = null;
                 transform.position = pt;
                 transform.rotation = Quaternion.Euler(0, 0, -ang);
-                transform.localScale = Vector3.one;
-                transform.SetParent(geomparenttrans, worldPositionStays: false);
-                transform.SetAsFirstSibling();
+                transform.SetParent(ptrans, worldPositionStays: false);
             }
             else
             {
-                if (transform.parent != null)
-                {
-                    var npt = transform.parent.TransformPoint(pt);
-                    rigbod.MovePosition(npt);
-                    var rot = Quaternion.Euler(0, ang - 90, 0);
-                    rigbod.MoveRotation(rot);
-                }
+                var npt = transform.parent.TransformPoint(pt);
+                rigbod.MovePosition(npt);
+                var rot = Quaternion.Euler(0, ang - 90, 0);
+                rigbod.MoveRotation(rot);
             }
+            transform.SetAsFirstSibling();
+        }
+
+        void AdjustSledPositionAndOrientationX(Vector3 pt, float ang)
+        {
+            if (transform.parent == null) return;
+            if (magmo.mmSledMoveMethod == MmSledMoveMethod.SetPosition)
+            {
+                var ptrans = transform.parent;
+                var npt = ptrans.TransformPoint(pt);
+                transform.position = npt;
+                var rot = Quaternion.Euler(0, ang - 90, 0);
+                var roti = Quaternion.Inverse(rot);
+                var prot = ptrans.rotation;
+                var proti = Quaternion.Inverse(prot);
+                //var frot = prot * rot * proti;
+                //var frot = proti * rot * prot;
+                //var frot = rot *prot * roti;
+                var frot = roti * prot * rot;
+                transform.rotation = frot;
+            }
+            else
+            {
+                var npt = transform.parent.TransformPoint(pt);
+                rigbod.MovePosition(npt);
+                var rot = Quaternion.Euler(0, ang - 90, 0);
+                rigbod.MoveRotation(rot);
+            }
+            transform.SetAsFirstSibling();
         }
 
         public void EchoUpdateSled(int new_pathnum, float new_pathdist, bool new_loaded)
@@ -415,10 +438,10 @@ namespace KhiDemo
                 }
             }
             var delt = sledUnitsPerSecSpeed - oldspeed;
-            if (delt != 0)
-            {
-                Debug.Log($"Adjust speed time:{Time.time:f3} sld:{sledid} old:{oldspeed:f2}  new:{sledUnitsPerSecSpeed:f2}   delt:{delt:f3}");
-            }
+            //if (delt != 0)
+            //{
+            //    Debug.Log($"Adjust speed time:{Time.time:f3} sld:{sledid} old:{oldspeed:f2}  new:{sledUnitsPerSecSpeed:f2}   delt:{delt:f3}");
+            //}
         }
         const float UnitsPerMeter = 8;
         const float sledMinGap = UnitsPerMeter * 0.10f;// 10 cm

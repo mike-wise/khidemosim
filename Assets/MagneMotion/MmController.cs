@@ -30,11 +30,14 @@ namespace KhiDemo
                 carts[i].ori = new Vector3(0, i * 10, 0);
             }
         }
-        public string SaveToString()
+        public string MakeJsonString()
         {
             return JsonUtility.ToJson(this);
         }
     }
+
+
+
 
 
     public enum RobStatus { busy,idle }

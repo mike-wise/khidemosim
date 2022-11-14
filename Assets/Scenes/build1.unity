@@ -1731,10 +1731,11 @@ MonoBehaviour:
   mmRobotMoveMode: 0
   mmMode: 5
   mmRigidMode: 2
+  mmSledMoveMethod: 1
   stopSimulation: 0
-  initialSleedSpeed: 0.5
-  staticFriction: 0.9
-  dynamicFriction: 0.9
+  initialSleedSpeed: 1
+  staticFriction: 1
+  dynamicFriction: 1
   bounciness: 0
   enablePlanning: 0
   echoMovementsRos: 1
