@@ -98,6 +98,23 @@ namespace KhiDemo
             {
                 locToWorldMat.Add(xf.localToWorldMatrix);
             }
+
+            var linknamesextended = new List<string>(linknames);
+            linknamesextended.Add("world/base_link/link1/link2/link3/link4/link5/link6/tool_link");
+            linknamesextended.Add("world/base_link/link1/link2/link3/link4/link5/link6/tool_link/gripper_base");
+            foreach (var linkname in linknamesextended)
+            {
+                var go = GameObject.Find(linkname);
+                if (go != null)
+                {
+                    var ovc = go.AddComponent<OvPrim>();
+                    ovc.Init("MmLink");
+                }
+                else
+                {
+                    Debug.LogError($"Cound not find {linkname}");
+                }
+            }
         }
 
         public void SubcribeToRos()
@@ -560,12 +577,12 @@ namespace KhiDemo
             int i = 0;
             foreach (var xf in xforms)
             {
-                locToWorldMat[i] = CopyMatrix(xf.localToWorldMatrix);
+                locToWorldMat[i] = FilterMatrix(xf.localToWorldMatrix);
                 i++;
             }
         }
 
-        float filt(float f)
+        static float filterToZero(float f)
         {
             if (Mathf.Abs(f)<1e-6)
             {
@@ -574,28 +591,29 @@ namespace KhiDemo
             return f;
         }
 
-        Matrix4x4 CopyMatrix(Matrix4x4 m)
+
+        public static Matrix4x4 FilterMatrix(Matrix4x4 m)
         {
             Matrix4x4 rv;
-            rv.m00 = filt(m.m00);
-            rv.m01 = filt(m.m01);
-            rv.m02 = filt(m.m02);
-            rv.m03 = filt(m.m03);
+            rv.m00 = filterToZero(m.m00);
+            rv.m01 = filterToZero(m.m01);
+            rv.m02 = filterToZero(m.m02);
+            rv.m03 = filterToZero(m.m03);
 
-            rv.m10 = filt(m.m10);
-            rv.m11 = filt(m.m11);
-            rv.m12 = filt(m.m12);
-            rv.m13 = filt(m.m13);
+            rv.m10 = filterToZero(m.m10);
+            rv.m11 = filterToZero(m.m11);
+            rv.m12 = filterToZero(m.m12);
+            rv.m13 = filterToZero(m.m13);
 
-            rv.m20 = filt(m.m20);
-            rv.m21 = filt(m.m21);
-            rv.m22 = filt(m.m22);
-            rv.m23 = filt(m.m23);
+            rv.m20 = filterToZero(m.m20);
+            rv.m21 = filterToZero(m.m21);
+            rv.m22 = filterToZero(m.m22);
+            rv.m23 = filterToZero(m.m23);
 
-            rv.m30 = filt(m.m30);
-            rv.m31 = filt(m.m31);
-            rv.m32 = filt(m.m32);
-            rv.m33 = filt(m.m33);
+            rv.m30 = filterToZero(m.m30);
+            rv.m31 = filterToZero(m.m31);
+            rv.m32 = filterToZero(m.m32);
+            rv.m33 = filterToZero(m.m33);
             return rv;
         }
 

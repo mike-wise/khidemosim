@@ -374,75 +374,7 @@ namespace KhiDemo
         }
 
 
-        public class MmObjectState
-        {
-            public string pathname;
-            public string typ;
-            public string now;
-            public string simtime;
-            public Vector3 scale;
-            public Vector3 eulerangles;
-            public Vector3 position;
-
-            public void Init(string pathname, string typ, Vector3 scale, Vector3 eulerangles, Vector3 position)
-            {
-                this.pathname = pathname;
-                this.typ = typ;
-                this.now = DateTime.Now.ToString("O");
-                this.simtime = Time.time.ToString("F6");
-                this.scale = scale;
-                this.eulerangles = eulerangles;
-                this.position = position;
-            }
-            public string MakeJsonString()
-            {
-                return JsonUtility.ToJson(this);
-            }
-        }
-
-        bool jsonStateFileInited = false;
-        string nl = Environment.NewLine;
-        public bool InitJsonStateFile()
-        {
-            if (!jsonStateFileInited)
-            {
-                try
-                {
-                    var ds = DateTime.Now.ToString("s");
-                    ds = ds.Replace(':', '-');
-                    jsonStatesFile = $"JsonState/gobs-{ds}";
-                    jsonStateFileInited = true;
-                    File.AppendAllText(jsonStatesFile, $"# JsonStateFile {ds}{nl}");
-                }
-                catch(Exception ex)
-                {
-                    Debug.LogError(ex.Message);
-                    return false;
-                }
-            }
-            return true;
-        }   
-         
-        public void PublishState(GameObject go,string typ)
-        {
-            var ok = InitJsonStateFile();
-            if (ok)
-            {
-                var ostate = new MmObjectState();
-                var t = go.transform;
-                var pname = $"{go.name}";
-                var gop = go.transform.parent;
-                while (gop != null && gop.name!="floor")
-                {
-                    pname = $"{gop.name}/{pname}";
-                    gop = gop.transform.parent;
-                }
-                var pathname = $"/{pname}";
-                ostate.Init(pathname, typ, t.localScale, t.eulerAngles, t.position);
-                var ostr = ostate.MakeJsonString()+nl;
-                File.AppendAllText(jsonStatesFile,ostr);
-            }
-        }
+ 
 
         // Start is called before the first frame update
         void Start()
@@ -455,6 +387,11 @@ namespace KhiDemo
                 boxcol.material = physMat;
                 Debug.Log($"Assigned physMat to floorobject");
             }
+
+            var ovctrl = gameObject.AddComponent<OvCtrl>();
+            ovctrl.Init("Floor");
+            ovctrl.OV_ActiveObjects = "mmbox,mmsled,mmlink";
+            ovctrl.OV_FlattenObjects = "mmbox,mmlink";
 
             MmBox.AllocateBoxPools(this);
 

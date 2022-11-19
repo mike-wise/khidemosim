@@ -687,10 +687,10 @@ namespace KhiDemo
             }
         }
 
-        public void DoJson()
-        {
+        //public void DoJson()
+        //{
 
-        }
+        //}
 
         public void ProcessStep()
         {
@@ -701,10 +701,10 @@ namespace KhiDemo
             //processStep = false;
             if (!CheckIfOkayForNextProcessStep()) return;
 
-            if (magmo.publishJsonStatesToFile)
-            {
-                DoJson();
-            }
+            //if (magmo.publishJsonStatesToFile)
+            //{
+            //    DoJson();
+            //}
 
             //Debug.Log($"ProcessStep mode:{mmMode}");
             if (Time.time - coroutineStart < 0.1f) return;

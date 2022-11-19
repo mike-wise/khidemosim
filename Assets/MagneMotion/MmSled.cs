@@ -68,6 +68,7 @@ namespace KhiDemo
             sled.SetLoadState(loaded);
             sledgo.transform.SetParent(mmt.mmtgo.transform, worldPositionStays: false);
             //Debug.Log($"ConstructSled {sledid} pathnum:{pathnum} nextpathnum:{sled.nextpathnum} dist:{pathdist:f1}");
+
             return sled;
         }
 
@@ -245,6 +246,10 @@ namespace KhiDemo
             }
 
             AddTextIdToSledForm();
+
+            var ovc = traygo.AddComponent<OvPrim>();
+            ovc.Init("MmSled");
+
 
             formgo.transform.SetParent(transform, worldPositionStays: false);
 

@@ -30,11 +30,7 @@ namespace KhiDemo
         public PoolStatus poolStatus;
         public Rigidbody rigbod;
 
-        [Header("Action")]
-        public bool pubState = false;
-
         static MmBox[] boxes = null;
-
 
         static int clas_seqnum = 0;
 
@@ -173,12 +169,15 @@ namespace KhiDemo
             box.boxid1 = boxid1;
             box.poolStatus = PoolStatus.notInPool;
 
+
             box.seqnum = clas_seqnum;
             box.boxid2 = $"{box.seqnum:D2}";
             box.ConstructForm(boxform);
             box.lastStatus = BoxStatus.free;
             box.boxStatus = stat;
             boxes = null;
+            var ovc = boxgeomgo.AddComponent<OvPrim>();
+            ovc.Init("MmBox");
             //boxgeomgo.transform.SetParent(mmt.mmtgo.transform, worldPositionStays: true);
             return box;
             //Debug.Log($"makesled pathnum:{pathnum} dist:{pathdist:f1} pt:{sledgeomgo.transform.position:f1}");
@@ -340,31 +339,5 @@ namespace KhiDemo
                 UnityUt.AddFltTextMeshGameObject(formgo, Vector3.zero, txt2, "black", rot3, off3, ska1, meth, goname: "BoxIdTxt2");
             }
         }
-        private void Update()
-        {
-            if (pubState)
-            {
-                magmo.PublishState(this.gameObject,"MmBox");
-                pubState = false;
-            }
-        }
-        //private void FixedUpdate()
-        //{
-        //    switch (magmo.mmMode)
-        //    {
-        //        case MmMode.SimuRailToRail:
-        //        case MmMode.StartRailToTray:
-        //        case MmMode.StartTrayToRail:
-        //            switch (magmo.GetHoldMethod())
-        //            {
-        //                case MmHoldMethod.Physics:
-        //                    {
-        //                    }
-        //                    break;
-        //            }
-        //            break;
-        //    }
-        //}
-
     }
 }
