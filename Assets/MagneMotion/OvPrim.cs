@@ -241,14 +241,17 @@ public class OvPrim : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (ovctrl.IsOvActive(this) || pubOvAlways || pubOvOnce)
+        if (ovctrl != null)
         {
-            if (CheckMoved())
+            if (ovctrl.IsOvActive(this) || pubOvAlways || pubOvOnce)
             {
-                ovctrl.PublishState(this);
+                if (CheckMoved())
+                {
+                    ovctrl.PublishState(this);
+                }
+                npub++;
+                pubOvOnce = false;
             }
-            npub++;
-            pubOvOnce = false;
         }
     }
 }

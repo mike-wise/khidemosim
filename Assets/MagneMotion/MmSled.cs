@@ -263,7 +263,7 @@ namespace KhiDemo
                 magmo.ErrMsg("AttachBoxToSled - tryied to attach null box");
                 return;
             }
-            Debug.Log($"Attaching/associating Box to Sled - {box.boxid1} {box.boxid2} {box.boxclr} {magmo.GetHoldMethod()}");
+            //Debug.Log($"Attaching/associating Box to Sled - {box.boxid1} {box.boxid2} {box.boxclr} {magmo.GetHoldMethod()}");
             this.box = box;
             switch (magmo.GetHoldMethod())
             {

@@ -537,7 +537,7 @@ namespace KhiDemo
                             rob.ActivateRobBox(true);
                             break;
                         case MmBoxMode.RealPooled:
-                            Debug.Log($"TransferBoxFromTrayToRobot {TrayRowColPos}");
+                            //Debug.Log($"TransferBoxFromTrayToRobot {TrayRowColPos}");
                             //yield return new WaitUntil(() => robstatus == RobStatus.idle);
                             CheckCount("TransferBoxFromTrayToRobot");
                             StartCoroutine(TransferBoxFromTrayToRobot(magmo.mmMode, TrayRowColPos, rob));

@@ -56,12 +56,18 @@ namespace KhiDemo
 
     public class MmRobot : MonoBehaviour
     {
+        [Header("Controls")]
+        public bool enableUrdfInertialMatrix = false;
+
+        [Header("State")]
         public bool loadState;
+        public Vector3 lastboxposition;
+
+        [Header("Internals")]
         public MagneMotion magmo;
         public Transform vgriptrans;
         public Transform tooltrans;
         public MmBox box;
-        public Vector3 lastboxposition;
 
         public RobotJointPose currentRobotPose;
 
@@ -560,8 +566,28 @@ namespace KhiDemo
             }
         }
 
+        int fixedUpdateCount = 0;
+        bool lastEnableUrdfInertialMatrix;
+
         private void FixedUpdate()
         {
+            if (fixedUpdateCount==0)
+            {
+                Debug.Log($"FixedUpdate count initilized in MmRobot");
+                lastEnableUrdfInertialMatrix = enableUrdfInertialMatrix;
+            }
+            fixedUpdateCount++;
+            if (lastEnableUrdfInertialMatrix!=enableUrdfInertialMatrix)
+            {
+                var urdfList = FindObjectsOfType<Unity.Robotics.UrdfImporter.UrdfInertial>();
+                Debug.Log($"MmRobot - Toggling UrdfInertial to {enableUrdfInertialMatrix} for {urdfList.Length} components");
+                foreach ( var urdf in urdfList)
+                {
+                    urdf.enabled = enableUrdfInertialMatrix;
+                    urdf.displayInertiaGizmo = enableUrdfInertialMatrix;
+                }
+                lastEnableUrdfInertialMatrix = enableUrdfInertialMatrix;
+            }
             if (box != null)
             {
                 switch(magmo.GetHoldMethod())
