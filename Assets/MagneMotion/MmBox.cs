@@ -288,7 +288,9 @@ namespace KhiDemo
                         // 7x5.4x4.3.5
                         go1.transform.parent = formgo.transform;
                         go1.transform.position = new Vector3(0.0f, 0.0f, -0.16f)*1f/8;
-                        go1.transform.localRotation = Quaternion.Euler(180, 90, -90);
+                        //go1.transform.localRotation = Quaternion.Euler(90, 90, 0);
+                        //go1.transform.localRotation = Quaternion.Euler(180, 90, -90);
+                        go1.transform.localRotation = Quaternion.Euler(0, 270, 90);
 
                         if (boxform == BoxForm.PrefabWithMarkerCube)
                         {

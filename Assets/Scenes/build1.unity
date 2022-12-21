@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.44657826, g: 0.49641263, b: 0.57481676, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -149,6 +149,14 @@ PrefabInstance:
     - target: {fileID: 4230273628033313287, guid: 4c0b7f6fe8e981f43b3ffa1243e81336, type: 3}
       propertyPath: m_ParentAnchorRotation.z
       value: 0.70710677
+      objectReference: {fileID: 0}
+    - target: {fileID: 4230273628085899136, guid: 4c0b7f6fe8e981f43b3ffa1243e81336, type: 3}
+      propertyPath: m_Immovable
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4230273628085899136, guid: 4c0b7f6fe8e981f43b3ffa1243e81336, type: 3}
+      propertyPath: m_UseGravity
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4230273628154264049, guid: 4c0b7f6fe8e981f43b3ffa1243e81336, type: 3}
       propertyPath: m_ParentAnchorPosition.x
@@ -495,7 +503,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 626133819}
-  m_LocalRotation: {x: -0, y: -1, z: -0, w: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0.374, y: 0.22199988, z: -0.029999867}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
@@ -697,12 +705,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 602d84ce06cac7e478e4c306c866ce64, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enableUrdfInertialMatrix: 0
+  showEffectorPositionAtStartup: 0
   loadState: 0
+  lastboxposition: {x: 0, y: 0, z: 0}
+  trackingTargetName: Floor
   magmo: {fileID: 0}
   vgriptrans: {fileID: 0}
   tooltrans: {fileID: 0}
   box: {fileID: 0}
-  lastboxposition: {x: 0, y: 0, z: 0}
+  trackingTarget: {fileID: 0}
+  lastTrackingTargetPos: {x: 0, y: 0, z: 0}
+  lastTrackingTargetRot: {x: 0, y: 0, z: 0, w: 0}
   currentRobotPose: 0
   effector: {fileID: 0}
   linknames: []
@@ -1184,7 +1198,7 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 10, y: 0.1, z: 10}
+  m_Size: {x: 10, y: 0.001, z: 10}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &1757384862
 MeshRenderer:
@@ -1689,8 +1703,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2109811893}
-  m_LocalRotation: {x: -0.000000030908623, y: 0.7071068, z: -0.7071068, w: -0.000000030908623}
-  m_LocalPosition: {x: -0.022, y: 0.936, z: 0.5310001}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -1734,6 +1748,7 @@ MonoBehaviour:
   mmSledMoveMethod: 1
   stopSimulation: 0
   initialSleedSpeed: 1
+  mmStartingCoord: 1
   staticFriction: 1
   dynamicFriction: 1
   bounciness: 0

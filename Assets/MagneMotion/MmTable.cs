@@ -331,21 +331,42 @@ namespace KhiDemo
             }
 
 
-            if (positionOnFloor)
-            {
-                // flatten to XZ plane and twist around
-                mmtgo.transform.localRotation = Quaternion.Euler(90, 180, 0);
+            //if (positionOnFloor)
+            //{
+            //    // flatten to XZ plane and twist around
+            //    // magnemtion rotation (local) set to 90,180,0
+            //    //var ang = 180;
+            //    //switch (magmo.mmStartingCoord)
+            //    //{
+            //    //    case MmStartingCoords.Rot000:
+            //    //        ang = 0;
+            //    //        break;
+            //    //    case MmStartingCoords.Rot180:
+            //    //        ang = 180;
+            //    //        break;
+            //    //}
+            //    //mmtgo.transform.localRotation = Quaternion.Euler(90, ang, 0);
 
-                // attach to floor if there is one
-                var floorgo = GameObject.Find("Floor");
-                if (floorgo != null)
-                {
-                    mmtgo.transform.SetParent(floorgo.transform, worldPositionStays: false);
-                    // move it behind the robot and up to the first robot joint 
-                    mmtgo.transform.position += new Vector3(0.2f, 0.2f, 0.77f);
-                }
-            }
-
+            //    // attach to floor if there is one
+            //    var floorgo = GameObject.Find("Floor");
+            //    if (floorgo != null)
+            //    {
+            //        mmtgo.transform.SetParent(floorgo.transform, worldPositionStays: false);
+            //        var pos = new Vector3(0.2f, 0.2f, 0.77f);
+            //        // move it behind the robot and up to the first robot joint 
+            //        switch (magmo.mmStartingCoord)
+            //        {
+            //            case MmStartingCoords.Rot000:
+            //                pos = new Vector3(-0.2f, 0.2f, 0.77f);
+            //                break;
+            //            case MmStartingCoords.Rot180:
+            //                pos = new Vector3(0.2f, 0.2f, 0.77f);
+            //                break;
+            //        }
+            //        mmtgo.transform.position += pos - new Vector3(-0.022f, -0.936f, 0.531f );
+            //    }
+            //}
+            mmtgo.transform.position += new Vector3(-0.022f, 0.936f, 0.531f);
             return mmtgo;
         }
 

@@ -61,6 +61,7 @@ namespace KhiDemo
         public float spang = 0;
         public float epang = 0;
         public float rad = 0;
+
         public MmPathSeg(MmPath path, MmSegForm inform, string name, string direction, float lengthUnits)
         {
             if (inform != MmSegForm.Straight)
@@ -221,6 +222,14 @@ namespace KhiDemo
         public float loadedStopPoint;
         public float unloadedStopPoint;
 
+
+        public static Vector3 ReformPoint(Vector3 iv)
+        {
+            var rv = new Vector3(-iv.x, iv.z, -iv.y);
+            return rv;
+        }
+
+
         public MmPath(MagneMotion magmo, int idx, string name, Vector3 startpt)
         {
             this.magmo = magmo;
@@ -251,7 +260,7 @@ namespace KhiDemo
             }
             startgo = UnityUt.CreateCube(parent, "blue", size: sz,collider:false);
             startgo.name = $"Start-{name}";
-            startgo.transform.position = pos;
+            startgo.transform.position = ReformPoint(pos);
             if (seggos)
             {
                 foreach (var seg in segs)
@@ -408,6 +417,7 @@ namespace KhiDemo
             pathLength += seg.lengthUnits;
             segs.Add(seg);
         }
+
         public (Vector3 pt, float ang) GetPositionAndOrientation(float pathdist)
         {
             //Debug.Log($"Pathidx:{pidx} pathdist:{pathdist:f2}");
@@ -420,7 +430,7 @@ namespace KhiDemo
             {
                 magmo.WarnMsg($"GetPositionAndOrientation - path {name} - pathdist requested ({pathdist:f4}) is bigger than pathlength {pathLength:f4}");
                 var eang = segs[segs.Count - 1].eang;
-                return (endpt, eang);
+                return (MmPath.ReformPoint(endpt), eang);
             }
             //Debug.Log($"{name} unitLength:{unitLength}");
             var i = 0;
@@ -448,7 +458,7 @@ namespace KhiDemo
                 pt = new Vector3(u2m * pt.x, u2m * pt.y, u2m * pt.z);
             }
             //Debug.Log($"Pathidx:{pidx} pathdist:{pathdist:f2} returns - pt:{pt:f1} ang:{ang:f1}");
-            return (pt, ang);
+            return (MmPath.ReformPoint(pt), ang);
         }
     }
 }

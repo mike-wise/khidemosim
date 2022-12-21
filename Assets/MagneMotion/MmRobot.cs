@@ -58,16 +58,23 @@ namespace KhiDemo
     {
         [Header("Controls")]
         public bool enableUrdfInertialMatrix = false;
+        public bool showEffectorPositionAtStartup = false;
 
         [Header("State")]
         public bool loadState;
         public Vector3 lastboxposition;
+
+        [Header("Tracker")]
+        public string trackingTargetName;
 
         [Header("Internals")]
         public MagneMotion magmo;
         public Transform vgriptrans;
         public Transform tooltrans;
         public MmBox box;
+        public Transform trackingTarget = null;
+        public Vector3 lastTrackingTargetPos;
+        public Quaternion lastTrackingTargetRot;
 
         public RobotJointPose currentRobotPose;
 
@@ -93,9 +100,12 @@ namespace KhiDemo
 
             //magmo.rosconnection.RegisterPublisher<RsJ6Msg>("Rs007Joints6");
 
-            var gob = new GameObject("Effector");
-            effector = gob.AddComponent<MmEffector>();
-            effector.Init(this);
+            if (showEffectorPositionAtStartup)
+            {
+                var gob = new GameObject("Effector");
+                effector = gob.AddComponent<MmEffector>();
+                effector.Init(this);
+            }
 
             var mmTrajPlan = FindObjectOfType<MmTrajPlan>();
             (linknames, xforms) = mmTrajPlan.GetLinkNamesAndXforms();
@@ -120,6 +130,22 @@ namespace KhiDemo
                 {
                     Debug.LogError($"Cound not find {linkname}");
                 }
+            }
+
+            if (trackingTargetName!="")
+            {
+                AssignTrackingTarget(trackingTargetName);
+            }
+        }
+
+        public void AssignTrackingTarget(string trackname)
+        {
+            var go = GameObject.Find(trackname);
+            if (go != null)
+            {
+                trackingTarget = go.transform;
+                lastTrackingTargetPos = trackingTarget.position;
+                lastTrackingTargetRot = trackingTarget.rotation;
             }
         }
 
@@ -643,11 +669,23 @@ namespace KhiDemo
             return rv;
         }
 
+        public void TrackTarget()
+        {
+            if (trackingTarget!=null)
+            {
+                var deltapos =  trackingTarget.position - lastTrackingTargetPos;
+                var delatrot = trackingTarget.rotation * Quaternion.Inverse(lastTrackingTargetRot);
+                transform.position += deltapos;
+                transform.rotation *= delatrot;
+            }
+        }
+
         RobotJointPose oldPoseTuple;
         int updatecount;
         void Update()
         {
             DoRobotPose();
+            TrackTarget();
             updatecount++;
         }
     }

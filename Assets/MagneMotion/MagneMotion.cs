@@ -30,6 +30,7 @@ namespace KhiDemo
     public enum MmRigidMode {  None, Sleds,SledsBox }
 
     public enum MmSledMoveMethod { SetPosition, MovePosition };
+    public enum MmStartingCoords { Rot180, Rot000 };
 
 
     public class MagneMotion : MonoBehaviour
@@ -68,6 +69,7 @@ namespace KhiDemo
         public MmSledMoveMethod mmSledMoveMethod = MmSledMoveMethod.SetPosition;
         public bool stopSimulation = false;
         public float initialSleedSpeed = 1.0f;
+        public MmStartingCoords mmStartingCoord = MmStartingCoords.Rot180;
 
 
         [Header("Physics Material")]
@@ -133,7 +135,7 @@ namespace KhiDemo
 
         private void Awake()
         {
-            // Messages need to be alocated
+            // Messages need to be allocated
             messages = new List<(InfoType intyp, DateTime time, string msg)>();// has to be first
 
             // Now find objects
@@ -150,10 +152,60 @@ namespace KhiDemo
             }
 
             floor = GameObject.Find("Floor");
+            if (floor==null)
+            {
+                Debug.LogError("Could Not Find Floor");
+            }
+            var tray = GameObject.Find("MmTray");
+            if (tray == null)
+            {
+                Debug.LogError("Could Not Find tray");
+            }
+
+            if (floor != null)
+            {
+                switch (mmStartingCoord)
+                {
+                    case MmStartingCoords.Rot000:
+                        floor.transform.rotation = Quaternion.Euler(0, 0, 0);
+                        tray.transform.rotation = Quaternion.Euler(0, 0, 0);
+                        tray.transform.localPosition = new Vector3(0.374f, 0.222f, -0.023f);
+                        break;
+                    case MmStartingCoords.Rot180:
+                        //floor.transform.rotation = Quaternion.Euler(0, 179.999f, 0);
+                        tray.transform.localPosition = new Vector3(-0.374f, 0.222f, -0.023f);
+                        break;
+                }
+            }
 
             planningCanvas = InitChildGo("PlanningCanvas");
             target = InitChildGo("Target");
             targetPlacement = InitChildGo("TargetPlacement");
+
+            if (target!=null)
+            {
+                switch (mmStartingCoord)
+                {
+                    case MmStartingCoords.Rot000:
+                        target.transform.localPosition = new Vector3(-0.16f, 0.16f, -0.351f);
+                        break;
+                    case MmStartingCoords.Rot180:
+                        target.transform.localPosition = new Vector3(0.16f, 0.16f, 0.351f);
+                        break;
+                }
+            }
+            if (targetPlacement != null)
+            {
+                switch (mmStartingCoord)
+                {
+                    case MmStartingCoords.Rot000:
+                        targetPlacement.transform.localPosition = new Vector3(0.321f, 0, -0.294f);
+                        break;
+                    case MmStartingCoords.Rot180:
+                        targetPlacement.transform.localPosition = new Vector3(-0.321f, 0, 0.294f);
+                        break;
+                }
+            }
 
 
             rosconnection = ROSConnection.GetOrCreateInstance();
@@ -350,7 +402,7 @@ namespace KhiDemo
             var ok = socket.TryReceiveFrameString(timeout2, out var response);
             if (!ok)
             {
-                Debug.LogError($"Zmq received not okay after sending {str} - deactivating zmq");
+                Debug.LogWarning($"Zmq received not okay after sending {str} - is a receiver running? - deactivating zmq");
                 zmqactivated = false;
             }
         }
@@ -538,8 +590,8 @@ namespace KhiDemo
         float F5hitTime = 0;
         float F6hitTime = 0;
         float F10hitTime = 0;
-        float plusHitTime = 0;
-        float minusHitTime = 0;
+        //float plusHitTime = 0;
+        //float minusHitTime = 0;
         public void KeyProcessing()
         {
             var plushit = Input.GetKeyDown(KeyCode.Plus) || Input.GetKeyDown(KeyCode.KeypadPlus) || Input.GetKeyDown(KeyCode.Equals);

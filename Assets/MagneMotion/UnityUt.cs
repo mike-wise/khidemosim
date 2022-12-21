@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class UnityUt : MonoBehaviour
 {
-    static Dictionary<string, string> hexColorTable = null;
+    //static Dictionary<string, string> hexColorTable = null;
     static Dictionary<string, Color> colorTable = null;
     static Dictionary<string, string> colorOrigin = null;
     public static int colordups = 0;

@@ -152,7 +152,7 @@ namespace KhiDemo
                 }
                 else
                 {
-                    Debug.LogError("Target is null for Vacumm Gripper");
+                    Debug.LogError($"Target is null for Vacumm Gripper - vacGripperName:{vacGripperName}");
                 }
             }
             else if (rgrip != null && lgrip != null)
@@ -167,7 +167,7 @@ namespace KhiDemo
             }
             else
             {
-                Debug.LogError("No Gripper found");
+                Debug.LogError($"No Gripper found -  trigger:{MmGripperTrigger}");
                 MmGripperType = MmGripperType.None;
             }
 
@@ -300,11 +300,16 @@ namespace KhiDemo
                 Debug.LogError("TransformToRobotCoordinates No robot model found");
                 return Vector3.zero;
             }
-            var rot = Quaternion.Inverse(rm.transform.rotation);
+            var robrot = rm.transform.rotation;// actually the local rotation
+            var invrot = Quaternion.Inverse(robrot);
+            if (magmo.mmStartingCoord== MmStartingCoords.Rot000)
+            {
+                invrot = Quaternion.Euler(0,180,0);
+            }
             var pivotpt = rm.transform.position;
-            var tpt = rot * (pt - pivotpt);
+            var tpt = invrot * (pt - pivotpt);
 
-            Debug.Log($"TransformToRobotCoordinates rot:{rot} pivotpt:{pivotpt:f3} mapped:{pt:f3} to {tpt:f3}");
+            Debug.Log($"TransformToRobotCoordinates robrot:{robrot.eulerAngles} invrot:{invrot.eulerAngles} pivotpt:{pivotpt:f3} mapped:{pt:f3} to {tpt:f3}");
 
             return tpt;
         }
@@ -334,9 +339,9 @@ namespace KhiDemo
                 // orientation = Quaternion.Euler(90, m_Target.transform.eulerAngles.y, 0).To<FLU>()
                 orientation = or1
             };
-            var msg0 = $"m_PickPoseOffset:{m_PickPoseOffset:f3}";
+            var msg0 = $"   m_PickPoseOffset:{m_PickPoseOffset:f3}";
             Debug.Log(msg0);
-            var msg1 = $"PickPose (FLU) position:{pt1:f3} orientation:{or1:f3}";
+            var msg1 = $"   PickPose (FLU) position:{pt1:f3} orientation:{or1:f3}";
             Debug.Log(msg1);
 
             // Place Pose
