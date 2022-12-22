@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class UnityUt : MonoBehaviour
 {
-    static Dictionary<string, string> hexColorTable = null;
+    //static Dictionary<string, string> hexColorTable = null;
     static Dictionary<string, Color> colorTable = null;
     static Dictionary<string, string> colorOrigin = null;
     public static int colordups = 0;
@@ -226,10 +226,10 @@ public class UnityUt : MonoBehaviour
         ngo.transform.position = off;
         ngo.transform.localScale = new Vector3(ska,ska,ska);
         ngo.transform.SetParent(go.transform, worldPositionStays:wps);
-        var txgo = new GameObject("TextMesh");
+        var txgo = new GameObject($"TextMesh_{text}");
         txgo.transform.SetParent(ngo.transform,worldPositionStays:false);
         AddFltTextMeshComponent(txgo, Vector3.zero, text, colorname, lfltTextImpl, wps:false);
-        //var cgo = CreateSphere(ngo, "limegreen", size: 0.2f, wps: false);
+        //var cgo = CreateSphere(ngo, "limegreen", size: 0.2f, wps: false, collider: false);
         //cgo.name = "sphere";
     }
 
@@ -354,9 +354,17 @@ public class UnityUt : MonoBehaviour
     //}
 
     //public static Color mmcolor = Color.white;
-    public static GameObject CreateSphere(GameObject parent, string cname="white", float size = 0.5f, bool wps = true)
+    public static GameObject CreateSphere(GameObject parent, string cname="white", float size = 0.5f, bool wps = true, bool collider = true)
     {
         var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        if (!collider)
+        {
+            var collcomp = go.GetComponent<SphereCollider>();
+            if (collcomp != null)
+            {
+                Destroy(collcomp);
+            }
+        }
         go.transform.localScale = new Vector3(size, size, size);
         if (parent != null)
         {
@@ -366,9 +374,17 @@ public class UnityUt : MonoBehaviour
         material.color = GetColorByName(cname);
         return go;
     }
-    public static GameObject CreateCube(GameObject parent, string cname = "white", float size = 0.5f, bool wps = true)
+    public static GameObject CreateCube(GameObject parent, string cname = "white", float size = 0.5f, bool wps = true, bool collider=true)
     {
         var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        if (!collider)
+        {
+            var collcomp = go.GetComponent<BoxCollider>();
+            if (collcomp != null)
+            {
+                Destroy(collcomp);
+            }
+        }
         go.transform.localScale = new Vector3(size, size, size);
         if (parent != null)
         {

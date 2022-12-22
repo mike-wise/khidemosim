@@ -137,7 +137,7 @@ namespace KhiDemo
             p4.MakeCircSeg("n", "cw");
             p4.MakeCircSeg("w", "ccw");
             p2.LinkToContinuationPath(p4);
-            p4.SetLoadedStopPoint(5.0f);
+            p4.SetLoadedStopPoint(5.12f);
 
             var p5 = mmt.MakePath("path5", p1.End());
             p5.MakeLineSeg("e", 2);
@@ -145,7 +145,7 @@ namespace KhiDemo
             p5.MakeLineSeg("e", 2);
             p1.LinkToContinuationPath(p5);
             p1.SetPreferedUnloadedPath(p5);
-            p5.SetUnloadedStopPoint(6.0f);
+            p5.SetUnloadedStopPoint(6.1825f);
 
             var p6 = mmt.MakePath("path6", p5.End());
             p6.MakeLineSeg("e", 2);
@@ -238,7 +238,7 @@ namespace KhiDemo
                 case SledSpeedDistrib.fixedValue:
                     foreach (var s in sleds)
                     {
-                        s.SetSpeed(sledspeed);
+                        s.SetRequestedSpeed(sledspeed);
                     }
                     break;
                 case SledSpeedDistrib.alternateHiLo:
@@ -247,7 +247,7 @@ namespace KhiDemo
                     {
                         float val = (id % 2 == 0) ? sledspeed : sledspeed / 2;
                         //Debug.Log($"Set {s.sledid} speed to {val}");
-                        s.SetSpeed(val);
+                        s.SetRequestedSpeed(val);
                         id++;
                     }
                     break;
@@ -265,13 +265,13 @@ namespace KhiDemo
                             case SledLoadDistrib.allLoaded:
                                 foreach (var s in sleds)
                                 {
-                                    s.AssignedPooledBox(true);
+                                    s.AssignedPooledBox( newLoadState: true,firstTime:true);
                                 }
                                 break;
                             case SledLoadDistrib.allUnloaded:
                                 foreach (var s in sleds)
                                 {
-                                    s.AssignedPooledBox(false);
+                                    s.AssignedPooledBox( newLoadState:false, firstTime: true);
                                 }
                                 break;
                             case SledLoadDistrib.alternateLoadedUnloaded:
@@ -279,7 +279,7 @@ namespace KhiDemo
                                 foreach (var s in sleds)
                                 {
                                     bool val = (id % 2 == 0) ? true : false;
-                                    s.AssignedPooledBox(val);
+                                    s.AssignedPooledBox(val, firstTime: true);
                                     //Debug.Log($"Assigned {s.sledid} to loadstate:{val}");
                                     id++;
                                 }
@@ -294,12 +294,17 @@ namespace KhiDemo
             }
         }
 
+        public void SetSpeedFactor(float speed)
+        {
+            
+        }
+
         public void AdjustSledSpeedFactor(float fak)
         {
             foreach (var s in sleds)
             {
-                var speed = s.sledUpsSpeed;
-                s.SetSpeed(speed*fak);
+                var speed = s.sledUnitsPerSecSpeed;
+                s.SetRequestedSpeed(speed*fak);
             }
         }
 
@@ -326,21 +331,42 @@ namespace KhiDemo
             }
 
 
-            if (positionOnFloor)
-            {
-                // flatten to XZ plane and twist around
-                mmtgo.transform.localRotation = Quaternion.Euler(90, 180, 0);
+            //if (positionOnFloor)
+            //{
+            //    // flatten to XZ plane and twist around
+            //    // magnemtion rotation (local) set to 90,180,0
+            //    //var ang = 180;
+            //    //switch (magmo.mmStartingCoord)
+            //    //{
+            //    //    case MmStartingCoords.Rot000:
+            //    //        ang = 0;
+            //    //        break;
+            //    //    case MmStartingCoords.Rot180:
+            //    //        ang = 180;
+            //    //        break;
+            //    //}
+            //    //mmtgo.transform.localRotation = Quaternion.Euler(90, ang, 0);
 
-                // attach to floor if there is one
-                var floorgo = GameObject.Find("Floor");
-                if (floorgo != null)
-                {
-                    mmtgo.transform.SetParent(floorgo.transform, worldPositionStays: false);
-                    // move it behind the robot and up to the first robot joint 
-                    mmtgo.transform.position += new Vector3(0.2f, 0.2f, 0.77f);
-                }
-            }
-
+            //    // attach to floor if there is one
+            //    var floorgo = GameObject.Find("Floor");
+            //    if (floorgo != null)
+            //    {
+            //        mmtgo.transform.SetParent(floorgo.transform, worldPositionStays: false);
+            //        var pos = new Vector3(0.2f, 0.2f, 0.77f);
+            //        // move it behind the robot and up to the first robot joint 
+            //        switch (magmo.mmStartingCoord)
+            //        {
+            //            case MmStartingCoords.Rot000:
+            //                pos = new Vector3(-0.2f, 0.2f, 0.77f);
+            //                break;
+            //            case MmStartingCoords.Rot180:
+            //                pos = new Vector3(0.2f, 0.2f, 0.77f);
+            //                break;
+            //        }
+            //        mmtgo.transform.position += pos - new Vector3(-0.022f, -0.936f, 0.531f );
+            //    }
+            //}
+            mmtgo.transform.position += new Vector3(-0.022f, 0.936f, 0.531f);
             return mmtgo;
         }
 
@@ -377,6 +403,7 @@ namespace KhiDemo
             }
         }
 
+
         public int CountLoadedSleds()
         {
             var rv = 0;
@@ -396,7 +423,7 @@ namespace KhiDemo
             var nunloadedstopped = 0;
             foreach (var s in sleds)
             {
-                if (s.stopped)
+                if (s.sledMoveStatus==SledMoveStatus.Stopped)
                 {
                     if (s.loadState)
                     {
@@ -415,7 +442,7 @@ namespace KhiDemo
         {
             foreach(var s in sleds)
             {
-                if (s.stopped && neededLoadState==s.loadState)
+                if (s.sledMoveStatus == SledMoveStatus.Stopped && neededLoadState==s.loadState)
                 {
                     return s;
                 }

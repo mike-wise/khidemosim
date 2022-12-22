@@ -56,15 +56,33 @@ namespace KhiDemo
 
     public class MmRobot : MonoBehaviour
     {
+        [Header("Controls")]
+        public bool enableUrdfInertialMatrix = false;
+        public bool showEffectorPositionAtStartup = false;
+
+        [Header("State")]
         public bool loadState;
+        public Vector3 lastboxposition;
+
+        [Header("Tracker")]
+        public string trackingTargetName;
+
+        [Header("Internals")]
         public MagneMotion magmo;
         public Transform vgriptrans;
         public Transform tooltrans;
         public MmBox box;
+        public Transform trackingTarget = null;
+        public Vector3 lastTrackingTargetPos;
+        public Quaternion lastTrackingTargetRot;
 
         public RobotJointPose currentRobotPose;
 
         public MmEffector effector;
+
+        public List<string> linknames;
+        public List<Transform> xforms;
+        public List<Matrix4x4> locToWorldMat;
 
         void Start()
         {
@@ -82,10 +100,53 @@ namespace KhiDemo
 
             //magmo.rosconnection.RegisterPublisher<RsJ6Msg>("Rs007Joints6");
 
-            var gob = new GameObject("Effector");
-            effector = gob.AddComponent<MmEffector>();
-            effector.Init(this);
+            if (showEffectorPositionAtStartup)
+            {
+                var gob = new GameObject("Effector");
+                effector = gob.AddComponent<MmEffector>();
+                effector.Init(this);
+            }
 
+            var mmTrajPlan = FindObjectOfType<MmTrajPlan>();
+            (linknames, xforms) = mmTrajPlan.GetLinkNamesAndXforms();
+            locToWorldMat = new List<Matrix4x4>();
+            foreach(var xf in xforms)
+            {
+                locToWorldMat.Add(xf.localToWorldMatrix);
+            }
+
+            var linknamesextended = new List<string>(linknames);
+            linknamesextended.Add("world/base_link/link1/link2/link3/link4/link5/link6/tool_link");
+            linknamesextended.Add("world/base_link/link1/link2/link3/link4/link5/link6/tool_link/gripper_base");
+            foreach (var linkname in linknamesextended)
+            {
+                var go = GameObject.Find(linkname);
+                if (go != null)
+                {
+                    var ovc = go.AddComponent<OvPrim>();
+                    ovc.Init("MmLink");
+                }
+                else
+                {
+                    Debug.LogError($"Cound not find {linkname}");
+                }
+            }
+
+            if (trackingTargetName!="")
+            {
+                AssignTrackingTarget(trackingTargetName);
+            }
+        }
+
+        public void AssignTrackingTarget(string trackname)
+        {
+            var go = GameObject.Find(trackname);
+            if (go != null)
+            {
+                trackingTarget = go.transform;
+                lastTrackingTargetPos = trackingTarget.position;
+                lastTrackingTargetRot = trackingTarget.rotation;
+            }
         }
 
         public void SubcribeToRos()
@@ -100,6 +161,7 @@ namespace KhiDemo
             {
                 MmBox.ReturnToPool(box);
                 box = null;
+                lastboxposition = Vector3.zero;
             }
             loadState = false;
         }
@@ -337,13 +399,13 @@ namespace KhiDemo
                 {
                     var sz = 0.2f / 10;
                     var sz2 = sz / 2;
-                    var ego = UnityUt.CreateSphere(null, "limegreen", sz);
+                    var ego = UnityUt.CreateSphere(null, "limegreen", sz, collider: false);
                     ego.name = "Sph-" + key.ToString();
-                    var xax = UnityUt.CreateSphere(ego, "red", sz / 5);
+                    var xax = UnityUt.CreateSphere(ego, "red", sz / 5, collider: false);
                     xax.transform.position += new Vector3(sz2, 0, 0);
-                    var yax = UnityUt.CreateSphere(ego, "green", sz / 5);
+                    var yax = UnityUt.CreateSphere(ego, "green", sz / 5, collider: false);
                     yax.transform.position += new Vector3(0, sz2, 0);
-                    var zax = UnityUt.CreateSphere(ego, "blue", sz / 5);
+                    var zax = UnityUt.CreateSphere(ego, "blue", sz / 5, collider: false);
                     zax.transform.position += new Vector3(0, 0, sz2);
                     ego.transform.position = p;
                     ego.transform.rotation = q;
@@ -375,6 +437,7 @@ namespace KhiDemo
                     }
             }
         }
+        Vector3 robotoffset = new Vector3(0, -0.16f, 0);
         public void AttachBoxToRobot(MmBox box)
         {
             if (vgriptrans == null)
@@ -387,13 +450,26 @@ namespace KhiDemo
                 magmo.ErrMsg("AttachBoxToRobot - Box is null");
                 return;
             }
+            Debug.Log($"Attaching Box to Robot - {box.boxid1} {box.boxid2} {box.boxclr} {magmo.GetHoldMethod()})");
             this.box = box;
-            Debug.Log($"Attaching Box to Robot - {box.boxid1} {box.boxid2} {box.boxclr})");
-            box.transform.parent = null;
-            box.transform.localRotation = Quaternion.Euler(90, 0, 0);
-            //box.transform.localPosition = new Vector3(0, -0.14f, 0);
-            box.transform.localPosition = new Vector3(0, -0.16f, 0);
-            box.transform.SetParent(vgriptrans, worldPositionStays: false);
+            switch (magmo.GetHoldMethod())
+            {
+                case MmHoldMethod.Hierarchy:
+                    // Debug.Log($"Attaching Box to Robot - Hierarchy");
+                    box.transform.parent = null;
+                    box.transform.localRotation = Quaternion.Euler(90, 0, 0);
+                    box.transform.localPosition = robotoffset;
+                    box.transform.SetParent(vgriptrans, worldPositionStays: false);
+                    break;
+                case MmHoldMethod.Physics:
+                case MmHoldMethod.Dragged:
+                    // the proper way to do Physics for a vaccume gripper would involve Fluid Dynamics and we are not going there
+                    // Debug.Log($"Associating Box to Robot - Dragged and Physics");
+                    box.rigbod.isKinematic = true;
+                    box.transform.rotation = transform.rotation * Quaternion.Euler(90, 0, 0);
+                    box.transform.position = vgriptrans.transform.position + robotoffset;
+                    break;
+            }
             loadState = true;
             box.SetBoxStatus(BoxStatus.onRobot);
         }
@@ -402,7 +478,7 @@ namespace KhiDemo
             var oldbox = box;
             if (oldbox != null)
             {
-                Debug.Log($"Detaching Box from Robot - {oldbox.boxid1} {oldbox.boxid2} {oldbox.boxclr})");
+                // Debug.Log($"Detaching Box from Robot - {oldbox.boxid1} {oldbox.boxid2} {oldbox.boxclr})");
                 oldbox.SetBoxStatus(BoxStatus.free);
             }
             else
@@ -516,11 +592,100 @@ namespace KhiDemo
             }
         }
 
+        int fixedUpdateCount = 0;
+        bool lastEnableUrdfInertialMatrix;
+
+        private void FixedUpdate()
+        {
+            if (fixedUpdateCount==0)
+            {
+                Debug.Log($"FixedUpdate count initilized in MmRobot");
+                lastEnableUrdfInertialMatrix = enableUrdfInertialMatrix;
+            }
+            fixedUpdateCount++;
+            if (lastEnableUrdfInertialMatrix!=enableUrdfInertialMatrix)
+            {
+                var urdfList = FindObjectsOfType<Unity.Robotics.UrdfImporter.UrdfInertial>();
+                Debug.Log($"MmRobot - Toggling UrdfInertial to {enableUrdfInertialMatrix} for {urdfList.Length} components");
+                foreach ( var urdf in urdfList)
+                {
+                    urdf.enabled = enableUrdfInertialMatrix;
+                    urdf.displayInertiaGizmo = enableUrdfInertialMatrix;
+                }
+                lastEnableUrdfInertialMatrix = enableUrdfInertialMatrix;
+            }
+            if (box != null)
+            {
+                switch(magmo.GetHoldMethod())
+                {
+                    case MmHoldMethod.Physics:  // FixedUpdate
+                    case MmHoldMethod.Dragged:  // FixedUpdate
+                        box.transform.position = vgriptrans.transform.position + robotoffset;
+                        box.transform.rotation = vgriptrans.transform.rotation * Quaternion.Euler(90, 0, 0);
+
+                        break;
+                }
+            }
+            int i = 0;
+            foreach (var xf in xforms)
+            {
+                locToWorldMat[i] = FilterMatrix(xf.localToWorldMatrix);
+                i++;
+            }
+        }
+
+        static float filterToZero(float f)
+        {
+            if (Mathf.Abs(f)<1e-6)
+            {
+                return 0;
+            }
+            return f;
+        }
+
+
+        public static Matrix4x4 FilterMatrix(Matrix4x4 m)
+        {
+            Matrix4x4 rv;
+            rv.m00 = filterToZero(m.m00);
+            rv.m01 = filterToZero(m.m01);
+            rv.m02 = filterToZero(m.m02);
+            rv.m03 = filterToZero(m.m03);
+
+            rv.m10 = filterToZero(m.m10);
+            rv.m11 = filterToZero(m.m11);
+            rv.m12 = filterToZero(m.m12);
+            rv.m13 = filterToZero(m.m13);
+
+            rv.m20 = filterToZero(m.m20);
+            rv.m21 = filterToZero(m.m21);
+            rv.m22 = filterToZero(m.m22);
+            rv.m23 = filterToZero(m.m23);
+
+            rv.m30 = filterToZero(m.m30);
+            rv.m31 = filterToZero(m.m31);
+            rv.m32 = filterToZero(m.m32);
+            rv.m33 = filterToZero(m.m33);
+            return rv;
+        }
+
+        public void TrackTarget()
+        {
+            if (trackingTarget!=null)
+            {
+                var deltapos =  trackingTarget.position - lastTrackingTargetPos;
+                var delatrot = trackingTarget.rotation * Quaternion.Inverse(lastTrackingTargetRot);
+                transform.position += deltapos;
+                transform.rotation *= delatrot;
+            }
+        }
+
         RobotJointPose oldPoseTuple;
         int updatecount;
         void Update()
         {
             DoRobotPose();
+            TrackTarget();
             updatecount++;
         }
     }

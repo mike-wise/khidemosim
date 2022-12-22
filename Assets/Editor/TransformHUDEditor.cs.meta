@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: bfb0609974bd74d8aa6b8bf907ad4060
+labels:
+- Transform
+- Hud
+- Editor
+- Extension
+- Position
+- Rotate
+- Scale
+timeCreated: 1429011288
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

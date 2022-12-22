@@ -22,6 +22,8 @@ namespace KhiDemo
         Dictionary<(int, int), MmBox> trayboxes = new Dictionary<(int, int), MmBox>();
         Dictionary<(int, int), GameObject> trayslots = new Dictionary<(int, int), GameObject>();
 
+        public Rigidbody rigbod;
+
         public MmTray()
         {
             InitVals();
@@ -125,9 +127,13 @@ namespace KhiDemo
 
             mmtrayrep.transform.SetParent(parent, worldPositionStays: false);
 
-            mmtraygo = UnityUt.CreateCube(mmtrayrep, "gray", size: 1, wps: false);
+            mmtraygo = UnityUt.CreateCube(mmtrayrep, "gray", size: 1, wps: false, collider:true);
             mmtraygo.name = "mmtraygo";
             mmtraygo.transform.localScale = new Vector3(0.289f, 0.017f, 0.314f);
+            rigbod = mmtraygo.AddComponent<Rigidbody>();
+            rigbod.isKinematic = true;
+            var boxcol = mmtraygo.AddComponent<BoxCollider>();
+            boxcol.material = magmo.physMat;
         }
         float slotw;
         float sloth;
@@ -172,11 +178,11 @@ namespace KhiDemo
             slotgo.transform.position = pt;
             slotgo.transform.SetParent(mmtrayrep.transform, worldPositionStays: false);
 
-            var slotformgo = UnityUt.CreateCube(null, "gray", size: 1);
+            var slotformgo = UnityUt.CreateCube(null, "gray", size: 1, collider:false);
             slotformgo.transform.localScale = new Vector3(slotw, 0.005f, sloth);
             slotformgo.transform.SetParent(slotgo.transform, worldPositionStays: false);
 
-            var gobx = UnityUt.CreateCube(null, "red", size: 0.01f);
+            var gobx = UnityUt.CreateCube(null, "red", size: 0.01f, collider:false);
             gobx.name = "centercube";
             gobx.transform.position = new Vector3(0, 0.0164f, 0);
             gobx.transform.SetParent(slotformgo.transform, worldPositionStays: false);
@@ -227,7 +233,7 @@ namespace KhiDemo
                         var box = MmBox.GetFreePooledBox( BoxStatus.onTray);
                         if (box != null)
                         {
-                            AttachBoxToTraySlot(key, box);
+                            AttachBoxToTraySlot(key, box, firstTime:true);
                             trayboxes[key] = box;
                             loadState[key] = true;
                             ncreated++;
@@ -246,16 +252,42 @@ namespace KhiDemo
             }
         }
 
-        public void AttachBoxToTraySlot((int,int) slotkey, MmBox box)
+        public void AttachBoxToTraySlot((int, int) slotkey, MmBox box,bool firstTime=false)
         {
+            //Debug.Log($"Attaching Box to AttachBoxToTraySlot - {slotkey} {box.boxid2} {box.boxclr} {magmo.GetHoldMethod()}");
             var slot = trayslots[slotkey];
-            //box.transform.localRotation = Quaternion.Euler(90, 0, 0);
-            //box.transform.parent = null;
-            box.transform.parent = null;
-            box.transform.rotation = Quaternion.Euler(90, 0, 0);
-            box.transform.position = Vector3.zero;
-            box.transform.SetParent(slot.transform, worldPositionStays: false);
             trayboxes[slotkey] = box;
+
+            switch (magmo.GetHoldMethod())
+            {
+                case MmHoldMethod.Hierarchy:
+                    // Debug.Log($"Attaching Box to Trayslot - Hierarchy");
+                    box.rigbod.isKinematic = true;
+                    box.transform.parent = null;
+                    box.transform.rotation = Quaternion.Euler(90, 0, 0);
+                    box.transform.position = Vector3.zero;
+                    box.transform.SetParent(slot.transform, worldPositionStays: false);
+                    break;
+                case MmHoldMethod.Physics:
+                    // Debug.Log($"Associating Box to Trayslot - Physics");
+                    if (firstTime)
+                    {
+                        box.rigbod.isKinematic = true;
+                        box.transform.rotation = Quaternion.Euler(90, 0, 0);
+                        box.transform.position = slot.transform.position;
+                    }
+                    box.rigbod.isKinematic = false;  // should be false
+                    box.rigbod.useGravity = true;
+                    break;
+                case MmHoldMethod.Dragged:
+                default:
+                    // Debug.Log($"Associating Box to Trayslot - Dragged");
+                    box.rigbod.isKinematic = true;
+                    box.transform.rotation = Quaternion.Euler(90, 0, 0);
+                    box.transform.position = slot.transform.position;
+                    break;
+            }
+
             loadState[slotkey] = true;
             box.SetBoxStatus(BoxStatus.onTray);
         }

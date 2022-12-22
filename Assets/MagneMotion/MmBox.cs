@@ -15,17 +15,22 @@ namespace KhiDemo
         static GameObject realPoolRoot;
         public enum BoxForm { CubeBased, Prefab, PrefabWithMarkerCube }
         BoxForm boxform;
+
+        [Header("ID")]
         public string boxid1;
         public string boxid2;
         public string boxclr="none";
         public int seqnum;
+
+
+        [Header("State")]
         public BoxStatus lastStatus;
         public BoxStatus boxStatus;
         public bool destroyedOnClear;
         public PoolStatus poolStatus;
+        public Rigidbody rigbod;
 
         static MmBox[] boxes = null;
-
 
         static int clas_seqnum = 0;
 
@@ -46,31 +51,68 @@ namespace KhiDemo
             }
         }
 
-        public static void AllocatePools(MagneMotion magmo)
+        public static void AllocateBoxPools(MagneMotion magmo)
         {
-            fakePoolRoot = new GameObject("FakePoolRoot");
+            fakePoolRoot = new GameObject("FakeBoxPool");
+            fakePoolRoot.transform.position += new Vector3(0.5f, 0, 0);
+            fakePoolRoot.transform.SetParent(magmo.floor.transform, worldPositionStays: true);
             fakePool = new List<MmBox>();
             var nfakePool = 12 + 1 + 10;
             for (int i = 0; i < nfakePool; i++)
             {
                 var boxid = $"f{i}";
-                var box = MmBox.ConstructBox(magmo, BoxForm.Prefab, boxid);
+                var box = MmBox.ConstructBox(magmo, BoxForm.Prefab, "Fake", boxid);
                 box.poolStatus = PoolStatus.fakePool;
                 box.transform.SetParent(fakePoolRoot.transform, worldPositionStays: false);
+                SetPoolSidePosition(box);
                 fakePool.Add(box);
             }
-            realPoolRoot = new GameObject("RealPoolRoot");
+            realPoolRoot = new GameObject("RealBoxPool");
+            realPoolRoot.transform.position += new Vector3(-0.5f, 0, 0);
+            realPoolRoot.transform.SetParent(magmo.floor.transform, worldPositionStays: true);
             realPool = new List<MmBox>();
             var nrealPool = 10;
             for (int i = 0; i < nrealPool; i++)
             {
                 var boxid = $"r{i}";
-                var box = MmBox.ConstructBox(magmo, BoxForm.PrefabWithMarkerCube, boxid);
+                var box = MmBox.ConstructBox(magmo, BoxForm.PrefabWithMarkerCube, "Real", boxid);
                 box.poolStatus = PoolStatus.realPool;
                 box.transform.SetParent(realPoolRoot.transform, worldPositionStays: false);
+                SetPoolSidePosition(box);
                 realPool.Add(box);
             }
         }
+
+        static void SetPoolSidePosition(MmBox box)
+        {
+            var rowsize = 5;
+            var rowmid = 3;
+            var colmid = 1;
+            var row = (box.seqnum % rowsize) - rowmid;
+            var col = (box.seqnum / rowsize) - colmid;
+
+            var pos = new Vector3(row * 0.1f, 0, col * 0.1f);
+            box.transform.position += pos;
+        }
+
+        public static void ReturnToPoolSidePositions(bool fakeBoxes=true,bool realBoxes=true)
+        {
+            if (fakeBoxes)
+            {
+                foreach (var box in fakePool)
+                {
+                    SetPoolSidePosition(box);
+                }
+            }
+            if (realBoxes)
+            {
+                foreach (var box in realPool)
+                {
+                    SetPoolSidePosition(box);
+                }
+            }
+        }
+
 
         public static void ReturnToPool(MmBox box)
         {
@@ -85,11 +127,13 @@ namespace KhiDemo
                     box.lastStatus = box.boxStatus;
                     box.boxStatus = BoxStatus.free;
                     box.transform.SetParent(realPoolRoot.transform, worldPositionStays: false);
+                    SetPoolSidePosition(box);
                     break;
                 case PoolStatus.fakePool:
                     box.lastStatus = box.boxStatus;
                     box.boxStatus = BoxStatus.free;
                     box.transform.SetParent(fakePoolRoot.transform, worldPositionStays: false);
+                    SetPoolSidePosition(box);
                     break;
                 default:
                     magmo.ErrMsg($"Trying to return non-pooled box to pool");
@@ -112,11 +156,11 @@ namespace KhiDemo
             return null;
         }
 
-        public static MmBox ConstructBox(MagneMotion magmo, BoxForm boxform, string boxid1, BoxStatus stat=BoxStatus.free)
+        public static MmBox ConstructBox(MagneMotion magmo, BoxForm boxform, string prefix, string boxid1, BoxStatus stat=BoxStatus.free)
         {
             var mmt = magmo.mmt;
             clas_seqnum++;
-            var boxname = $"Box-{clas_seqnum:D2}";
+            var boxname = $"{prefix}Box_{clas_seqnum:D2}";
             var boxgeomgo = new GameObject(boxname);
             boxgeomgo.transform.position = Vector3.zero;
             boxgeomgo.transform.rotation = Quaternion.identity;
@@ -125,12 +169,15 @@ namespace KhiDemo
             box.boxid1 = boxid1;
             box.poolStatus = PoolStatus.notInPool;
 
+
             box.seqnum = clas_seqnum;
             box.boxid2 = $"{box.seqnum:D2}";
             box.ConstructForm(boxform);
             box.lastStatus = BoxStatus.free;
             box.boxStatus = stat;
             boxes = null;
+            var ovc = boxgeomgo.AddComponent<OvPrim>();
+            ovc.Init("MmBox");
             //boxgeomgo.transform.SetParent(mmt.mmtgo.transform, worldPositionStays: true);
             return box;
             //Debug.Log($"makesled pathnum:{pathnum} dist:{pathdist:f1} pt:{sledgeomgo.transform.position:f1}");
@@ -225,7 +272,7 @@ namespace KhiDemo
             {
                 case BoxForm.CubeBased:
                     {
-                        var gobx = UnityUt.CreateCube(formgo, "yellow", size: 1);
+                        var gobx = UnityUt.CreateCube(formgo, "yellow", size: 1, collider:false);
                         gobx.name = $"box";
                         // 7x5.4x4.3.5
                         gobx.transform.position = new Vector3(0.0f, 0.0f, -0.16f)*1f/8;
@@ -237,22 +284,34 @@ namespace KhiDemo
                     {
                         var prefab1 = (GameObject)Resources.Load("Prefabs/Box1");
                         var go1 = Instantiate<GameObject>(prefab1);
-                        go1.name = $"box";
+                        go1.name = $"prefabbox";
                         // 7x5.4x4.3.5
                         go1.transform.parent = formgo.transform;
                         go1.transform.position = new Vector3(0.0f, 0.0f, -0.16f)*1f/8;
-                        go1.transform.localRotation = Quaternion.Euler(180, 90, -90);
+                        //go1.transform.localRotation = Quaternion.Euler(90, 90, 0);
+                        //go1.transform.localRotation = Quaternion.Euler(180, 90, -90);
+                        go1.transform.localRotation = Quaternion.Euler(0, 270, 90);
 
                         if (boxform == BoxForm.PrefabWithMarkerCube)
                         {
                             boxclr = UnityUt.GetSequentialColorString();
-                            var gobx = UnityUt.CreateCube(null, boxclr, size: 0.02f);
+                            var gobx = UnityUt.CreateCube(null, boxclr, size: 0.02f, collider:false);
                             gobx.name = "markercube";
 
                             gobx.transform.localScale = new Vector3(0.03f, 0.01f, 0.03f);
                             gobx.transform.position = new Vector3(0, 0.0164f, 0);
                             gobx.transform.SetParent(go1.transform, worldPositionStays: false);
                         }
+                        rigbod = gameObject.AddComponent<Rigidbody>();
+                        rigbod.isKinematic = true;
+                        rigbod.centerOfMass = new Vector3(0, 0, -0.02f);
+                        rigbod.mass = 1f;
+                        var boxcol = gameObject.AddComponent<BoxCollider>();
+                        //boxcol.size = new Vector3(0.054f, 0.07f, 0.033f);
+                        //boxcol.center = new Vector3(0, 0, -0.02f);
+                        boxcol.size = new Vector3(0.054f, 0.065f, 0.033f);
+                        boxcol.center = new Vector3(0, 0, -0.02f);
+                        boxcol.material = magmo.physMat;
                         break;
                     }
             }
@@ -263,21 +322,6 @@ namespace KhiDemo
         }
 
 
-        void AddBoxIdToBoxFormOld()
-        {
-            if (boxid1 != "")
-            {
-                var ska = 1f/8;
-                var rot1 = new Vector3(0, 90, -90);
-                var rot2 = -rot1;
-                var off1 = new Vector3(-0.22f, -0.23f, -0.25f);
-                var off2 = new Vector3(+0.22f, +0.23f, -0.25f);
-                var txt = $"{boxid1}";
-                var meth = UnityUt.FltTextImpl.TextPro;
-                UnityUt.AddFltTextMeshGameObject(formgo, Vector3.zero, txt, "black", rot1, off1, ska, meth);
-                UnityUt.AddFltTextMeshGameObject(formgo, Vector3.zero, txt, "black", rot2, off2, ska, meth);
-            }
-        }
         void AddBoxIdToBoxForm()
         {
             if (boxid1 != "")
@@ -297,6 +341,5 @@ namespace KhiDemo
                 UnityUt.AddFltTextMeshGameObject(formgo, Vector3.zero, txt2, "black", rot3, off3, ska1, meth, goname: "BoxIdTxt2");
             }
         }
-
     }
 }

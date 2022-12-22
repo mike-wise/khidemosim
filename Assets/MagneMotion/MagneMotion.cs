@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -11,10 +12,13 @@ using NetMQ.Sockets;
 
 namespace KhiDemo
 {
+
     public enum MmRobotMoveMode { Sudden, Planned }
     public enum MmBoxMode { RealPooled, FakePooled }
 
     public enum MmSegForm { None, Straight, Curved }
+
+    public enum MmHoldMethod { Hierarchy, Dragged, Physics }
 
     public enum MmTableStyle {  MftDemo, Simple }
 
@@ -22,6 +26,12 @@ namespace KhiDemo
     public enum MmSubMode { None, RailToTray, TrayToRail }
 
     public enum InfoType {  Info, Warn, Error }
+
+    public enum MmRigidMode {  None, Sleds,SledsBox }
+
+    public enum MmSledMoveMethod { SetPosition, MovePosition };
+    public enum MmStartingCoords {  Rot000, Rot180 };
+
 
     public class MagneMotion : MonoBehaviour
     {
@@ -32,6 +42,8 @@ namespace KhiDemo
         public MmTray mmtray = null;
         public GameObject mmego = null;
         public MmTrajPlan planner = null;
+        public GameObject floor = null;
+        public GameObject floorobject = null;
 
         [Header("Scene Element Forms")]
         public MmSled.SledForm sledForm = MmSled.SledForm.Prefab;
@@ -40,7 +52,7 @@ namespace KhiDemo
         public bool addPathMarkers = false;
         public bool addPathSledsOnStartup = true;
         public bool positionOnFloor = false;
-        public bool enclosureOn = false;
+        public bool enclosureOn = true;
         public bool enclosureLoaded = false;
         public bool effectorPoseMarkers = false;
 
@@ -49,9 +61,22 @@ namespace KhiDemo
         public GameObject mmtctrlgo;
 
         [Header("Behaviour")]
+        public MmHoldMethod mmInitialHoldMethod = MmHoldMethod.Hierarchy;
+        MmHoldMethod mmHoldMethod = MmHoldMethod.Hierarchy;
         public MmRobotMoveMode mmRobotMoveMode = MmRobotMoveMode.Sudden;
         public MmMode mmMode = MmMode.None;
+        public MmRigidMode mmRigidMode = MmRigidMode.None;
+        public MmSledMoveMethod mmSledMoveMethod = MmSledMoveMethod.SetPosition;
         public bool stopSimulation = false;
+        public float initialSleedSpeed = 1.0f;
+        public MmStartingCoords mmStartingCoord = MmStartingCoords.Rot000;
+
+
+        [Header("Physics Material")]
+        public float staticFriction = 0.9f;
+        public float dynamicFriction = 0.9f;
+        public float bounciness = 0f;
+
 
         [Header("Network ROS")]
         public bool enablePlanning = false;
@@ -74,7 +99,10 @@ namespace KhiDemo
 
         [Header("Extras")]
         public bool calculatePoses = false;
+        public bool publishJsonStatesToFile;
+        public string jsonStatesFile = "";
 
+        public PhysicMaterial physMat;
 
         List<(InfoType intyp, DateTime time, string msg)> messages;
 
@@ -83,7 +111,8 @@ namespace KhiDemo
         GameObject targetPlacement;
 
 
-        GameObject InitGo(string seekname)
+
+        GameObject InitChildGo(string seekname)
         {
             //Debug.Log($"Seeking Name {seekname}");
             var cango = GameObject.Find(seekname);
@@ -95,9 +124,18 @@ namespace KhiDemo
             return cango;
         }
 
+        public MmHoldMethod GetHoldMethod()
+        {
+            return mmHoldMethod;
+        }
+        public void SetHoldMethod()
+        {
+            mmHoldMethod = mmInitialHoldMethod;
+        }
+
         private void Awake()
         {
-            // Messages need to be alocated
+            // Messages need to be allocated
             messages = new List<(InfoType intyp, DateTime time, string msg)>();// has to be first
 
             // Now find objects
@@ -113,9 +151,65 @@ namespace KhiDemo
                 ErrMsg("no MnRobot in scene");
             }
 
-            planningCanvas = InitGo("PlanningCanvas");
-            target = InitGo("Target");
-            targetPlacement = InitGo("TargetPlacement");
+            floor = GameObject.Find("Floor");
+            if (floor==null)
+            {
+                Debug.LogError("Could Not Find Floor");
+            }
+            var tray = GameObject.Find("MmTray");
+            if (tray == null)
+            {
+                Debug.LogError("Could Not Find tray");
+            }
+
+            if (floor != null)
+            {
+                switch (mmStartingCoord)
+                {
+                    case MmStartingCoords.Rot000:
+                        floor.transform.rotation = Quaternion.Euler(0, 0, 0);
+                        floor.transform.position = new Vector3(-0.206f, 0.761f, -0.21f);
+                        tray.transform.rotation = Quaternion.Euler(0, 0, 0);
+                        tray.transform.localPosition = new Vector3(0.374f, 0.222f, 0.03f);
+                        break;
+                    case MmStartingCoords.Rot180:
+                        floor.transform.rotation = Quaternion.Euler(0, 179.999f, 0);
+                        floor.transform.position = new Vector3(-0.206f, 0.761f, -0.21f);
+                        tray.transform.rotation = Quaternion.Euler(0, 0, 0);
+                        tray.transform.localPosition = new Vector3(-0.374f, 0.222f, -0.03f);
+                        break;
+                }
+            }
+
+            planningCanvas = InitChildGo("PlanningCanvas");
+            target = InitChildGo("Target");
+            targetPlacement = InitChildGo("TargetPlacement");
+
+            if (target!=null)
+            {
+                switch (mmStartingCoord)
+                {
+                    case MmStartingCoords.Rot000:
+                        target.transform.localPosition = new Vector3(-0.16f, 0.16f, -0.351f);
+                        break;
+                    case MmStartingCoords.Rot180:
+                        target.transform.localPosition = new Vector3(0.16f, 0.16f, 0.351f);
+                        break;
+                }
+            }
+            if (targetPlacement != null)
+            {
+                switch (mmStartingCoord)
+                {
+                    case MmStartingCoords.Rot000:
+                        targetPlacement.transform.localPosition = new Vector3(0.321f, 0, -0.294f);
+                        break;
+                    case MmStartingCoords.Rot180:
+                        targetPlacement.transform.localPosition = new Vector3(-0.321f, 0, 0.294f);
+                        break;
+                }
+            }
+
 
             rosconnection = ROSConnection.GetOrCreateInstance();
             rosconnection.ShowHud = false;
@@ -126,6 +220,13 @@ namespace KhiDemo
 
             GetNetworkParms();
             GetOtherParms();
+
+            physMat = new PhysicMaterial();
+            physMat.staticFriction = staticFriction;
+            physMat.dynamicFriction = dynamicFriction;
+            physMat.bounciness = bounciness;
+
+
             // ZmqSendString("Hello world");
         }
 
@@ -259,7 +360,7 @@ namespace KhiDemo
         {
             //rosconnection = ROSConnection.GetOrCreateInstance();
             rosconnection.ShowHud = true;
-            rosconnection.InitializeHUD();
+            //rosconnection.InitializeHUD();
             InfoMsg($"Opening ROS connection {roshost}:{rosport}");
             rosconnection.Connect(roshost, rosport);
             rosconnection.ShowHud = true;
@@ -304,7 +405,7 @@ namespace KhiDemo
             var ok = socket.TryReceiveFrameString(timeout2, out var response);
             if (!ok)
             {
-                Debug.LogError($"Zmq received not okay after sending {str} - deactivating zmq");
+                Debug.LogWarning($"Zmq received not okay after sending {str} - is a receiver running? - deactivating zmq");
                 zmqactivated = false;
             }
         }
@@ -331,11 +432,26 @@ namespace KhiDemo
         void Start()
         {
 
+            floorobject = GameObject.Find("FloorObject");
+            if (floorobject != null)
+            {
+                var boxcol = floorobject.GetComponent<BoxCollider>();
+                boxcol.material = physMat;
+                Debug.Log($"Assigned physMat to floorobject");
+            }
+
+            var ovctrl = gameObject.AddComponent<OvCtrl>();
+            ovctrl.Init("Floor");
+            ovctrl.OV_ActiveObjects = "mmbox,mmsled,mmlink";
+            ovctrl.OV_FlattenObjects = "mmbox,mmlink";
+
+            MmBox.AllocateBoxPools(this);
+
             mmtgo = new GameObject("MmTable");
+            mmtgo.transform.SetParent(floor.transform, worldPositionStays: true);
             mmt = mmtgo.AddComponent<MmTable>();
             mmt.Init(this);
 
-            MmBox.AllocatePools(this);
 
             MmPathSeg.InitDicts();
 
@@ -350,11 +466,11 @@ namespace KhiDemo
                     break;
             }
 
-            // Initialize Robot
 
 
             var mmgo = mmt.SetupGeometry(addPathMarkers: addPathMarkers, positionOnFloor: positionOnFloor);
             mmgo.transform.SetParent(transform, false);
+            mmgo.transform.SetParent(floor.transform, true);
             if (addPathSledsOnStartup)
             {
                 mmt.AddSleds();
@@ -363,7 +479,9 @@ namespace KhiDemo
             mmtray = FindObjectOfType<MmTray>();
             if (mmtray != null)
             {
+                //Debug.Log($"Before Init MmTray.rotation:{mmtray.transform.rotation.eulerAngles:f1}");
                 mmtray.Init(this);
+                //Debug.Log($"After Init MmTray.rotation:{mmtray.transform.rotation.eulerAngles:f1}");
             }
 
             // needs ot go last
@@ -371,6 +489,11 @@ namespace KhiDemo
             mmctrl = mmtctrlgo.AddComponent<MmController>();
             mmctrl.Init(this);
             mmctrl.SetMode(mmMode,clear:false); // first call should not try and clear
+
+
+
+
+            CheckEnclosure();
         }
 
         MmSled.SledForm oldsledForm;
@@ -469,8 +592,8 @@ namespace KhiDemo
         float F5hitTime = 0;
         float F6hitTime = 0;
         float F10hitTime = 0;
-        float plusHitTime = 0;
-        float minusHitTime = 0;
+        //float plusHitTime = 0;
+        //float minusHitTime = 0;
         public void KeyProcessing()
         {
             var plushit = Input.GetKeyDown(KeyCode.Plus) || Input.GetKeyDown(KeyCode.KeypadPlus) || Input.GetKeyDown(KeyCode.Equals);
@@ -665,6 +788,7 @@ namespace KhiDemo
 
         public void CheckEnclosure()
         {
+
             if (!enclosureLoaded)
             {
                 var prefab = Resources.Load<GameObject>("Enclosure/Models/RS007_Enclosure");
@@ -685,20 +809,19 @@ namespace KhiDemo
             }
             if (mmego != null)
             {
-                mmt.pathgos.SetActive(!enclosureOn);
-                mmego.SetActive(enclosureOn);
-                var fgo = GameObject.Find("FloorObject");
-                if (fgo != null)
+                if (floorobject != null)
                 {
                     if (enclosureOn)
                     {
-                        fgo.transform.localScale = new Vector3(0.02f, 1, 0.02f);
+                        floorobject.transform.localScale = new Vector3(0.02f, 1, 0.02f);
                     }
                     else
                     {
-                        fgo.transform.localScale = new Vector3(1, 1, 1);
+                        floorobject.transform.localScale = new Vector3(1, 1, 1);
                     }
                 }
+                mmt.pathgos.SetActive(!enclosureOn);// turn off the cigars-noses
+                mmego.SetActive(enclosureOn);
             }
         }
 
@@ -723,7 +846,8 @@ namespace KhiDemo
         {
             KeyProcessing();
             ChangeSledFormIfRequested();
-            ChangeBoxFormIfRequested();
+            // Can't do this anymore as it messues up our markerbox non-marker box logic
+            // ChangeBoxFormIfRequested(); 
             if (calculatePoses)
             {
                 StartCalculatingPoses();

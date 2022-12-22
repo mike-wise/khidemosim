@@ -61,6 +61,7 @@ namespace KhiDemo
         public float spang = 0;
         public float epang = 0;
         public float rad = 0;
+
         public MmPathSeg(MmPath path, MmSegForm inform, string name, string direction, float lengthUnits)
         {
             if (inform != MmSegForm.Straight)
@@ -157,17 +158,17 @@ namespace KhiDemo
         }
         public void MakeGos(GameObject parent)
         {
-            startgo = UnityUt.CreateSphere(parent, "green", size: sphrad);
+            startgo = UnityUt.CreateSphere(parent, "green", size: sphrad, collider: false);
             startgo.name = name;
             startgo.transform.position = strpt;
-            startgo = UnityUt.CreateSphere(parent, "blue", size: sphrad);
+            startgo = UnityUt.CreateSphere(parent, "blue", size: sphrad, collider: false);
             startgo.name = name;
             startgo.transform.position = endpt;
 
 
             if (this.mmSegForm == MmSegForm.Curved)
             {
-                startgo = UnityUt.CreateSphere(parent, "magenta", size: sphrad);
+                startgo = UnityUt.CreateSphere(parent, "magenta", size: sphrad, collider: false);
                 startgo.name = name + "-center";
                 startgo.transform.position = this.cenpt;
                 var npts = 10;
@@ -177,7 +178,7 @@ namespace KhiDemo
                     var ang = angOfLmbDeg(frac);
                     var pt = ptOfLmb(frac);
 
-                    var go = UnityUt.CreateSphere(parent, "white", size: sphrad / 2);
+                    var go = UnityUt.CreateSphere(parent, "white", size: sphrad / 2, collider: false);
                     go.name = $"{name} ang:{ang:f0} frac:{frac:f2}";
                     //go.transform.position = UnitsToMeters(pt);
                     go.transform.position = pt;
@@ -190,7 +191,7 @@ namespace KhiDemo
                 {
                     var frac = i * 1.0f / npts;
                     var pt = frac * (endpt - strpt) + strpt;
-                    var go = UnityUt.CreateSphere(parent, "gray", size: sphrad / 2);
+                    var go = UnityUt.CreateSphere(parent, "gray", size: sphrad / 2, collider: false);
                     go.name = $"{name} line frac:{frac:f2}";
                     //go.transform.position = UnitsToMeters(pt);
                     go.transform.position = pt;
@@ -221,6 +222,14 @@ namespace KhiDemo
         public float loadedStopPoint;
         public float unloadedStopPoint;
 
+
+        public static Vector3 ReformPoint(Vector3 iv)
+        {
+            var rv = new Vector3(-iv.x, iv.z, -iv.y);
+            return rv;
+        }
+
+
         public MmPath(MagneMotion magmo, int idx, string name, Vector3 startpt)
         {
             this.magmo = magmo;
@@ -249,9 +258,9 @@ namespace KhiDemo
                 sz *= mmt.UnitsToMeters;
                 pos *= mmt.UnitsToMeters;
             }
-            startgo = UnityUt.CreateCube(parent, "blue", size: sz);
+            startgo = UnityUt.CreateCube(parent, "blue", size: sz,collider:false);
             startgo.name = $"Start-{name}";
-            startgo.transform.position = pos;
+            startgo.transform.position = ReformPoint(pos);
             if (seggos)
             {
                 foreach (var seg in segs)
@@ -272,39 +281,72 @@ namespace KhiDemo
                 }
             }
         }
+        bool HasLoadedStopPoint()
+        {
+            return loadedStopPoint >= 0;
+        }
+        bool HasUnoadedStopPoint()
+        {
+            return unloadedStopPoint >= 0;
+        }
 
+        public float DistanceUntilStopOnPath(float curpathdist, bool loaded)
+        {
+            if (loaded && HasLoadedStopPoint())
+            {
+                if (curpathdist <= loadedStopPoint )
+                {
+                    var disttostop = loadedStopPoint - curpathdist;
+                    return disttostop;
+                }
+            }
+            if (!loaded && HasUnoadedStopPoint())
+            {
+                if (curpathdist <= unloadedStopPoint )
+                {
+                    var disttostop = unloadedStopPoint - curpathdist;
+                    return disttostop;
+                }
+            }
+            return float.MaxValue;
+        }
 
-
-        public (int newpathidx, float newpathdist, bool atEndOfPath, bool stopped) AdvancePathdistInUnits(float curpathdist, float deltadist, bool loaded)
+        public (int newpathidx, float newpathdist, bool atEndOfPath,  SledMoveStatus sms, float disttostop ) AdvancePathdistInUnits(float curpathdist, float deltadist, bool loaded)
         {
             var newdist = curpathdist + deltadist;
+            var disttostop = float.MaxValue;
+
+            // We are not changing paths
             if (newdist < this.pathLength)
             {
-                if (loaded && loadedStopPoint>0)
+                if (loaded && HasLoadedStopPoint())
                 {
                     if (curpathdist<=loadedStopPoint && loadedStopPoint<newdist)
                     {
-                        return (pidx, loadedStopPoint, atEndOfPath: false, stopped: true);
+                        disttostop = loadedStopPoint - curpathdist;
+                        return (pidx, loadedStopPoint, atEndOfPath: false, SledMoveStatus.Stopped, disttostop );
                     }
                 }
-                if (!loaded && unloadedStopPoint > 0)
+                if (!loaded && HasUnoadedStopPoint())
                 {
                     if (curpathdist <= unloadedStopPoint && unloadedStopPoint < newdist)
                     {
-                        return (pidx, unloadedStopPoint, atEndOfPath: false, stopped: true);
+                        disttostop = unloadedStopPoint - curpathdist;
+                        return (pidx, unloadedStopPoint, atEndOfPath: false, SledMoveStatus.Stopped, disttostop);
                     }
                 }
-                return (pidx, newdist, atEndOfPath:false, stopped:false);
+                return (pidx, newdist, atEndOfPath:false, SledMoveStatus.Moving, disttostop);
             }
-            var restdist = newdist - this.pathLength;
 
+            // We are changing paths
+            var restdist = newdist - this.pathLength;
             if (continuationPaths.Count == 0)
             {
-                return (pidx, this.pathLength, atEndOfPath: true, stopped: false);
+                return (pidx, this.pathLength, atEndOfPath: true, SledMoveStatus.Moving, disttostop);
             }
             var nxpidx = FindContinuationPathIdx(loaded, alternateIfMultipleChoicesAvaliable: true);
 
-            return (nxpidx, restdist, atEndOfPath: false, stopped: false);
+            return (nxpidx, restdist, atEndOfPath: false, SledMoveStatus.Moving, disttostop);
         }
 
         int selcount = 0;
@@ -375,6 +417,7 @@ namespace KhiDemo
             pathLength += seg.lengthUnits;
             segs.Add(seg);
         }
+
         public (Vector3 pt, float ang) GetPositionAndOrientation(float pathdist)
         {
             //Debug.Log($"Pathidx:{pidx} pathdist:{pathdist:f2}");
@@ -387,7 +430,7 @@ namespace KhiDemo
             {
                 magmo.WarnMsg($"GetPositionAndOrientation - path {name} - pathdist requested ({pathdist:f4}) is bigger than pathlength {pathLength:f4}");
                 var eang = segs[segs.Count - 1].eang;
-                return (endpt, eang);
+                return (MmPath.ReformPoint(endpt), eang);
             }
             //Debug.Log($"{name} unitLength:{unitLength}");
             var i = 0;
@@ -415,7 +458,7 @@ namespace KhiDemo
                 pt = new Vector3(u2m * pt.x, u2m * pt.y, u2m * pt.z);
             }
             //Debug.Log($"Pathidx:{pidx} pathdist:{pathdist:f2} returns - pt:{pt:f1} ang:{ang:f1}");
-            return (pt, ang);
+            return (MmPath.ReformPoint(pt), ang);
         }
     }
 }

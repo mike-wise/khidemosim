@@ -6,6 +6,39 @@ using UnityEngine;
 
 namespace KhiDemo
 {
+    public class MmJsonState
+    {
+        public string now;
+        public float simtime;
+        public float[] robjoints;
+        public (Vector3 pos, Vector3 ori)[] carts;
+        public void FillWithData()
+        {
+            now = DateTime.Now.ToShortTimeString();
+            simtime = 3.14159f;
+            var njoints = 6;
+            robjoints = new float[njoints];
+            for (var i = 0; i < njoints; i++)
+            {
+                robjoints[i] = i * 10f;
+            }
+            var ncarts = 10;
+            carts = new (Vector3 pos, Vector3 ori)[ncarts];
+            for (var i = 0; i < ncarts; i++)
+            {
+                carts[i].pos = new Vector3(i, i, i);
+                carts[i].ori = new Vector3(0, i * 10, 0);
+            }
+        }
+        public string MakeJsonString()
+        {
+            return JsonUtility.ToJson(this);
+        }
+    }
+
+
+
+
 
     public enum RobStatus { busy,idle }
     public class MmController : MonoBehaviour
@@ -117,11 +150,13 @@ namespace KhiDemo
             }
             mmMode = newMode;
             magmo.mmMode = newMode;
+            magmo.SetHoldMethod();
             mmBoxMode = InferBoxMode(newMode);
             switch (newMode)
             {
                 default:
                 case MmMode.Echo:
+                    MmBox.ReturnToPoolSidePositions(fakeBoxes:true,realBoxes:true);
                     mmSubMode = MmSubMode.None;
                     magmo.boxForm = MmBox.BoxForm.Prefab;
                     magmo.echoMovementsRos = true;
@@ -136,6 +171,7 @@ namespace KhiDemo
                     mmtray.InitAllLoadstate(nbox: 12); 
                     break;
                 case MmMode.Planning:
+                    MmBox.ReturnToPoolSidePositions(fakeBoxes: true, realBoxes: true);
                     mmSubMode = MmSubMode.None;
                     magmo.boxForm = MmBox.BoxForm.PrefabWithMarkerCube;
                     magmo.echoMovementsRos = false;
@@ -150,6 +186,7 @@ namespace KhiDemo
                     mmtray.InitAllLoadstate(nbox: 5);
                     break;
                 case MmMode.SimuRailToRail:
+                    MmBox.ReturnToPoolSidePositions(fakeBoxes: true, realBoxes: false);
                     mmSubMode = MmSubMode.None;
                     magmo.boxForm = MmBox.BoxForm.PrefabWithMarkerCube;
                     magmo.echoMovementsRos = false;
@@ -159,27 +196,29 @@ namespace KhiDemo
 
 
                     magmo.mmRobot.RealiseRobotPose(RobotJointPose.rest);
-                    mmt.SetupSledSpeeds(SledSpeedDistrib.alternateHiLo, 0.5f);
+                    mmt.SetupSledSpeeds(SledSpeedDistrib.alternateHiLo, magmo.initialSleedSpeed );
 
                     mmRobot.InitRobotBoxState(startLoadState: false);
                     mmtray.InitAllLoadstate(nbox: 5);
                     mmt.SetupSledLoads(SledLoadDistrib.alternateLoadedUnloaded);
                     break;
                 case MmMode.StartRailToTray:
+                    MmBox.ReturnToPoolSidePositions(fakeBoxes: true, realBoxes: false);
                     mmSubMode = MmSubMode.RailToTray;
+                    magmo.boxForm = MmBox.BoxForm.PrefabWithMarkerCube;
                     magmo.echoMovementsRos = false;
                     magmo.enablePlanning = false;
                     magmo.publishMovementsRos = false;// queue is always full
                     magmo.publishMovementsZmq = true;
 
-                    magmo.boxForm = MmBox.BoxForm.PrefabWithMarkerCube;
                     mmRobot.InitRobotBoxState(startLoadState: false);
-                    mmt.SetupSledSpeeds( SledSpeedDistrib.alternateHiLo, 0.5f);
+                    mmt.SetupSledSpeeds( SledSpeedDistrib.alternateHiLo, magmo.initialSleedSpeed);
                     mmt.SetupSledLoads(SledLoadDistrib.allLoaded);
                     mmtray.InitAllLoadstate(nbox: 0);
                     magmo.mmRobot.RealiseRobotPose(RobotJointPose.rest);
                     break;
                 case MmMode.StartTrayToRail:
+                    MmBox.ReturnToPoolSidePositions(fakeBoxes: true, realBoxes: false);
                     mmSubMode = MmSubMode.TrayToRail;
                     magmo.boxForm = MmBox.BoxForm.PrefabWithMarkerCube;
                     magmo.echoMovementsRos = false;
@@ -188,7 +227,7 @@ namespace KhiDemo
                     magmo.publishMovementsZmq = true;
 
                     mmRobot.InitRobotBoxState(startLoadState: false);
-                    mmt.SetupSledSpeeds( SledSpeedDistrib.alternateHiLo, 0.5f);
+                    mmt.SetupSledSpeeds( SledSpeedDistrib.alternateHiLo, magmo.initialSleedSpeed);
                     mmt.SetupSledLoads(SledLoadDistrib.allUnloaded);
                     mmtray.InitAllLoadstate(nbox: 10);
                     magmo.mmRobot.RealiseRobotPose(RobotJointPose.rest);
@@ -498,7 +537,7 @@ namespace KhiDemo
                             rob.ActivateRobBox(true);
                             break;
                         case MmBoxMode.RealPooled:
-                            Debug.Log($"TransferBoxFromTrayToRobot {TrayRowColPos}");
+                            //Debug.Log($"TransferBoxFromTrayToRobot {TrayRowColPos}");
                             //yield return new WaitUntil(() => robstatus == RobStatus.idle);
                             CheckCount("TransferBoxFromTrayToRobot");
                             StartCoroutine(TransferBoxFromTrayToRobot(magmo.mmMode, TrayRowColPos, rob));
@@ -621,6 +660,7 @@ namespace KhiDemo
                     case MmMode.SimuRailToRail:
                         {
                             rv = (nloadedstopped > 0 && nunloadedstopped > 0);
+                            Debug.Log($"Checking SimRailToRail if okay for next step- nloadedstopped:{nloadedstopped} nunloadedstopped:{nunloadedstopped}   ok:{rv}");
                             return rv;
                         }
                     case MmMode.StartRailToTray:
@@ -648,6 +688,11 @@ namespace KhiDemo
             }
         }
 
+        //public void DoJson()
+        //{
+
+        //}
+
         public void ProcessStep()
         {
             if (magmo.mmRobot.definingEffectorPoses) return; // Don't process steps while this is ongoing
@@ -656,6 +701,12 @@ namespace KhiDemo
             //if (!processStep) return;
             //processStep = false;
             if (!CheckIfOkayForNextProcessStep()) return;
+
+            //if (magmo.publishJsonStatesToFile)
+            //{
+            //    DoJson();
+            //}
+
             //Debug.Log($"ProcessStep mode:{mmMode}");
             if (Time.time - coroutineStart < 0.1f) return;
 

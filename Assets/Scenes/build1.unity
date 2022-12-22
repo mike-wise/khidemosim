@@ -228,7 +228,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4230273628507776395, guid: 4c0b7f6fe8e981f43b3ffa1243e81336, type: 3}
       propertyPath: m_RootOrder
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 4230273628507776395, guid: 4c0b7f6fe8e981f43b3ffa1243e81336, type: 3}
       propertyPath: m_LocalPosition.x
@@ -244,7 +244,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4230273628507776395, guid: 4c0b7f6fe8e981f43b3ffa1243e81336, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: -0.00000004371139
       objectReference: {fileID: 0}
     - target: {fileID: 4230273628507776395, guid: 4c0b7f6fe8e981f43b3ffa1243e81336, type: 3}
       propertyPath: m_LocalRotation.x
@@ -252,7 +252,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4230273628507776395, guid: 4c0b7f6fe8e981f43b3ffa1243e81336, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4230273628507776395, guid: 4c0b7f6fe8e981f43b3ffa1243e81336, type: 3}
       propertyPath: m_LocalRotation.z
@@ -409,7 +409,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 850690186460591411, guid: 43bef545df3e344c4a7e089ca90c15a0, type: 3}
       propertyPath: m_RootOrder
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 850690186460591411, guid: 43bef545df3e344c4a7e089ca90c15a0, type: 3}
       propertyPath: m_LocalPosition.x
@@ -495,11 +495,11 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 626133819}
-  m_LocalRotation: {x: 0.000000030908623, y: -0.7071068, z: 0.7071068, w: -0.000000030908623}
-  m_LocalPosition: {x: -0.19000001, y: 0.71100014, z: -0.04699993}
+  m_LocalRotation: {x: 0, y: -0.00000004371139, z: 0, w: 1}
+  m_LocalPosition: {x: -0.015999988, y: -0.049999833, z: -0.16300006}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 2109811894}
+  m_Father: {fileID: 1166194119}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &626133821
@@ -516,6 +516,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mmtrayrep: {fileID: 0}
   mmtraygo: {fileID: 0}
+  rigbod: {fileID: 0}
 --- !u!1001 &703759235
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -696,13 +697,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 602d84ce06cac7e478e4c306c866ce64, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enableUrdfInertialMatrix: 0
+  showEffectorPositionAtStartup: 0
   loadState: 0
+  lastboxposition: {x: 0, y: 0, z: 0}
+  trackingTargetName: 
   magmo: {fileID: 0}
   vgriptrans: {fileID: 0}
   tooltrans: {fileID: 0}
   box: {fileID: 0}
+  trackingTarget: {fileID: 0}
+  lastTrackingTargetPos: {x: 0, y: 0, z: 0}
+  lastTrackingTargetRot: {x: 0, y: 0, z: 0, w: 0}
   currentRobotPose: 0
   effector: {fileID: 0}
+  linknames: []
+  xforms: []
+  locToWorldMat: []
   definingEffectorPoses: 0
 --- !u!1 &963194225
 GameObject:
@@ -796,7 +807,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 5113255398182140587, guid: 3901759e6233748538fffdbc519c1a68, type: 3}
       propertyPath: m_RootOrder
-      value: 3
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 5113255398182140587, guid: 3901759e6233748538fffdbc519c1a68, type: 3}
       propertyPath: m_LocalScale.x
@@ -893,10 +904,11 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1166194115}
-  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0.206, y: 0.761, z: -0.21}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
+  - {fileID: 626133820}
   - {fileID: 1757384860}
   - {fileID: 940606760}
   - {fileID: 451371867}
@@ -1165,10 +1177,10 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1166194119}
-  m_RootOrder: 0
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!64 &1757384861
-MeshCollider:
+--- !u!65 &1757384861
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -1177,10 +1189,9 @@ MeshCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 4
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+  serializedVersion: 2
+  m_Size: {x: 10, y: 2.220446e-16, z: 10}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &1757384862
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1375,7 +1386,7 @@ RectTransform:
   - {fileID: 1850408204}
   - {fileID: 1582743174}
   m_Father: {fileID: 1166194119}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -1684,11 +1695,10 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2109811893}
-  m_LocalRotation: {x: -0.000000030908623, y: 0.7071068, z: -0.7071068, w: -0.000000030908623}
-  m_LocalPosition: {x: -0.022, y: 0.936, z: 0.5310001}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children:
-  - {fileID: 626133820}
+  m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
@@ -1710,6 +1720,8 @@ MonoBehaviour:
   mmtray: {fileID: 626133821}
   mmego: {fileID: 0}
   planner: {fileID: 0}
+  floor: {fileID: 0}
+  floorobject: {fileID: 0}
   sledForm: 1
   boxForm: 2
   mmTableStyle: 0
@@ -1721,9 +1733,17 @@ MonoBehaviour:
   effectorPoseMarkers: 1
   mmtgo: {fileID: 0}
   mmtctrlgo: {fileID: 0}
+  mmInitialHoldMethod: 2
   mmRobotMoveMode: 0
   mmMode: 3
+  mmRigidMode: 0
+  mmSledMoveMethod: 1
   stopSimulation: 0
+  initialSleedSpeed: 1
+  mmStartingCoord: 0
+  staticFriction: 0.9
+  dynamicFriction: 0.9
+  bounciness: 0
   enablePlanning: 0
   echoMovementsRos: 1
   publishMovementsRos: 0
@@ -1737,3 +1757,7 @@ MonoBehaviour:
   zmqactivated: 0
   zmqhost: localhost
   zmqport: 10006
+  calculatePoses: 0
+  publishJsonStatesToFile: 0
+  jsonStatesFile: 
+  physMat: {fileID: 0}
