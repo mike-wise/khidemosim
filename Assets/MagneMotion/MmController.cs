@@ -365,6 +365,10 @@ namespace KhiDemo
                 {
                     sled.AttachBoxToSled(box);
                 }
+                else
+                {
+                    Debug.LogWarning($"Warning - expected to find a box on Robot to attach to sled {sled.sledid}");
+                }
                 mmRobot.RealiseRobotPose(RobotJointPose.ecartup);
                 yield return new WaitForSeconds(shortRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
@@ -449,6 +453,10 @@ namespace KhiDemo
                 if (box != null)
                 {
                     mmtray.AttachBoxToTraySlot(TrayRowColPos, box);
+                }
+                else
+                {
+                    Debug.LogWarning($"Warning - expected to find a box on Robot to attach to tray");
                 }
                 mmRobot.RealiseRobotPose(poseup);
                 yield return new WaitForSeconds(shortRobMoveSec);
@@ -660,7 +668,7 @@ namespace KhiDemo
                     case MmMode.SimuRailToRail:
                         {
                             rv = (nloadedstopped > 0 && nunloadedstopped > 0);
-                            Debug.Log($"Checking SimRailToRail if okay for next step- nloadedstopped:{nloadedstopped} nunloadedstopped:{nunloadedstopped}   ok:{rv}");
+                            //Debug.Log($"Checking SimRailToRail if okay for next step- nloadedstopped:{nloadedstopped} nunloadedstopped:{nunloadedstopped}   ok:{rv}");
                             return rv;
                         }
                     case MmMode.StartRailToTray:

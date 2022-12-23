@@ -139,7 +139,7 @@ namespace KhiDemo
             if (vgriptrans != null)
             {
                 //Debug.Log($"Vacuum Gripper found gameObject.name:{vgriptrans.name}");
-                Debug.Log($"vacGripperName:{vacGripperName}");
+                //Debug.Log($"vacGripperName:{vacGripperName}");
                 MmGripperType = MmGripperType.Vacuum;
                 m_VacGripper = vgriptrans.gameObject;
                 //m_PickPoseOffset = Vector3.up * 0.1865f;

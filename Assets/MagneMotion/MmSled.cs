@@ -11,7 +11,7 @@ namespace KhiDemo
         MagneMotion magmo;
         MmTable mmt;
         public enum SledForm { BoxCubeBased, Prefab }
-        public bool useNewAccelerationModel = false;
+        public bool useGradualAccelerationMethod = false;
 
 
 
@@ -60,7 +60,7 @@ namespace KhiDemo
             sled.loadState = true;
             sled.visible = true;
             sled.sledMoveStatus = SledMoveStatus.Moving;
-            sled.useNewAccelerationModel = true;
+            sled.useGradualAccelerationMethod = true;
 
             sled.ConstructSledForm(sledform, addbox);
             sled.AdjustSledOnPathDist(pathnum, pathdist,forceSetPosition:true);
@@ -104,7 +104,7 @@ namespace KhiDemo
         }
         public void SetRequestedSpeed(float newspeed)
         {
-            if (useNewAccelerationModel)
+            if (useGradualAccelerationMethod)
             {
                 SetRequestedSpeedNew(newspeed);
             }
@@ -133,7 +133,7 @@ namespace KhiDemo
             if (newLoadState)
             {
                 box = MmBox.GetFreePooledBox(BoxStatus.onSled);
-                Debug.Log($"Assigning box:{box.boxid1} to sled:{sledid}");
+                //Debug.Log($"Assigning box:{box.boxid1} to sled:{sledid}");
                 if (box != null)
                 {
                     AttachBoxToSled(box,firstTime:firstTime);
@@ -194,7 +194,7 @@ namespace KhiDemo
                             //box.transform.position = new Vector3(0.0f, 0.0f, -0.16f) * unitsToMetersFak;
                             //box.transform.localScale = new Vector3(0.43f, 0.56f, 0.27f) * unitsToMetersFak;
                             //boxgo = box;
-                            var box = MmBox.ConstructBox(mmt.magmo, mmt.magmo.boxForm, "Hmm", sledid, BoxStatus.onSled);
+                            var box = MmBox.ConstructBox(mmt.magmo, mmt.magmo.boxForm, "Virt1Box", sledid, BoxStatus.onSled);
                             AttachBoxToSled(box);
                         }
 
@@ -217,7 +217,7 @@ namespace KhiDemo
 
                         if (addBox)
                         {
-                            var box = MmBox.ConstructBox(mmt.magmo, mmt.magmo.boxForm, "Hmm", sledid, BoxStatus.onSled);
+                            var box = MmBox.ConstructBox(mmt.magmo, mmt.magmo.boxForm, "Virt2Box", sledid, BoxStatus.onSled);
                             AttachBoxToSled(box);
                         }
                         var rgo = traygo;
@@ -270,15 +270,15 @@ namespace KhiDemo
             switch (magmo.GetHoldMethod())
             {
                 case MmHoldMethod.Hierarchy:
-                    Debug.Log($"Attaching Box to Sled - Hierarchy firstTime:{firstTime}");
+                    //Debug.Log($"Attaching Box to Sled - Hierarchy firstTime:{firstTime}");
                     box.rigbod.isKinematic = true;
                     box.transform.parent = null;
-                    box.transform.rotation = Quaternion.Euler(0, 0, 0);
+                    box.transform.rotation = Quaternion.Euler(90, 0, 0);
                     box.transform.position = Vector3.zero;
-                    box.transform.SetParent(formgo.transform, worldPositionStays: false);
+                    box.transform.SetParent(traygo.transform, worldPositionStays: false);
                     break;
                 case MmHoldMethod.Physics:
-                    Debug.Log($"Associating Box to Sled - Physics - sled.traygo.position:{traygo.transform.position:f1} firstTime:{firstTime}");
+                    //Debug.Log($"Associating Box to Sled - Physics - sled.traygo.position:{traygo.transform.position:f1} firstTime:{firstTime}");
                     if (firstTime)
                     {
                         AdjustSledOnPathDist(this.pathnum, this.pathUnitDist,forceSetPosition:true);
@@ -302,7 +302,7 @@ namespace KhiDemo
                     break;
                 case MmHoldMethod.Dragged:
                 default:
-                    Debug.Log($"Associating Box to Sled - Dragged - sled.formgo.position:{formgo.transform.position:f1} firstTime:{firstTime}");
+                    //Debug.Log($"Associating Box to Sled - Dragged - sled.formgo.position:{formgo.transform.position:f1} firstTime:{firstTime}");
                     box.rigbod.isKinematic = true;
                     box.transform.rotation = Quaternion.Euler(90, 0, 0);
                     box.transform.position = formgo.transform.position;
@@ -419,7 +419,7 @@ namespace KhiDemo
                 Debug.LogWarning($"Sled.AdjustSpeed - delttime less than or equal to zero:{delttime} time:{Time.time:f3} speedLastCaled:{speedLastCalced:f3} adjustCount:{adjustCount}");
                 return;
             }
-            var maxaccel = 0.1f; // Ups
+            var maxaccel = 0.2f; // Ups 0.1 is kind of slow
             var maxdecel = 2f;
             if (reqestedSledUpsSpeed > sledUnitsPerSecSpeed)
             {
@@ -444,13 +444,16 @@ namespace KhiDemo
         const float sledMinGap = UnitsPerMeter * 0.10f;// 10 cm
         public float deltUnitsDistToMove;
         public float maxDistToMove;
-        public void AdvanceSledBySpeedNew()
+        public void AdvanceSledBySpeed()
         {
-            if (!rigbod.isKinematic)
+            if (useGradualAccelerationMethod)
             {
-                return;
+                if (!rigbod.isKinematic)
+                {
+                    return;
+                }
+                AdjustSpeed();
             }
-            AdjustSpeed();
             if (pathnum >= 0)
             {
                 deltUnitsDistToMove = UnitsPerMeter * this.sledUnitsPerSecSpeed * Time.deltaTime;
@@ -467,13 +470,13 @@ namespace KhiDemo
                 var path = mmt.GetPath(pathnum);
                 bool atEndOfPath;
                 int oldpath = pathnum;
-                float distInUnitsToStop = 0;
-                (pathnum, pathUnitDist, atEndOfPath, sledMoveStatus, distInUnitsToStop) = path.AdvancePathdistInUnits(pathUnitDist, deltUnitsDistToMove, loadState);
-                if (sledid == "4")
-                {
-                    Debug.Log($"sledid{sledid} sledMoveStatus:{sledMoveStatus} pathDist:{pathUnitDist} deltUnitsDistToMove:{deltUnitsDistToMove} unitSpeed:{this.sledUnitsPerSecSpeed}");
-                }
-                if ((sledMoveStatus==SledMoveStatus.Stopped) && useNewAccelerationModel)
+                var oldSledMoveStatus = sledMoveStatus;
+                (pathnum, pathUnitDist, atEndOfPath, sledMoveStatus ) = path.AdvancePathdistInUnits(oldSledMoveStatus, pathUnitDist, deltUnitsDistToMove, loadState);
+                //if (sledid == "4")
+                //{
+                //    Debug.Log($"sledid{sledid} sledMoveStatus:{sledMoveStatus} pathDist:{pathUnitDist} deltUnitsDistToMove:{deltUnitsDistToMove} unitSpeed:{this.sledUnitsPerSecSpeed}");
+                //}
+                if ((sledMoveStatus==SledMoveStatus.Stopped) && useGradualAccelerationMethod)
                 {
                     sledUnitsPerSecSpeed = 0;
                 }
@@ -495,56 +498,6 @@ namespace KhiDemo
                 {
                     AdjustSledOnPathDist(pathnum, pathUnitDist);
                 }
-            }
-        }
-        public void AdvanceSledBySpeedOld()
-        {
-            if (pathnum >= 0)
-            {
-                deltUnitsDistToMove = UnitsPerMeter * this.sledUnitsPerSecSpeed * Time.deltaTime;
-                if (sledInFront != "")
-                {
-                    maxDistToMove = sledInFrontDist - sledMinGap;
-                    deltUnitsDistToMove = Mathf.Min(maxDistToMove, deltUnitsDistToMove);
-                    if (deltUnitsDistToMove < 0)
-                    {
-                        deltUnitsDistToMove = 0;
-                    }
-                }
-                var path = mmt.GetPath(pathnum);
-                bool atEndOfPath;
-                int oldpath = pathnum;
-                float distInUnitsToStop = 0;
-                (pathnum, pathUnitDist, atEndOfPath, sledMoveStatus, distInUnitsToStop) = path.AdvancePathdistInUnits(pathUnitDist, deltUnitsDistToMove, loadState);
-                if (oldpath != pathnum)
-                {
-                    // pathchanged
-                    var newpath = mmt.GetPath(pathnum);
-                    nextpathnum = newpath.FindContinuationPathIdx(loadState, alternateIfMultipleChoicesAvaliable: false);
-                    if (nextpathnum == pathnum)
-                    {
-                        magmo.WarnMsg($"AdvancePathBySpped sledid:{sledid} nextpathnum {nextpathnum} cannot be equal to pathnum:{pathnum}");
-                    }
-                }
-                if (atEndOfPath)
-                {
-                    this.MarkForDeletion();
-                }
-                else
-                {
-                    AdjustSledOnPathDist(pathnum, pathUnitDist);
-                }
-            }
-        }
-        public void AdvanceSledBySpeed()
-        {
-            if (useNewAccelerationModel)
-            {
-                AdvanceSledBySpeedNew();
-            }
-            else
-            {
-                AdvanceSledBySpeedOld();
             }
         }
 

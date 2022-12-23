@@ -61,7 +61,7 @@ namespace KhiDemo
             for (int i = 0; i < nfakePool; i++)
             {
                 var boxid = $"f{i}";
-                var box = MmBox.ConstructBox(magmo, BoxForm.Prefab, "Fake", boxid);
+                var box = MmBox.ConstructBox(magmo, BoxForm.Prefab, "FakeBox", boxid);
                 box.poolStatus = PoolStatus.fakePool;
                 box.transform.SetParent(fakePoolRoot.transform, worldPositionStays: false);
                 SetPoolSidePosition(box);
@@ -75,7 +75,8 @@ namespace KhiDemo
             for (int i = 0; i < nrealPool; i++)
             {
                 var boxid = $"r{i}";
-                var box = MmBox.ConstructBox(magmo, BoxForm.PrefabWithMarkerCube, "Real", boxid);
+                var box = MmBox.ConstructBox(magmo, BoxForm.PrefabWithMarkerCube, "RealBox", boxid);
+                Debug.Log($"Constructed box {box.name} rot:{box.transform.rotation.eulerAngles:f1}");
                 box.poolStatus = PoolStatus.realPool;
                 box.transform.SetParent(realPoolRoot.transform, worldPositionStays: false);
                 SetPoolSidePosition(box);
@@ -156,12 +157,12 @@ namespace KhiDemo
             return null;
         }
 
-        public static MmBox ConstructBox(MagneMotion magmo, BoxForm boxform, string prefix, string boxid1, BoxStatus stat=BoxStatus.free)
+        public static MmBox ConstructBox(MagneMotion magmo, BoxForm boxform, string boxname, string boxid1, BoxStatus stat=BoxStatus.free)
         {
             var mmt = magmo.mmt;
             clas_seqnum++;
-            var boxname = $"{prefix}Box_{clas_seqnum:D2}";
-            var boxgeomgo = new GameObject(boxname);
+            var boxwholename = $"{boxname}_{clas_seqnum:D2}";
+            var boxgeomgo = new GameObject(boxwholename);
             boxgeomgo.transform.position = Vector3.zero;
             boxgeomgo.transform.rotation = Quaternion.identity;
             var box = boxgeomgo.AddComponent<MmBox>();

@@ -450,7 +450,7 @@ namespace KhiDemo
                 magmo.ErrMsg("AttachBoxToRobot - Box is null");
                 return;
             }
-            Debug.Log($"Attaching Box to Robot - {box.boxid1} {box.boxid2} {box.boxclr} {magmo.GetHoldMethod()})");
+            //Debug.Log($"Attaching Box to Robot - {box.boxid1} {box.boxid2} {box.boxclr} {magmo.GetHoldMethod()})");
             this.box = box;
             switch (magmo.GetHoldMethod())
             {
@@ -473,7 +473,7 @@ namespace KhiDemo
             loadState = true;
             box.SetBoxStatus(BoxStatus.onRobot);
         }
-        public MmBox DetachhBoxFromRobot()
+        public MmBox DetachhBoxFromRobot(bool warnIfInconsistent=true)
         {
             var oldbox = box;
             if (oldbox != null)
@@ -483,7 +483,10 @@ namespace KhiDemo
             }
             else
             {
-                Debug.Log($"Detaching Box from Robot (null box)");
+                if (warnIfInconsistent)
+                {
+                    Debug.LogWarning($"Detaching Null Box from Robot - potential problem");
+                }
             }
             box = null;
             loadState = false;
@@ -506,7 +509,7 @@ namespace KhiDemo
                 }
                 else
                 {
-                    DetachhBoxFromRobot();
+                    DetachhBoxFromRobot(warnIfInconsistent:false);
                 }
             }
         }

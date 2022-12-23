@@ -311,42 +311,40 @@ namespace KhiDemo
             return float.MaxValue;
         }
 
-        public (int newpathidx, float newpathdist, bool atEndOfPath,  SledMoveStatus sms, float disttostop ) AdvancePathdistInUnits(float curpathdist, float deltadist, bool loaded)
+        public (int newpathidx, float newpathdist, bool atEndOfPath,  SledMoveStatus sms ) AdvancePathdistInUnits(SledMoveStatus oldSledMoveStatus, float curpathdist, float deltadist, bool loaded)
         {
             var newdist = curpathdist + deltadist;
-            var disttostop = float.MaxValue;
+
 
             // We are not changing paths
             if (newdist < this.pathLength)
             {
                 if (loaded && HasLoadedStopPoint())
                 {
-                    if (curpathdist<=loadedStopPoint && loadedStopPoint<newdist)
+                    if (oldSledMoveStatus== SledMoveStatus.Stopped || (curpathdist<=loadedStopPoint && loadedStopPoint<newdist))
                     {
-                        disttostop = loadedStopPoint - curpathdist;
-                        return (pidx, loadedStopPoint, atEndOfPath: false, SledMoveStatus.Stopped, disttostop );
+                        return (pidx, loadedStopPoint, atEndOfPath: false, SledMoveStatus.Stopped );
                     }
                 }
                 if (!loaded && HasUnoadedStopPoint())
                 {
-                    if (curpathdist <= unloadedStopPoint && unloadedStopPoint < newdist)
+                    if (oldSledMoveStatus == SledMoveStatus.Stopped || (curpathdist <= unloadedStopPoint && unloadedStopPoint < newdist))
                     {
-                        disttostop = unloadedStopPoint - curpathdist;
-                        return (pidx, unloadedStopPoint, atEndOfPath: false, SledMoveStatus.Stopped, disttostop);
+                        return (pidx, unloadedStopPoint, atEndOfPath: false, SledMoveStatus.Stopped);
                     }
                 }
-                return (pidx, newdist, atEndOfPath:false, SledMoveStatus.Moving, disttostop);
+                return (pidx, newdist, atEndOfPath:false, SledMoveStatus.Moving);
             }
 
             // We are changing paths
             var restdist = newdist - this.pathLength;
             if (continuationPaths.Count == 0)
             {
-                return (pidx, this.pathLength, atEndOfPath: true, SledMoveStatus.Moving, disttostop);
+                return (pidx, this.pathLength, atEndOfPath: true, SledMoveStatus.Moving);
             }
             var nxpidx = FindContinuationPathIdx(loaded, alternateIfMultipleChoicesAvaliable: true);
 
-            return (nxpidx, restdist, atEndOfPath: false, SledMoveStatus.Moving, disttostop);
+            return (nxpidx, restdist, atEndOfPath: false, SledMoveStatus.Moving);
         }
 
         int selcount = 0;
