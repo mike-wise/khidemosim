@@ -452,22 +452,28 @@ namespace KhiDemo
             }
             //Debug.Log($"Attaching Box to Robot - {box.boxid1} {box.boxid2} {box.boxclr} {magmo.GetHoldMethod()})");
             this.box = box;
-            switch (magmo.GetHoldMethod())
+            switch (magmo.GetBoxSimMode())
             {
-                case MmHoldMethod.Hierarchy:
+                case MmBoxSimMode.Hierarchy:
                     // Debug.Log($"Attaching Box to Robot - Hierarchy");
                     box.transform.parent = null;
-                    box.transform.localRotation = Quaternion.Euler(90, 0, 0);
+                    box.transform.localRotation = Quaternion.Euler(0, 90, 0);
                     box.transform.localPosition = robotoffset;
                     box.transform.SetParent(vgriptrans, worldPositionStays: false);
                     break;
-                case MmHoldMethod.Physics:
-                case MmHoldMethod.Dragged:
+                case MmBoxSimMode.Physics:
+                case MmBoxSimMode.Kinematics:
                     // the proper way to do Physics for a vaccume gripper would involve Fluid Dynamics and we are not going there
                     // Debug.Log($"Associating Box to Robot - Dragged and Physics");
-                    box.rigbod.isKinematic = true;
-                    box.transform.rotation = transform.rotation * Quaternion.Euler(90, 0, 0);
-                    box.transform.position = vgriptrans.transform.position + robotoffset;
+                    if (box != null)
+                    {
+                        if (box.rigbod != null)
+                        {
+                            box.rigbod.isKinematic = true;
+                        }
+                        box.transform.position = vgriptrans.transform.position + robotoffset;
+                        box.transform.rotation = vgriptrans.transform.rotation * Quaternion.Euler(0, 90, 0);
+                    }
                     break;
             }
             loadState = true;
@@ -619,13 +625,16 @@ namespace KhiDemo
             }
             if (box != null)
             {
-                switch(magmo.GetHoldMethod())
+                switch(magmo.GetBoxSimMode())
                 {
-                    case MmHoldMethod.Physics:  // FixedUpdate
-                    case MmHoldMethod.Dragged:  // FixedUpdate
+                    case MmBoxSimMode.Physics:  // FixedUpdate
+                    case MmBoxSimMode.Kinematics:  // FixedUpdate
+                        if (box.rigbod!=null)
+                        {
+                            box.rigbod.isKinematic = true;
+                        }
                         box.transform.position = vgriptrans.transform.position + robotoffset;
-                        box.transform.rotation = vgriptrans.transform.rotation * Quaternion.Euler(90, 0, 0);
-
+                        box.transform.rotation = vgriptrans.transform.rotation * Quaternion.Euler(0, 90, 0);
                         break;
                 }
             }

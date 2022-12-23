@@ -18,7 +18,7 @@ namespace KhiDemo
 
     public enum MmSegForm { None, Straight, Curved }
 
-    public enum MmHoldMethod { Hierarchy, Dragged, Physics }
+    public enum MmBoxSimMode { Hierarchy, Kinematics, Physics }
 
     public enum MmTableStyle {  MftDemo, Simple }
 
@@ -30,7 +30,11 @@ namespace KhiDemo
     public enum MmRigidMode {  None, Sleds,SledsBox }
 
     public enum MmSledMoveMethod { SetPosition, MovePosition };
-    public enum MmStartingCoords {  Rot000, Rot180 };
+    public enum MmStartingCoords {  Rot000, Rot180 }; // should get rid of this and only keep Rot000
+
+    public enum MmboxColorMode { Native, Simmode }
+
+    public enum MmTrackSmoothness { PerfectlySmooth, LittleBumpy, VeryBumpy, SuperBumpy }
 
 
     public class MagneMotion : MonoBehaviour
@@ -61,8 +65,8 @@ namespace KhiDemo
         public GameObject mmtctrlgo;
 
         [Header("Behaviour")]
-        public MmHoldMethod mmInitialHoldMethod = MmHoldMethod.Hierarchy;
-        MmHoldMethod mmHoldMethod = MmHoldMethod.Hierarchy;
+        public MmBoxSimMode mmBoxSimMode = MmBoxSimMode.Hierarchy;
+        MmBoxSimMode __mmBoxSimMode = MmBoxSimMode.Hierarchy;
         public MmRobotMoveMode mmRobotMoveMode = MmRobotMoveMode.Sudden;
         public MmMode mmMode = MmMode.None;
         public MmRigidMode mmRigidMode = MmRigidMode.None;
@@ -72,10 +76,14 @@ namespace KhiDemo
         public MmStartingCoords mmStartingCoord = MmStartingCoords.Rot000;
 
 
-        [Header("Physics Material")]
+        [Header("Physics")]
         public float staticFriction = 0.9f;
         public float dynamicFriction = 0.9f;
         public float bounciness = 0f;
+        public MmTrackSmoothness trackSmoothness = MmTrackSmoothness.PerfectlySmooth;
+
+        [Header("Appearance")]
+        public MmboxColorMode boxColorMode;
 
 
         [Header("Network ROS")]
@@ -124,13 +132,13 @@ namespace KhiDemo
             return cango;
         }
 
-        public MmHoldMethod GetHoldMethod()
+        public MmBoxSimMode GetBoxSimMode()
         {
-            return mmHoldMethod;
+            return __mmBoxSimMode;
         }
-        public void SetHoldMethod()
+        public void SetBoxSimMode()
         {
-            mmHoldMethod = mmInitialHoldMethod;
+            __mmBoxSimMode = mmBoxSimMode;
         }
 
         private void Awake()

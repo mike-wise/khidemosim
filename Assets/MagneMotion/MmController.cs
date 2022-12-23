@@ -150,7 +150,7 @@ namespace KhiDemo
             }
             mmMode = newMode;
             magmo.mmMode = newMode;
-            magmo.SetHoldMethod();
+            magmo.SetBoxSimMode();
             mmBoxMode = InferBoxMode(newMode);
             switch (newMode)
             {

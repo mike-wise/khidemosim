@@ -101,10 +101,46 @@ namespace KhiDemo
         {
             this.magmo = magmo;
         }
-        public (Vector3 pt, float ang) GetPositionAndOrientation(int pathnum, float pathdist)
+        System.Random ranman = new System.Random(1234);
+        public (Vector3 pt, float ang) GetPositionAndOrientation(int pathnum, float pathdist, float speedUnitsPerSec, MmTrackSmoothness smoothness)
         {
             var path = GetPath(pathnum);
             var (pt, ang) = path.GetPositionAndOrientation(pathdist);
+            var addnoise = false;
+            var ska = 0f;
+            if (speedUnitsPerSec > 0)
+            {
+                switch (smoothness)
+                {
+                    case MmTrackSmoothness.PerfectlySmooth:
+                        break;
+                    case MmTrackSmoothness.LittleBumpy:
+                        addnoise = true;
+                        ska = 0.001f; // 1 millimiter noise
+                        break;
+                    case MmTrackSmoothness.VeryBumpy:
+                        addnoise = true;
+                        ska = 0.005f; // 5 millimiter noise
+                        break;
+                    case MmTrackSmoothness.SuperBumpy:
+                        addnoise = true;
+                        ska = 0.010f; // 1 cm noise
+                        break;
+                }
+                if (ska>speedUnitsPerSec)
+                {
+                    ska = speedUnitsPerSec;
+                }
+            }
+            if (addnoise)
+            {
+                var xval = (ranman.Next(2000 + 1) / 1000.0f) - 1;// random between 1 and -1
+                var yval = (ranman.Next(2000 + 1) / 1000.0f) - 1;
+                var zval = (ranman.Next(2000 + 1) / 1000.0f) - 1;
+                var delt = new Vector3(xval * ska, yval * ska, zval * ska);
+                Debug.Log($"{smoothness} adding delt:{delt:f4}");
+                pt += delt;
+            }
             return (pt, ang);
         }
         public void MakeMsftDemoMagmo()
@@ -265,13 +301,13 @@ namespace KhiDemo
                             case SledLoadDistrib.allLoaded:
                                 foreach (var s in sleds)
                                 {
-                                    s.AssignedPooledBox( newLoadState: true,firstTime:true);
+                                    s.AssignedPooledBox( newLoadState: true,initialSetup:true);
                                 }
                                 break;
                             case SledLoadDistrib.allUnloaded:
                                 foreach (var s in sleds)
                                 {
-                                    s.AssignedPooledBox( newLoadState:false, firstTime: true);
+                                    s.AssignedPooledBox( newLoadState:false, initialSetup: true);
                                 }
                                 break;
                             case SledLoadDistrib.alternateLoadedUnloaded:
@@ -279,7 +315,7 @@ namespace KhiDemo
                                 foreach (var s in sleds)
                                 {
                                     bool val = (id % 2 == 0) ? true : false;
-                                    s.AssignedPooledBox(val, firstTime: true);
+                                    s.AssignedPooledBox(val, initialSetup: true);
                                     //Debug.Log($"Assigned {s.sledid} to loadstate:{val}");
                                     id++;
                                 }

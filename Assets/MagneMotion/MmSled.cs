@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace KhiDemo
 {
-    public enum SledMoveStatus { Unset, Stopped, Moving };
+    public enum SledMoveStatus { Unset, Stopped,Hindered, Moving };
 
     public class MmSled : MonoBehaviour
     {
@@ -30,7 +30,11 @@ namespace KhiDemo
         public int sledidx;
         public string sledid;
         public string sledInFront;
+        public bool hinderedBySledInFront;
         public float sledInFrontDist;
+        public float deltUnitsDistToMove;
+        public float maxDistToMove;
+
         public SledMoveStatus sledMoveStatus = SledMoveStatus.Unset;
         public Rigidbody rigbod;
         public Matrix4x4 localToWorld;
@@ -128,7 +132,7 @@ namespace KhiDemo
         }
 
 
-        public void AssignedPooledBox(bool newLoadState,bool firstTime=false)
+        public void AssignedPooledBox(bool newLoadState,bool initialSetup=false)
         {
             if (newLoadState)
             {
@@ -136,7 +140,7 @@ namespace KhiDemo
                 //Debug.Log($"Assigning box:{box.boxid1} to sled:{sledid}");
                 if (box != null)
                 {
-                    AttachBoxToSled(box,firstTime:firstTime);
+                    AttachBoxToSled(box,initialSetup:initialSetup);
                 }
                 else
                 {
@@ -225,22 +229,23 @@ namespace KhiDemo
                         rigbod.isKinematic = true;
                         rigbod.mass = 1f;
                         var boxcol_base = rgo.AddComponent<BoxCollider>();
+                        var heit = 0.04f;
                         boxcol_base.size = new Vector3( 0.08f, 0.018f, 0.09f );
                         boxcol_base.material = magmo.physMat;
                         var boxcol_back = rgo.AddComponent<BoxCollider>();
-                        boxcol_back.size = new Vector3(0.002f, 0.08f, 0.06f);
+                        boxcol_back.size = new Vector3(0.002f, heit, 0.06f);
                         boxcol_back.center = new Vector3(-0.04f, 0.02f, 0.00f);
                         boxcol_back.material = magmo.physMat;
                         var boxcol_frnt = rgo.AddComponent<BoxCollider>();
-                        boxcol_frnt.size = new Vector3(0.002f, 0.08f, 0.06f);
+                        boxcol_frnt.size = new Vector3(0.002f, heit, 0.06f);
                         boxcol_frnt.center = new Vector3(+0.04f, 0.02f, 0.00f);
                         boxcol_frnt.material = magmo.physMat;
                         var boxcol_lside = rgo.AddComponent<BoxCollider>();
-                        boxcol_lside.size = new Vector3(0.06f, 0.08f, 0.002f);
+                        boxcol_lside.size = new Vector3(0.06f, heit, 0.002f);
                         boxcol_lside.center = new Vector3(0.00f, 0.02f, +0.04f);
                         boxcol_lside.material = magmo.physMat;
                         var boxcol_rside = rgo.AddComponent<BoxCollider>();
-                        boxcol_rside.size = new Vector3(0.06f, 0.08f, 0.002f);
+                        boxcol_rside.size = new Vector3(0.06f, heit, 0.002f);
                         boxcol_rside.center = new Vector3(0.00f, 0.02f, -0.04f);
                         boxcol_rside.material = magmo.physMat;
                         break;
@@ -258,7 +263,7 @@ namespace KhiDemo
             //Debug.Log($"ConstructSledForm sledForm:{sledform} id:{sledid}");
         }
 
-        public void AttachBoxToSled(MmBox box,bool firstTime=false)
+        public void AttachBoxToSled(MmBox box,bool initialSetup=false)
         {
             if (box == null)
             {
@@ -267,45 +272,43 @@ namespace KhiDemo
             }
             //Debug.Log($"Attaching/associating Box to Sled - {box.boxid1} {box.boxid2} {box.boxclr} {magmo.GetHoldMethod()}");
             this.box = box;
-            switch (magmo.GetHoldMethod())
+            switch (magmo.GetBoxSimMode())
             {
-                case MmHoldMethod.Hierarchy:
+                case MmBoxSimMode.Hierarchy:
                     //Debug.Log($"Attaching Box to Sled - Hierarchy firstTime:{firstTime}");
-                    box.rigbod.isKinematic = true;
+                    if (box.rigbod!=null)
+                    {
+                        Debug.LogWarning($"Box should not have rigid body component in hierarchy mode");
+                        box.rigbod.isKinematic = true;
+                    }
                     box.transform.parent = null;
-                    box.transform.rotation = Quaternion.Euler(90, 0, 0);
+                    box.transform.rotation = Quaternion.Euler(0, 0, 0);
                     box.transform.position = Vector3.zero;
                     box.transform.SetParent(traygo.transform, worldPositionStays: false);
                     break;
-                case MmHoldMethod.Physics:
+                case MmBoxSimMode.Physics:
                     //Debug.Log($"Associating Box to Sled - Physics - sled.traygo.position:{traygo.transform.position:f1} firstTime:{firstTime}");
-                    if (firstTime)
+                    if (initialSetup)
                     {
                         AdjustSledOnPathDist(this.pathnum, this.pathUnitDist,forceSetPosition:true);
                         box.rigbod.isKinematic = true;
-                        box.transform.rotation = Quaternion.Euler(90, 0, 0);
-                        //box.transform.position = formgo.transform.position;
-
-                        //AdjustSledOnPathDist(this.pathnum, this.pathUnitDist);
-
+                        box.transform.rotation = Quaternion.Euler(0, 90, 0);
                         box.transform.position = traygo.transform.position;
                         box.rigbod.isKinematic = false;
                     }
                     else
                     {
-                        //box.rigbod.isKinematic = true; // should be false 
-                        //box.transform.rotation = Quaternion.Euler(90, 0, 0);
-                        //box.transform.position = formgo.transform.position;
                         box.rigbod.isKinematic = false;
                     }
                     box.rigbod.useGravity = true;
                     break;
-                case MmHoldMethod.Dragged:
+                case MmBoxSimMode.Kinematics:
                 default:
                     //Debug.Log($"Associating Box to Sled - Dragged - sled.formgo.position:{formgo.transform.position:f1} firstTime:{firstTime}");
                     box.rigbod.isKinematic = true;
-                    box.transform.rotation = Quaternion.Euler(90, 0, 0);
+                    //box.transform.rotation = Quaternion.Euler(0, 90, 0);
                     box.transform.position = formgo.transform.position;
+                    //box.transform.rotation = formgo.rotation;
                     break;
             }
             box.SetBoxStatus(BoxStatus.onSled);
@@ -327,20 +330,15 @@ namespace KhiDemo
         void AddTextIdToSledForm()
         {
             var unitsToMetersFak = 1f / 8;
-            // These commented out values are what were used when we made the text subordinate to formgo, we now use traygo
-            //var rot1 = new Vector3(0, 90, -90);
-            // var rot2 = -rot1;
-            //var off1 = new Vector3(-0.27f, 0, -0.12f) * unitsToMetersFak;
-            //var off2 = new Vector3(+0.27f, 0, -0.12f) * unitsToMetersFak;
 
-            var rot1 = new Vector3(0, 180, 0);
-            var rot2 = new Vector3(0, 0, 0);
-            var off1 = new Vector3(0, 0.20f, +0.27f) * unitsToMetersFak;
-            var off2 = new Vector3(0, 0.20f, -0.27f) * unitsToMetersFak;
+            var rotprt = new Vector3(0, 180, 0);
+            var rotstb = new Vector3(0, 0, 0);
+            var offprt = new Vector3(0, 0.20f, +0.27f) * unitsToMetersFak;
+            var offstb = new Vector3(0, 0.20f, -0.27f) * unitsToMetersFak;
             var txt = $"{sledid}";
             var meth = UnityUt.FltTextImpl.TextPro;
-            UnityUt.AddFltTextMeshGameObject(traygo, Vector3.zero, txt, "yellow", rot1, off1, unitsToMetersFak, meth, goname: "SledidTxt-Port");
-            UnityUt.AddFltTextMeshGameObject(traygo, Vector3.zero, txt, "yellow", rot2, off2, unitsToMetersFak, meth, goname: "SledidTxt-Strb");
+            UnityUt.AddFltTextMeshGameObject(traygo, Vector3.zero, txt, "yellow", rotprt, offprt, unitsToMetersFak, meth, goname: "SledidTxt-Port");
+            UnityUt.AddFltTextMeshGameObject(traygo, Vector3.zero, txt, "yellow", rotstb, offstb, unitsToMetersFak, meth, goname: "SledidTxt-Strb");
         }
 
         void AdjustSledOnPathDist(int pathnum, float pathdist,bool forceSetPosition=false)
@@ -348,7 +346,7 @@ namespace KhiDemo
             this.pathnum = pathnum;
             this.pathUnitDist = pathdist;
 
-            var (pt, ang) = mmt.GetPositionAndOrientation(pathnum, pathdist);
+            var (pt, ang) = mmt.GetPositionAndOrientation(pathnum, pathdist, sledUnitsPerSecSpeed,  magmo.trackSmoothness);
             AdjustSledPositionAndOrientation(pt, ang, forceSetPosition:forceSetPosition);
 
             visible = pathnum >= 0;
@@ -399,10 +397,9 @@ namespace KhiDemo
         float speedLastCalced=0;
         float oldspeed;
         int adjustCount = 0;
-        public void AdjustSpeed()
+        public void AdjustSpeed(float delttime)
         {
             oldspeed = sledUnitsPerSecSpeed;
-            var delttime = Time.time - speedLastCalced;
             speedLastCalced = Time.time;
             if (adjustCount==0)
             {
@@ -442,29 +439,30 @@ namespace KhiDemo
         }
         const float UnitsPerMeter = 8;
         const float sledMinGap = UnitsPerMeter * 0.10f;// 10 cm
-        public float deltUnitsDistToMove;
-        public float maxDistToMove;
         public void AdvanceSledBySpeed()
         {
+            var delttime = Time.time - speedLastCalced;
             if (useGradualAccelerationMethod)
             {
                 if (!rigbod.isKinematic)
                 {
+                    Debug.LogWarning($"Sled {sledid} rigid body component is not marked kinematic");
                     return;
                 }
-                AdjustSpeed();
+                AdjustSpeed(delttime);
             }
             if (pathnum >= 0)
             {
+                hinderedBySledInFront = false;
                 deltUnitsDistToMove = UnitsPerMeter * this.sledUnitsPerSecSpeed * Time.deltaTime;
                 if (sledInFront != "")
                 {
-                    maxDistToMove = sledInFrontDist - sledMinGap;
-                    deltUnitsDistToMove = Mathf.Min(maxDistToMove, deltUnitsDistToMove);
-                    if (deltUnitsDistToMove < 0)
+                    maxDistToMove = Mathf.Max(0,sledInFrontDist - sledMinGap);
+                    if (deltUnitsDistToMove>maxDistToMove)
                     {
-                        deltUnitsDistToMove = 0;
-                        //sledUnitsPerSecSpeed = 0;
+                        deltUnitsDistToMove = maxDistToMove;
+                        hinderedBySledInFront = true;
+                        sledUnitsPerSecSpeed = deltUnitsDistToMove / Time.deltaTime;
                     }
                 }
                 var path = mmt.GetPath(pathnum);
@@ -472,10 +470,10 @@ namespace KhiDemo
                 int oldpath = pathnum;
                 var oldSledMoveStatus = sledMoveStatus;
                 (pathnum, pathUnitDist, atEndOfPath, sledMoveStatus ) = path.AdvancePathdistInUnits(oldSledMoveStatus, pathUnitDist, deltUnitsDistToMove, loadState);
-                //if (sledid == "4")
-                //{
-                //    Debug.Log($"sledid{sledid} sledMoveStatus:{sledMoveStatus} pathDist:{pathUnitDist} deltUnitsDistToMove:{deltUnitsDistToMove} unitSpeed:{this.sledUnitsPerSecSpeed}");
-                //}
+                if (hinderedBySledInFront && sledMoveStatus == SledMoveStatus.Moving)
+                {
+                    sledMoveStatus = SledMoveStatus.Hindered;
+                }
                 if ((sledMoveStatus==SledMoveStatus.Stopped) && useGradualAccelerationMethod)
                 {
                     sledUnitsPerSecSpeed = 0;
@@ -589,20 +587,20 @@ namespace KhiDemo
             localToWorld = transform.localToWorldMatrix;
             if (box != null)
             {
-                var meth = magmo.GetHoldMethod();
+                var meth = magmo.GetBoxSimMode();
                 switch (meth)
                 {
-                    default:
-                    case MmHoldMethod.Physics: // FixedUpdate
-                        //box.rigbod.isKinematic = false;
+                    case MmBoxSimMode.Hierarchy: // FixedUpdate
+                        // moved by attachment to hierarchical attachment sled
+                        break;
+                    case MmBoxSimMode.Physics: // FixedUpdate 
+                        // moved by physics (collision boxes)
                          break;
-                    case MmHoldMethod.Dragged: // FixedUpdate
+                    case MmBoxSimMode.Kinematics: // FixedUpdate
                         if (box?.rigbod != null)
                         {
-                            box.rigbod.MovePosition(formgo.transform.position);
-                            box.rigbod.MoveRotation(formgo.transform.rotation);
-                            //box.rigbod.MovePosition(traygo.transform.position);
-                            //box.rigbod.MoveRotation(traygo.transform.rotation);
+                            box.rigbod.MovePosition(traygo.transform.position);
+                            box.rigbod.MoveRotation(traygo.transform.rotation);
                         }
                         break;
                 }

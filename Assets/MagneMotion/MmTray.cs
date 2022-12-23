@@ -258,32 +258,37 @@ namespace KhiDemo
             var slot = trayslots[slotkey];
             trayboxes[slotkey] = box;
 
-            switch (magmo.GetHoldMethod())
+            switch (magmo.GetBoxSimMode())
             {
-                case MmHoldMethod.Hierarchy:
+                case MmBoxSimMode.Hierarchy:
                     // Debug.Log($"Attaching Box to Trayslot - Hierarchy");
-                    box.rigbod.isKinematic = true;
+                    if (box.rigbod!=null)
+                    {
+                        Debug.LogWarning($"Boxes should not have rigid body components in Hierarchy mode");
+                        box.rigbod.isKinematic = true;
+                    }
                     box.transform.parent = null;
-                    box.transform.rotation = Quaternion.Euler(90, 0, 0);
+                    box.transform.rotation = Quaternion.Euler(0, 90, 0);
                     box.transform.position = Vector3.zero;
                     box.transform.SetParent(slot.transform, worldPositionStays: false);
                     break;
-                case MmHoldMethod.Physics:
+                case MmBoxSimMode.Physics:
                     // Debug.Log($"Associating Box to Trayslot - Physics");
                     if (firstTime)
                     {
                         box.rigbod.isKinematic = true;
-                        box.transform.rotation = Quaternion.Euler(90, 0, 0);
+                        // boxrat
+                        box.transform.rotation = Quaternion.Euler(0, 90, 0);
                         box.transform.position = slot.transform.position;
                     }
                     box.rigbod.isKinematic = false;  // should be false
                     box.rigbod.useGravity = true;
                     break;
-                case MmHoldMethod.Dragged:
+                case MmBoxSimMode.Kinematics:
                 default:
                     // Debug.Log($"Associating Box to Trayslot - Dragged");
                     box.rigbod.isKinematic = true;
-                    box.transform.rotation = Quaternion.Euler(90, 0, 0);
+                    box.transform.rotation = Quaternion.Euler(0, 90, 0);
                     box.transform.position = slot.transform.position;
                     break;
             }

@@ -19,7 +19,8 @@ namespace KhiDemo
         [Header("ID")]
         public string boxid1;
         public string boxid2;
-        public string boxclr="none";
+        public string boxNativeColor="none";
+        public string curColor = "none";
         public int seqnum;
 
 
@@ -29,6 +30,7 @@ namespace KhiDemo
         public bool destroyedOnClear;
         public PoolStatus poolStatus;
         public Rigidbody rigbod;
+        public GameObject markercube;
 
         static MmBox[] boxes = null;
 
@@ -288,31 +290,37 @@ namespace KhiDemo
                         go1.name = $"prefabbox";
                         // 7x5.4x4.3.5
                         go1.transform.parent = formgo.transform;
-                        go1.transform.position = new Vector3(0.0f, 0.0f, -0.16f)*1f/8;
-                        //go1.transform.localRotation = Quaternion.Euler(90, 90, 0);
-                        //go1.transform.localRotation = Quaternion.Euler(180, 90, -90);
-                        go1.transform.localRotation = Quaternion.Euler(0, 270, 90);
+                        // boxrat
+                        //go1.transform.position = new Vector3(0.0f, 0.0f, -0.16f)*1f/8;
+                        //go1.transform.localRotation = Quaternion.Euler(0, 270, 90);
+                        //go1.transform.position = new Vector3(0.0f, 0.0f, -0.16f)*1f/8;
+                        go1.transform.position = new Vector3(0.0f, 0.16f, 0.0f) * 1f / 8;
+                        go1.transform.localRotation = Quaternion.identity;
 
                         if (boxform == BoxForm.PrefabWithMarkerCube)
                         {
-                            boxclr = UnityUt.GetSequentialColorString();
-                            var gobx = UnityUt.CreateCube(null, boxclr, size: 0.02f, collider:false);
-                            gobx.name = "markercube";
+                            boxNativeColor = UnityUt.GetSequentialColorString();
+                            markercube = UnityUt.CreateCube(null, boxNativeColor, size: 0.02f, collider:false);
+                            markercube.name = "markercube";
 
-                            gobx.transform.localScale = new Vector3(0.03f, 0.01f, 0.03f);
-                            gobx.transform.position = new Vector3(0, 0.0164f, 0);
-                            gobx.transform.SetParent(go1.transform, worldPositionStays: false);
+                            markercube.transform.localScale = new Vector3(0.03f, 0.01f, 0.03f);
+                            markercube.transform.position = new Vector3(0, 0.0164f, 0);
+                            markercube.transform.SetParent(go1.transform, worldPositionStays: false);
                         }
-                        rigbod = gameObject.AddComponent<Rigidbody>();
-                        rigbod.isKinematic = true;
-                        rigbod.centerOfMass = new Vector3(0, 0, -0.02f);
-                        rigbod.mass = 1f;
-                        var boxcol = gameObject.AddComponent<BoxCollider>();
-                        //boxcol.size = new Vector3(0.054f, 0.07f, 0.033f);
-                        //boxcol.center = new Vector3(0, 0, -0.02f);
-                        boxcol.size = new Vector3(0.054f, 0.065f, 0.033f);
-                        boxcol.center = new Vector3(0, 0, -0.02f);
-                        boxcol.material = magmo.physMat;
+                        if (magmo.mmBoxSimMode != MmBoxSimMode.Hierarchy)
+                        {
+                            rigbod = gameObject.AddComponent<Rigidbody>();
+                            rigbod.isKinematic = true;
+                            rigbod.centerOfMass = new Vector3(0, 0, -0.02f);
+                            rigbod.mass = 1f;
+                            var boxcol = gameObject.AddComponent<BoxCollider>();
+                            //boxcol.size = new Vector3(0.054f, 0.065f, 0.033f);
+                            boxcol.size = new Vector3(0.065f, 0.033f, 0.054f);
+                            // boxrat
+                            //boxcol.center = new Vector3(0, 0, -0.02f);
+                            boxcol.center = go1.transform.localPosition;
+                            boxcol.material = magmo.physMat;
+                        }
                         break;
                     }
             }
@@ -327,20 +335,64 @@ namespace KhiDemo
         {
             if (boxid1 != "")
             {
-                var rot1 = new Vector3(0, 90, -90);
-                var rot2 = -rot1;
-                var rot3 = new Vector3(0, 0, 0);
-                var off1 = new Vector3(-0.0275f, -0.02875f, -0.03125f);
-                var off2 = new Vector3(+0.0275f, +0.02875f, -0.03125f);
-                var off3 = new Vector3(+0.0188f, +0.02875f, -0.0366f);
-                var txt1 = $"{boxid1}";
-                var txt2 = $"{boxid2}";
+                var rotprt = new Vector3(0, 0, 0);
+                var rotstb = new Vector3(0, -180, 0);
+                var rottop = new Vector3(90, 270, 0);
+                var offprt = new Vector3(-0.029f, +0.027f, -0.027f);
+                var pffstb = new Vector3(-0.029f, +0.027f, +0.027f);
+                var offtop = new Vector3(-0.029f, +0.0365f, 0.02f);
+                var txtprt = $"{boxid1}";
+                var txtstb = $"{boxid2}";
                 var meth = UnityUt.FltTextImpl.TextPro;
-                var ska1 = 0.075f;
-                UnityUt.AddFltTextMeshGameObject(formgo, Vector3.zero, txt1, "black", rot1, off1, ska1, meth, goname: "BoxIdTxt1");
-                UnityUt.AddFltTextMeshGameObject(formgo, Vector3.zero, txt1, "black", rot2, off2, ska1, meth, goname: "BoxIdTxt1");
-                UnityUt.AddFltTextMeshGameObject(formgo, Vector3.zero, txt2, "black", rot3, off3, ska1, meth, goname: "BoxIdTxt2");
+                var ska = 0.075f;
+                UnityUt.AddFltTextMeshGameObject(formgo, Vector3.zero, txtprt, "black", rotprt, offprt, ska, meth, goname: "BoxIdTxt1prt");
+                UnityUt.AddFltTextMeshGameObject(formgo, Vector3.zero, txtprt, "black", rotstb, pffstb, ska, meth, goname: "BoxIdTxt1stb");
+                UnityUt.AddFltTextMeshGameObject(formgo, Vector3.zero, txtstb, "black", rottop, offtop, ska, meth, goname: "BoxIdTxt2");
             }
+        }
+
+        MmboxColorMode lastColorMode= MmboxColorMode.Native;
+        void ColorBox()
+        {
+            if (markercube==null)
+            {
+                return; // fake boxes don't have marker cubes
+            }
+            if (lastColorMode==magmo.boxColorMode)
+            {
+                return;
+            }
+            var clr = CalcBoxColor();
+            var renderer = markercube.GetComponent<Renderer>();
+            renderer.material.color = UnityUt.GetColorByName(clr);
+        }
+
+
+        string CalcBoxColor()
+        {
+            var clr = "blue";
+            switch (magmo.boxColorMode)
+            {
+                case MmboxColorMode.Native:
+                    clr = boxNativeColor;
+                    break;
+                case MmboxColorMode.Simmode:
+                    if (rigbod==null)
+                    {
+                        clr = "black";
+                    }
+                    else
+                    {
+                        clr = rigbod.isKinematic? "purple" : "blue";
+                    }
+                    break;
+            }
+            return clr;
+        }
+
+        void Update()
+        {
+            ColorBox();
         }
     }
 }

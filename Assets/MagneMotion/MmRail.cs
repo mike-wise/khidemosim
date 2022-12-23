@@ -21,7 +21,7 @@ namespace KhiDemo
         {
             var mmt = magmo.mmt;
             var railgo = new GameObject(rname);
-            var (pt, ang) = mmt.GetPositionAndOrientation(pathnum, pathdist);
+            var (pt, ang) = mmt.GetPositionAndOrientation(pathnum, pathdist,0, magmo.trackSmoothness);
             railgo.transform.position = pt;
             //railgo.transform.rotation = Quaternion.Euler(0, 0, -ang);// Original
             //railgo.transform.rotation = Quaternion.Euler(-90, ang, 0 );// Without ReformPoint in ConstructForm
