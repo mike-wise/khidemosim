@@ -4,17 +4,26 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum OvTransCtrl { Correct, NoTranspose, OnlyLeftT, OnlyRightT, NoT, NoTandNoTranspose }
 
 public class OvCtrl : MonoBehaviour
 {
     // Start is called before the first frame update
     [Header("State")]
-
+    public bool OV_UseFixedJsonStateFile;
+    public string OV_FixedJsonStateFileName = "rundir";
     public string OV_JsonStateFile;
     public string OV_Rootname;
     public string OV_ActiveObjects;
     public string OV_FlattenObjects;
+    public string OV_RunStateFolder;
+    public float OV_StateListSimTime;
+    public bool OV_StateListWritePending;
+    public int OV_StateListIndex;
+    public int OV_skipcount;
+    public List<string> OV_StateList;
     public bool isFlattend = false;
+    public OvTransCtrl ovTransformControl = OvTransCtrl.Correct;
 
 
     [Header("Actions")]
@@ -24,6 +33,8 @@ public class OvCtrl : MonoBehaviour
     public void Init(string rootname)
     {
         this.OV_Rootname = rootname;
+        this.OV_UseFixedJsonStateFile = true;
+        this.OV_skipcount = 5;
     }
 
     bool jsonStateFileInited = false;
@@ -45,6 +56,7 @@ public class OvCtrl : MonoBehaviour
                 Debug.LogError(ex.Message);
                 return false;
             }
+            SetupStateFolderForRun();
         }
         return true;
     }
@@ -89,11 +101,106 @@ public class OvCtrl : MonoBehaviour
                 pathname = $"/{OV_Rootname}/{ovp.name}";
             }
             var ostate = new MmOvObj();
-            ostate.Init(pathname, ovp);
+            ostate.Init(pathname, this, ovp);
             var ostr = ostate.MakeJsonString();
             File.AppendAllText(OV_JsonStateFile, ostr+nl);
+            AddStringToStateList(ostr);
             // Debug.Log($"OV Added {pathname}");
         }
+    }
+
+
+    public string GetNewStateFolderName()
+    {
+
+        var runnum = 0;
+        string newname;
+        while (true)
+        {
+            newname = $"JsonState/run_{runnum:D3}/";
+            if (!System.IO.Directory.Exists(newname))
+            {
+                System.IO.Directory.CreateDirectory(newname);
+                return newname;
+            }
+            runnum++;
+            if (runnum>10000)
+            {
+                break;
+            }
+        }
+        return "";
+    }
+
+    public void InitStateList()
+    {
+        this.OV_StateListWritePending = true;
+        this.OV_StateList = new List<string>();
+        var s = $"{{\"ftyp\":\"StateList\",\"index\":{this.OV_StateListIndex},\"now\":\"{System.DateTime.Now}\",\"simtime\":{Time.time}}}";
+        OV_StateList.Add(s);
+        OV_StateListSimTime = Time.time;
+    }
+
+    public void FlushStateList()
+    {
+        // note we are using "json lines" formatting
+        if (this.OV_skipcount==0)
+        {
+            this.OV_skipcount = 1;
+        }
+        if (this.OV_StateListIndex % this.OV_skipcount == 0)
+        {
+            var fname = this.OV_RunStateFolder + $"timestep_{this.OV_StateListIndex:D6}.jsonl";
+            File.WriteAllLines(fname, this.OV_StateList);
+        }
+        this.OV_StateList = new List<string>();
+        this.OV_StateListIndex++;
+        InitStateList();
+    }
+
+    public void EnsureExistingAndEmptyDirectory(string dirname)
+    {
+        if (!System.IO.Directory.Exists(dirname))
+        {
+            System.IO.Directory.CreateDirectory(dirname);
+        }
+
+        // Now empty the directory of any existing files or subdires
+        var di = new DirectoryInfo(dirname);
+
+        foreach (var file in di.GetFiles())
+        {
+            file.Delete();
+        }
+        foreach (var subdir in di.GetDirectories())
+        {
+            subdir.Delete(true);
+        }
+    }
+
+    public void SetupStateFolderForRun()
+    {
+        if (OV_UseFixedJsonStateFile)
+        {
+            this.OV_RunStateFolder = $"JsonState/{this.OV_FixedJsonStateFileName}/";
+            EnsureExistingAndEmptyDirectory(this.OV_RunStateFolder);
+        }
+        else
+        {
+            this.OV_RunStateFolder = GetNewStateFolderName();
+        }
+        this.OV_StateListIndex = 0;
+        InitStateList();
+    }
+
+    public void AddStringToStateList(string line)
+    {
+        if (Time.time!=this.OV_StateListSimTime)
+        {
+            FlushStateList();
+            this.OV_StateListSimTime = Time.time;
+        }
+        this.OV_StateList.Add(line);
     }
 
     public void Flatten()
@@ -141,59 +248,8 @@ public class OvCtrl : MonoBehaviour
         }
     }
 
-}
-
-
-
-public class MmOvObj
-{
-    public string ovcls;
-    public string typ;
-    public string pathname;
-    public string now;
-    public string simtime;
-    public Vector3 localscale;
-    public Vector3 eulerangles;
-    public Vector3 loceulerangles;
-    public Vector3 position;
-    public Vector3 locposition;
-    public Matrix4x4 loctrans;
-    public Matrix4x4 loctowctrans;
-
-    public void Init(string pathname, OvPrim ovp)
+    void FixedUpdate()
     {
-        var t = ovp.transform;
-        this.ovcls = "MmOvObj";
-        this.typ = ovp.GetTyp();
-        this.pathname = pathname;
-        this.now = DateTime.Now.ToString("O");
-        this.simtime = Time.time.ToString("F6");
-        this.localscale = OvPrim.FilterVector(t.localScale);
-        this.eulerangles = OvPrim.FilterVector(t.rotation.eulerAngles);
-        this.loceulerangles = OvPrim.FilterVector(t.localRotation.eulerAngles);
-        this.position = OvPrim.FilterVector(t.position);
-        this.locposition = OvPrim.FilterVector(t.localPosition);
-        if (t.parent != null)
-        {
-            this.loctrans = OvPrim.FilterMatrix( t.parent.localToWorldMatrix.inverse * t.localToWorldMatrix );
-        }
-        else
-        {
-            this.loctrans =  OvPrim.FilterMatrix(t.localToWorldMatrix);
-        }
-        this.loctrans = OvPrim.FilterMatrix(t.localToWorldMatrix);
     }
-    public string MakeJsonString()
-    {
-        var s = JsonUtility.ToJson(this);
-        return s;
-    }
-    public string MakeJsonNetString()
-    {
-        var s = Newtonsoft.Json.JsonConvert.SerializeObject(this);
-        return s;
-    }
-
 
 }
-

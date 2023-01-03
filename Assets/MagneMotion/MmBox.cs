@@ -57,7 +57,7 @@ namespace KhiDemo
         {
             fakePoolRoot = new GameObject("FakeBoxPool");
             fakePoolRoot.transform.position += new Vector3(0.5f, 0, 0);
-            fakePoolRoot.transform.SetParent(magmo.floor.transform, worldPositionStays: true);
+            fakePoolRoot.transform.SetParent(magmo.simroot.transform, worldPositionStays: true);
             fakePool = new List<MmBox>();
             var nfakePool = 12 + 1 + 10;
             for (int i = 0; i < nfakePool; i++)
@@ -71,7 +71,7 @@ namespace KhiDemo
             }
             realPoolRoot = new GameObject("RealBoxPool");
             realPoolRoot.transform.position += new Vector3(-0.5f, 0, 0);
-            realPoolRoot.transform.SetParent(magmo.floor.transform, worldPositionStays: true);
+            realPoolRoot.transform.SetParent(magmo.simroot.transform, worldPositionStays: true);
             realPool = new List<MmBox>();
             var nrealPool = 10;
             for (int i = 0; i < nrealPool; i++)

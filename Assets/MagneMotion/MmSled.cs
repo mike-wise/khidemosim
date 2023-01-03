@@ -21,6 +21,7 @@ namespace KhiDemo
         bool markedForDeletion = false;
         public float sledUnitsPerSecSpeed;
         public float reqestedSledUpsSpeed;
+        public float nativeUpsSpeed;
         public bool visible;
         SledForm sledform;
         GameObject formgo;
@@ -99,12 +100,21 @@ namespace KhiDemo
         }
         public void SetRequestedSpeedNew(float newspeed)
         {
+            if (sledid=="2")
+            {
+                Debug.Log($"sledid:{sledid} newspeed:{newspeed}");
+            }
             reqestedSledUpsSpeed = newspeed;
         }
         public void SetRequestedSpeedOld(float newspeed)
         {
             reqestedSledUpsSpeed = newspeed;
             sledUnitsPerSecSpeed = newspeed;
+        }
+        public void SetNativeSpeed(float natspeed)
+        {
+            this.nativeUpsSpeed = natspeed;
+            SetRequestedSpeed(natspeed);
         }
         public void SetRequestedSpeed(float newspeed)
         {
@@ -441,6 +451,7 @@ namespace KhiDemo
         const float sledMinGap = UnitsPerMeter * 0.10f;// 10 cm
         public void AdvanceSledBySpeed()
         {
+            // TODO: This code has become atrotious over time - needs to be rewritten
             var delttime = Time.time - speedLastCalced;
             if (useGradualAccelerationMethod)
             {
@@ -478,6 +489,14 @@ namespace KhiDemo
                 {
                     sledUnitsPerSecSpeed = 0;
                 }
+                if ((oldSledMoveStatus != SledMoveStatus.Moving) && (sledMoveStatus == SledMoveStatus.Moving))
+                {
+                    SetRequestedSpeed(this.nativeUpsSpeed);
+                }
+                //if ((oldSledMoveStatus == SledMoveStatus.Hindered) && (sledMoveStatus == SledMoveStatus.Moving))
+                //{
+                //    SetRequestedSpeed(this.nativeUpsSpeed);
+                //}
                 if (oldpath != pathnum)
                 {
                     // pathchanged
@@ -485,7 +504,7 @@ namespace KhiDemo
                     nextpathnum = newpath.FindContinuationPathIdx(loadState, alternateIfMultipleChoicesAvaliable: false);
                     if (nextpathnum == pathnum)
                     {
-                        magmo.WarnMsg($"AdvancePathBySpped sledid:{sledid} nextpathnum {nextpathnum} cannot be equal to pathnum:{pathnum}");
+                        Debug.LogWarning($"AdvancePathBySpped sledid:{sledid} nextpathnum {nextpathnum} cannot be equal to pathnum:{pathnum}");
                     }
                 }
                 if (atEndOfPath)

@@ -15,6 +15,7 @@
 # /[Aa]ssets/[Rr]os[Mm]essages/
 # /[Aa]ssets/[Rr]os[Mm]essages.meta
 /JsonState/
+/USD/
 
 /Packages/packages-lock.json
 

@@ -2,207 +2,213 @@
 using UnityEditor;
 using System.Collections;
 
-//
-// Copyright © 2015. Out of Web Site. All rights reserved.
-// Unauthorized use or redistribution is prohibited.
-//
-
 [CustomEditor(typeof(Transform))]
-public class TransformHUDEditor : Editor {
+public class TransformHUDEditor : Editor
+{
+	private bool fieldHUDShow;
+	private bool fieldOptionsShow;
+	private Color fieldBoxColor;
+	private Vector2 fieldBoxOffset;
+	private bool locToWcTransShow;
+	private bool locTransShow;
 
-	// Fields
-	private bool	fieldHUDShow;
-	private bool 	fieldOptionsShow;
-	private Color	fieldBoxColor;
-	private Vector2	fieldBoxOffset;
-
-
-
-
-	// OnEnable
-	void OnEnable () {
-
-		// Set intial field values to saved preferences (or defaults)
-		fieldHUDShow     	= EditorPrefs.GetBool("Pref.TransformHUDEditor.HUDShow", false);
-		fieldOptionsShow    = EditorPrefs.GetBool("Pref.TransformHUDEditor.OptionsShow", false);
-		fieldBoxColor		= new Color(EditorPrefs.GetFloat("Pref.TransformHUDEditor.BoxColorR", 1.0f), EditorPrefs.GetFloat("Pref.TransformHUDEditor.BoxColorG", 1.0f), EditorPrefs.GetFloat("Pref.TransformHUDEditor.BoxColorB", 1.0f), EditorPrefs.GetFloat("Pref.TransformHUDEditor.BoxColorA", 0.25f));
-		fieldBoxOffset     	= new Vector2(EditorPrefs.GetFloat("Pref.TransformHUDEditor.BoxOffsetX", 0.0f), EditorPrefs.GetFloat("Pref.TransformHUDEditor.BoxOffsetY", 0.0f));
-
+	void OnEnable()
+	{
+		fieldHUDShow = EditorPrefs.GetBool("Pref.TransformHUDEditor.HUDShow", false);
+		fieldOptionsShow = EditorPrefs.GetBool("Pref.TransformHUDEditor.OptionsShow", false);
+		fieldBoxColor = new Color(EditorPrefs.GetFloat("Pref.TransformHUDEditor.BoxColorR", 1.0f), EditorPrefs.GetFloat("Pref.TransformHUDEditor.BoxColorG", 1.0f), EditorPrefs.GetFloat("Pref.TransformHUDEditor.BoxColorB", 1.0f), EditorPrefs.GetFloat("Pref.TransformHUDEditor.BoxColorA", 0.25f));
+		fieldBoxOffset = new Vector2(EditorPrefs.GetFloat("Pref.TransformHUDEditor.BoxOffsetX", 0.0f), EditorPrefs.GetFloat("Pref.TransformHUDEditor.BoxOffsetY", 0.0f));
+		locToWcTransShow = EditorPrefs.GetBool("Pref.TransformHUDEditor.locToWcTransShow", false);
+		locTransShow = EditorPrefs.GetBool("Pref.TransformHUDEditor.locTransShow", false);
+	}
+	void OnDisable()
+	{
+		EditorPrefs.SetBool("Pref.TransformHUDEditor.HUDShow", fieldHUDShow);
+		EditorPrefs.SetBool("Pref.TransformHUDEditor.OptionsShow", fieldOptionsShow);
+		EditorPrefs.SetBool("Pref.TransformHUDEditor.locToWcTransShow", locToWcTransShow);
+		EditorPrefs.SetBool("Pref.TransformHUDEditor.locTransShow", locTransShow);
+		EditorPrefs.SetFloat("Pref.TransformHUDEditor.BoxColorR", fieldBoxColor.r);
+		EditorPrefs.SetFloat("Pref.TransformHUDEditor.BoxColorG", fieldBoxColor.g);
+		EditorPrefs.SetFloat("Pref.TransformHUDEditor.BoxColorB", fieldBoxColor.b);
+		EditorPrefs.SetFloat("Pref.TransformHUDEditor.BoxColorA", fieldBoxColor.a);
+		EditorPrefs.SetFloat("Pref.TransformHUDEditor.BoxOffsetX", fieldBoxOffset.x);
+		EditorPrefs.SetFloat("Pref.TransformHUDEditor.BoxOffsetY", fieldBoxOffset.y);
 	}
 
-
-
-	// OnDisable
-	void OnDisable() {
-		
-		// Save field values to preferences
-		EditorPrefs.SetBool ("Pref.TransformHUDEditor.HUDShow"		, fieldHUDShow);
-		EditorPrefs.SetBool ("Pref.TransformHUDEditor.OptionsShow"	, fieldOptionsShow);
-		EditorPrefs.SetFloat("Pref.TransformHUDEditor.BoxColorR"	, fieldBoxColor.r);
-		EditorPrefs.SetFloat("Pref.TransformHUDEditor.BoxColorG"	, fieldBoxColor.g);
-		EditorPrefs.SetFloat("Pref.TransformHUDEditor.BoxColorB"	, fieldBoxColor.b);
-		EditorPrefs.SetFloat("Pref.TransformHUDEditor.BoxColorA"	, fieldBoxColor.a);
-		EditorPrefs.SetFloat("Pref.TransformHUDEditor.BoxOffsetX"	, fieldBoxOffset.x);
-		EditorPrefs.SetFloat("Pref.TransformHUDEditor.BoxOffsetY"	, fieldBoxOffset.y);
-
-	}
-
-
-
-	// Draw transform inspector in editor
-	public override void OnInspectorGUI() {
-
-		// Transform inspector
-		MyDrawTransformInspector();
-
-
+	public override void OnInspectorGUI()
+	{
+		TransformInspector(inSceneView: true);
 
 		GUILayout.BeginHorizontal();
 
-		// Field: Show HUD
-		if (GUILayout.Button ((fieldHUDShow) ? "Hide HUD" : "Show HUD")) {
+		if (GUILayout.Button((fieldHUDShow) ? "Hide HUD" : "Show HUD"))
+		{
 			fieldHUDShow = !fieldHUDShow;
 		}
 
-		// Field: Show Options
-		if (GUILayout.Button ((fieldOptionsShow) ? "Hide Options" : "Show Options")) {
+		if (GUILayout.Button((fieldOptionsShow) ? "Hide Options" : "Show Options"))
+		{
 			fieldOptionsShow = !fieldOptionsShow;
 		}
 
 		GUILayout.EndHorizontal();
 
-
-		// Show options
-		if (fieldOptionsShow) {
-
-			// Field: Box Offset 
+		if (fieldOptionsShow)
+		{
 			bool originalWideMode = EditorGUIUtility.wideMode;
 			EditorGUIUtility.wideMode = true;
-			fieldBoxOffset = EditorGUILayout.Vector2Field (new GUIContent ("Box Offset", "The offset of the HUD box in pixels from the origin of the selected object in the Scene View."), fieldBoxOffset);
+			fieldBoxOffset = EditorGUILayout.Vector2Field(new GUIContent("Box Offset", "The offset of the HUD box in pixels from the origin of the selected object in the Scene View."), fieldBoxOffset);
 			EditorGUIUtility.wideMode = originalWideMode;
 
-			// Field: Box Color
-			fieldBoxColor = EditorGUILayout.ColorField (new GUIContent ("Box Color", "The color and transparency of the HUD box in the Scene View."), fieldBoxColor);
+			fieldBoxColor = EditorGUILayout.ColorField(new GUIContent("Box Color", "The color and transparency of the HUD box in the Scene View."), fieldBoxColor);
 		}
 
-
-		// Update UI
-		if (GUI.changed) {
+		if (GUI.changed)
+		{
 			EditorUtility.SetDirty(target);
 		}
 	}
 
+	void OnSceneGUI()
+	{
+		if (fieldHUDShow)
+		{
+			var t = (Transform)target;
+			var objpos = HandleUtility.WorldToGUIPoint(t.transform.position);
 
+			Handles.BeginGUI();
 
-	// Draw transform inspector in scene view
-	void OnSceneGUI() {
-
-		// Draw HUD
-		if (fieldHUDShow) {
-
-			// Selected object's transform
-			Transform t = (Transform)target;
-			Vector2 objectPosition = HandleUtility.WorldToGUIPoint (t.transform.position);
-
-			// Begin GUI
-			Handles.BeginGUI ();
-
-
-
-			// Background box
-			float boxWidth = 340.0f;
-			float boxHeight = 120.0f;
-			Rect backgroundBoxRect = new Rect (objectPosition.x + fieldBoxOffset.x, objectPosition.y - fieldBoxOffset.y, boxWidth, boxHeight);
+			var boxWidth = 340.0f;
+			var boxHeight = 120.0f;
+			var bgBoxRect = new Rect(objpos.x + fieldBoxOffset.x, objpos.y - fieldBoxOffset.y, boxWidth, boxHeight);
 			Color originalBackgroundColor = GUI.backgroundColor;
 			GUI.backgroundColor = fieldBoxColor;
-			GUI.Box (backgroundBoxRect, "");
+			GUI.Box(bgBoxRect, "");
 			GUI.color = originalBackgroundColor;
 
+			var pad = 10f;
+			var areaRect = new Rect(bgBoxRect.x + pad, bgBoxRect.y + pad, bgBoxRect.width - 2 * pad, bgBoxRect.height - 2 * pad);
+			GUILayout.BeginArea(areaRect);
 
-			// Begin Area
-			float padding = 10.0f;
-			Rect areaRect = new Rect (backgroundBoxRect.x + padding, backgroundBoxRect.y + padding, backgroundBoxRect.width - 2.0f * padding, backgroundBoxRect.height - 2.0f * padding); 
-			GUILayout.BeginArea (areaRect);
+			TransformInspector(inSceneView: true);
 
-
-			// Draw the transform inspector
-			MyDrawTransformInspector ();
-
-			// Field: Show HUD
-			if (GUILayout.Button ((fieldHUDShow) ? "Hide HUD" : "Show HUD")) {
+			if (GUILayout.Button((fieldHUDShow) ? "Hide HUD" : "Show HUD"))
+			{
 				fieldHUDShow = !fieldHUDShow;
 				EditorUtility.SetDirty(target);
 			}
 
+			GUILayout.EndArea();
 
-			// End Area
-			GUILayout.EndArea ();
-
-
-
-			// End GUI
-			Handles.EndGUI ();
+			Handles.EndGUI();
 		}
 	}
 
+	(Vector4 v1, Vector4 v2, Vector4 v3, Vector4 v4) UnpackTransform(Matrix4x4 m)
+	{
+		//var v1 = new Vector4(m.m00, m.m01, m.m02, m.m03);
+		//var v2 = new Vector4(m.m10, m.m11, m.m12, m.m13);
+		//var v3 = new Vector4(m.m20, m.m21, m.m22, m.m23);
+		//var v4 = new Vector4(m.m30, m.m31, m.m32, m.m33);
+		var v1 = new Vector4(m.m00, m.m10, m.m20, m.m30);
+		var v2 = new Vector4(m.m01, m.m11, m.m21, m.m31);
+		var v3 = new Vector4(m.m02, m.m12, m.m22, m.m32);
+		var v4 = new Vector4(m.m03, m.m13, m.m23, m.m33);
 
+		return (v1, v2, v3, v4);
+	}
 
-	// Transform inspector
-	void MyDrawTransformInspector() {
+	Matrix4x4 localMatrix(Transform xf)
+	{
+		var rv = xf.localToWorldMatrix;
+		if (xf.parent != null)
+		{
+			// Use Unity's inverse function which might not be the fastest
+			rv = xf.parent.localToWorldMatrix.inverse * xf.localToWorldMatrix;
+		}
+		return rv;
+	}
+	void TransformInspector(bool inSceneView)
+	{
+		var t = (Transform)target;
 
-		// Selected object's transform
-		Transform t = (Transform)target;
-		
-		
-		// Replicate the standard transform inspector
-		bool originalWideMode = EditorGUIUtility.wideMode;
+		var originalWideMode = EditorGUIUtility.wideMode;
 		EditorGUIUtility.wideMode = true;
 		EditorGUIUtility.labelWidth = 65;
 		EditorGUIUtility.fieldWidth = 0;
 
 		var wcoflocalorg = t.TransformPoint(Vector3.zero);
 
+		var position = EditorGUILayout.Vector3Field("Position", t.localPosition);
+		var eulerAngles = EditorGUILayout.Vector3Field("Rotation", t.localEulerAngles);
+		var scale = EditorGUILayout.Vector3Field("Scale", t.localScale);
+		var glbpos = EditorGUILayout.Vector3Field("GlbPos", t.position);
+		var wcpos = EditorGUILayout.Vector3Field("WcPos", wcoflocalorg);
+		var glbRot = EditorGUILayout.Vector3Field("GlbRot", t.eulerAngles);
 
-		Vector3 position = EditorGUILayout.Vector3Field("Position", t.localPosition);
-		Vector3 eulerAngles = EditorGUILayout.Vector3Field("Rotation", t.localEulerAngles);
-		Vector3 scale 		= EditorGUILayout.Vector3Field("Scale"	 , t.localScale);
-		Vector3 glbpos = EditorGUILayout.Vector3Field("GlbPos", t.position);
-		Vector3 wcpos = EditorGUILayout.Vector3Field("WcPos", wcoflocalorg);
-		Vector3 glbRot = EditorGUILayout.Vector3Field("GlbRot", t.eulerAngles);
+		if (inSceneView)
+		{
+			GUILayout.BeginHorizontal();
+
+			if (GUILayout.Button((locToWcTransShow) ? "Hide LocToWc" : "Show LocToWc"))
+			{
+				locToWcTransShow = !locToWcTransShow;
+			}
+
+			if (GUILayout.Button((locTransShow) ? "Hide Local" : "Show Local"))
+			{
+				locTransShow = !locTransShow;
+			}
+			GUILayout.EndHorizontal();
+		}
+
+		if (locToWcTransShow)
+		{
+			var (lwc1, lwc2, lwc3, lwc4) = UnpackTransform(t.localToWorldMatrix);
+			EditorGUILayout.Vector4Field("locWC.r1", lwc1);
+			EditorGUILayout.Vector4Field("locWC.r2", lwc2);
+			EditorGUILayout.Vector4Field("locWC.r3", lwc3);
+			EditorGUILayout.Vector4Field("locWC.r4", lwc4);
+		}
+		if (locTransShow)
+		{
+			var (l1, l2, l3, l4) = UnpackTransform(localMatrix(t));
+			EditorGUILayout.Vector4Field("loc.r1", l1);
+			EditorGUILayout.Vector4Field("loc.r2", l2);
+			EditorGUILayout.Vector4Field("loc.r3", l3);
+			EditorGUILayout.Vector4Field("loc.r4", l4);
+		}
+
 
 		EditorGUIUtility.labelWidth = 0;
 		EditorGUIUtility.fieldWidth = 0;
 		EditorGUIUtility.wideMode = originalWideMode;
-		
-		
-		// If changes made
-		if (GUI.changed) {
-			
-			// Record Undo
+
+		if (GUI.changed)
+		{
+			// For Undo
 			Undo.RecordObject(t, "Transform Change");
 
-
-			// Fix invalid numbers
 			t.localPosition = FixIfNaN(position);
 			t.localEulerAngles = FixIfNaN(eulerAngles);
 			t.localScale = FixIfNaN(scale);
 		}
 	}
 
-
-
-	// Fix not a number (NAN) errors
-	private Vector3 FixIfNaN(Vector3 v) {
-		if (float.IsNaN(v.x)) {
+	private Vector3 FixIfNaN(Vector3 v)
+	{
+		if (float.IsNaN(v.x))
+		{
 			v.x = 0;
 		}
-		if (float.IsNaN(v.y)) {
+		if (float.IsNaN(v.y))
+		{
 			v.y = 0;
 		}
-		if (float.IsNaN(v.z)) {
+		if (float.IsNaN(v.z))
+		{
 			v.z = 0;
 		}
 		return v;
 	}
-	
 }

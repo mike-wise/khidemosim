@@ -112,7 +112,7 @@ namespace KhiDemo
             {
                 switch (smoothness)
                 {
-                    case MmTrackSmoothness.PerfectlySmooth:
+                    case MmTrackSmoothness.Smooth:
                         break;
                     case MmTrackSmoothness.LittleBumpy:
                         addnoise = true;
@@ -138,7 +138,7 @@ namespace KhiDemo
                 var yval = (ranman.Next(2000 + 1) / 1000.0f) - 1;
                 var zval = (ranman.Next(2000 + 1) / 1000.0f) - 1;
                 var delt = new Vector3(xval * ska, yval * ska, zval * ska);
-                Debug.Log($"{smoothness} adding delt:{delt:f4}");
+                //Debug.Log($"{smoothness} adding delt:{delt:f4}");
                 pt += delt;
             }
             return (pt, ang);
@@ -283,7 +283,7 @@ namespace KhiDemo
                     {
                         float val = (id % 2 == 0) ? sledspeed : sledspeed / 2;
                         //Debug.Log($"Set {s.sledid} speed to {val}");
-                        s.SetRequestedSpeed(val);
+                        s.SetNativeSpeed(val);
                         id++;
                     }
                     break;
@@ -330,17 +330,12 @@ namespace KhiDemo
             }
         }
 
-        public void SetSpeedFactor(float speed)
-        {
-            
-        }
-
         public void AdjustSledSpeedFactor(float fak)
         {
             foreach (var s in sleds)
             {
-                var speed = s.sledUnitsPerSecSpeed;
-                s.SetRequestedSpeed(speed*fak);
+                s.SetNativeSpeed(s.nativeUpsSpeed * fak);
+                s.SetRequestedSpeed(s.reqestedSledUpsSpeed * fak);
             }
         }
 

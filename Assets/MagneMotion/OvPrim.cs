@@ -21,8 +21,8 @@ public class OvPrim : MonoBehaviour
     string typlc;
 
     Transform nonFlattenedParent;
-    bool isflattend = false;
-    bool turnGravityBackOn = false;
+    public bool isflattend = false;
+    public bool turnGravityBackOn = false;
 
     void Start()
     {
@@ -63,7 +63,8 @@ public class OvPrim : MonoBehaviour
     }
 
 
-    static float filterToZero(float f)
+
+        static float filterToZero(float f)
     {
         if (Mathf.Abs(f) < 1e-6)
         {
@@ -253,5 +254,63 @@ public class OvPrim : MonoBehaviour
                 pubOvOnce = false;
             }
         }
+    }
+}
+
+public class MmOvObj
+{
+    public string ovcls;
+    public string typ;
+    public string pathname;
+    public string now;
+    public string simtime;
+    public string extras;
+    public string ovtransctrl; 
+    public Vector3 localscale;
+    public Vector3 eulerangles;
+    public Vector3 loceulerangles;
+    public Vector3 position;
+    public Vector3 locposition;
+    public Matrix4x4 loctrans;
+    public Matrix4x4 loctowctrans;
+
+    public void Init(string pathname, OvCtrl ovc, OvPrim ovp)
+    {
+        var t = ovp.transform;
+        this.ovcls = "MmOvObj";
+        this.typ = ovp.GetTyp();
+        this.pathname = pathname;
+        this.extras = "";
+        if (ovc.IsOvNeededFlat(ovp))
+        {
+            this.extras = "flattened";
+        }
+        this.now = System.DateTime.Now.ToString("O");
+        this.simtime = Time.time.ToString("F6");
+        this.localscale = OvPrim.FilterVector(t.localScale);
+        this.eulerangles = OvPrim.FilterVector(t.rotation.eulerAngles);
+        this.loceulerangles = OvPrim.FilterVector(t.localRotation.eulerAngles);
+        this.position = OvPrim.FilterVector(t.position);
+        this.locposition = OvPrim.FilterVector(t.localPosition);
+        this.ovtransctrl = ovc.ovTransformControl.ToString();
+        if (t.parent != null)
+        {
+            this.loctrans = OvPrim.FilterMatrix(t.parent.localToWorldMatrix.inverse * t.localToWorldMatrix);
+        }
+        else
+        {
+            this.loctrans = OvPrim.FilterMatrix(t.localToWorldMatrix);
+        }
+        this.loctowctrans = OvPrim.FilterMatrix(t.localToWorldMatrix);
+    }
+    public string MakeJsonString()
+    {
+        var s = JsonUtility.ToJson(this);
+        return s;
+    }
+    public string MakeJsonNetString()
+    {
+        var s = Newtonsoft.Json.JsonConvert.SerializeObject(this);
+        return s;
     }
 }

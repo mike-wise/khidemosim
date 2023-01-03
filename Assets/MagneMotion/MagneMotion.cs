@@ -34,7 +34,7 @@ namespace KhiDemo
 
     public enum MmboxColorMode { Native, Simmode }
 
-    public enum MmTrackSmoothness { PerfectlySmooth, LittleBumpy, VeryBumpy, SuperBumpy }
+    public enum MmTrackSmoothness { Smooth, LittleBumpy, VeryBumpy, SuperBumpy }
 
 
     public class MagneMotion : MonoBehaviour
@@ -46,8 +46,9 @@ namespace KhiDemo
         public MmTray mmtray = null;
         public GameObject mmego = null;
         public MmTrajPlan planner = null;
-        public GameObject floor = null;
+        public GameObject simroot = null;
         public GameObject floorobject = null;
+        public GameObject trayobject = null;
 
         [Header("Scene Element Forms")]
         public MmSled.SledForm sledForm = MmSled.SledForm.Prefab;
@@ -80,7 +81,7 @@ namespace KhiDemo
         public float staticFriction = 0.9f;
         public float dynamicFriction = 0.9f;
         public float bounciness = 0f;
-        public MmTrackSmoothness trackSmoothness = MmTrackSmoothness.PerfectlySmooth;
+        public MmTrackSmoothness trackSmoothness = MmTrackSmoothness.Smooth;
 
         [Header("Appearance")]
         public MmboxColorMode boxColorMode;
@@ -120,18 +121,6 @@ namespace KhiDemo
 
 
 
-        GameObject InitChildGo(string seekname)
-        {
-            //Debug.Log($"Seeking Name {seekname}");
-            var cango = GameObject.Find(seekname);
-            if (cango == null)
-            {
-                ErrMsg($"MagneMotion.InitGo - Can't find object named \"{seekname}\"");
-                return null;
-            }
-            return cango;
-        }
-
         public MmBoxSimMode GetBoxSimMode()
         {
             return __mmBoxSimMode;
@@ -139,6 +128,56 @@ namespace KhiDemo
         public void SetBoxSimMode()
         {
             __mmBoxSimMode = mmBoxSimMode;
+        }
+
+        public void PositionObjects()
+        {
+
+            trayobject.transform.rotation = Quaternion.Euler(0, 0, 0);
+            floorobject.transform.localPosition = new Vector3(0, 0.761f, 0);
+            var ptfloor = new Vector3(-0.206f, 0.761f, -0.21f);
+            mmRobot.transform.localPosition = ptfloor; // Note that this position must be set manually on the link marked as "immovable" (currently "base_link")
+            switch (mmStartingCoord)
+            {
+                case MmStartingCoords.Rot000:
+                    simroot.transform.rotation = Quaternion.Euler(0, 0, 0);
+                    trayobject.transform.localPosition = ptfloor + new Vector3(0.374f, 0.222f, 0.03f);
+                    break;
+                case MmStartingCoords.Rot180:
+                    simroot.transform.rotation = Quaternion.Euler(0, 179.999f, 0);
+                    trayobject.transform.localPosition = ptfloor + new Vector3(-0.374f, 0.222f, 0.03f);
+                    break;
+            }
+
+            switch (mmStartingCoord)
+            {
+                case MmStartingCoords.Rot000:
+                    target.transform.localPosition = new Vector3(-0.16f, 0.16f, -0.351f);
+                    break;
+                case MmStartingCoords.Rot180:
+                    target.transform.localPosition = new Vector3(0.16f, 0.16f, 0.351f);
+                    break;
+            }
+            switch (mmStartingCoord)
+            {
+                case MmStartingCoords.Rot000:
+                    targetPlacement.transform.localPosition = new Vector3(0.321f, 0, -0.294f);
+                    break;
+                case MmStartingCoords.Rot180:
+                    targetPlacement.transform.localPosition = new Vector3(-0.321f, 0, 0.294f);
+                    break;
+            }
+
+        }
+
+        public GameObject FindAndCheck(string foname)
+        {
+            var go = GameObject.Find(foname);
+            if (go == null)
+            {
+                Debug.LogError($"Could Not Find {foname}");
+            }
+            return go;
         }
 
         private void Awake()
@@ -159,64 +198,16 @@ namespace KhiDemo
                 ErrMsg("no MnRobot in scene");
             }
 
-            floor = GameObject.Find("Floor");
-            if (floor==null)
-            {
-                Debug.LogError("Could Not Find Floor");
-            }
-            var tray = GameObject.Find("MmTray");
-            if (tray == null)
-            {
-                Debug.LogError("Could Not Find tray");
-            }
 
-            if (floor != null)
-            {
-                switch (mmStartingCoord)
-                {
-                    case MmStartingCoords.Rot000:
-                        floor.transform.rotation = Quaternion.Euler(0, 0, 0);
-                        floor.transform.position = new Vector3(-0.206f, 0.761f, -0.21f);
-                        tray.transform.rotation = Quaternion.Euler(0, 0, 0);
-                        tray.transform.localPosition = new Vector3(0.374f, 0.222f, 0.03f);
-                        break;
-                    case MmStartingCoords.Rot180:
-                        floor.transform.rotation = Quaternion.Euler(0, 179.999f, 0);
-                        floor.transform.position = new Vector3(-0.206f, 0.761f, -0.21f);
-                        tray.transform.rotation = Quaternion.Euler(0, 0, 0);
-                        tray.transform.localPosition = new Vector3(-0.374f, 0.222f, -0.03f);
-                        break;
-                }
-            }
+            simroot = FindAndCheck("Simroot");
+            simroot.transform.position = Vector3.zero;
+            floorobject = FindAndCheck("FloorObject");
+            trayobject = FindAndCheck("MmTray");
+            planningCanvas = FindAndCheck("PlanningCanvas");
+            target = FindAndCheck("Target");
+            targetPlacement = FindAndCheck("TargetPlacement");
 
-            planningCanvas = InitChildGo("PlanningCanvas");
-            target = InitChildGo("Target");
-            targetPlacement = InitChildGo("TargetPlacement");
-
-            if (target!=null)
-            {
-                switch (mmStartingCoord)
-                {
-                    case MmStartingCoords.Rot000:
-                        target.transform.localPosition = new Vector3(-0.16f, 0.16f, -0.351f);
-                        break;
-                    case MmStartingCoords.Rot180:
-                        target.transform.localPosition = new Vector3(0.16f, 0.16f, 0.351f);
-                        break;
-                }
-            }
-            if (targetPlacement != null)
-            {
-                switch (mmStartingCoord)
-                {
-                    case MmStartingCoords.Rot000:
-                        targetPlacement.transform.localPosition = new Vector3(0.321f, 0, -0.294f);
-                        break;
-                    case MmStartingCoords.Rot180:
-                        targetPlacement.transform.localPosition = new Vector3(-0.321f, 0, 0.294f);
-                        break;
-                }
-            }
+            PositionObjects();
 
 
             rosconnection = ROSConnection.GetOrCreateInstance();
@@ -440,7 +431,7 @@ namespace KhiDemo
         void Start()
         {
 
-            floorobject = GameObject.Find("FloorObject");
+
             if (floorobject != null)
             {
                 var boxcol = floorobject.GetComponent<BoxCollider>();
@@ -449,14 +440,15 @@ namespace KhiDemo
             }
 
             var ovctrl = gameObject.AddComponent<OvCtrl>();
-            ovctrl.Init("Floor");
+            ovctrl.Init("Simroot");
             ovctrl.OV_ActiveObjects = "mmbox,mmsled,mmlink";
             ovctrl.OV_FlattenObjects = "mmbox,mmlink";
+            ovctrl.OV_FlattenObjects = "";
 
             MmBox.AllocateBoxPools(this);
 
             mmtgo = new GameObject("MmTable");
-            mmtgo.transform.SetParent(floor.transform, worldPositionStays: true);
+            mmtgo.transform.SetParent(simroot.transform, worldPositionStays: true);
             mmt = mmtgo.AddComponent<MmTable>();
             mmt.Init(this);
 
@@ -478,7 +470,7 @@ namespace KhiDemo
 
             var mmgo = mmt.SetupGeometry(addPathMarkers: addPathMarkers, positionOnFloor: positionOnFloor);
             mmgo.transform.SetParent(transform, false);
-            mmgo.transform.SetParent(floor.transform, true);
+            mmgo.transform.SetParent(simroot.transform, true);
             if (addPathSledsOnStartup)
             {
                 mmt.AddSleds();
@@ -595,8 +587,34 @@ namespace KhiDemo
             ZmqTeardown();
         }
 
+        Dictionary<MmTrackSmoothness, MmTrackSmoothness> BumpyMapPlus = new Dictionary<MmTrackSmoothness, MmTrackSmoothness>()
+        { {MmTrackSmoothness.Smooth, MmTrackSmoothness.LittleBumpy },
+          {MmTrackSmoothness.LittleBumpy, MmTrackSmoothness.VeryBumpy },
+          {MmTrackSmoothness.VeryBumpy, MmTrackSmoothness.SuperBumpy },
+          {MmTrackSmoothness.SuperBumpy, MmTrackSmoothness.SuperBumpy },
+        };
+        Dictionary<MmTrackSmoothness, MmTrackSmoothness> BumpyMapNeg = new Dictionary<MmTrackSmoothness, MmTrackSmoothness>()
+        { {MmTrackSmoothness.LittleBumpy, MmTrackSmoothness.Smooth },
+          {MmTrackSmoothness.VeryBumpy, MmTrackSmoothness.LittleBumpy },
+          {MmTrackSmoothness.SuperBumpy, MmTrackSmoothness.VeryBumpy },
+          {MmTrackSmoothness.Smooth, MmTrackSmoothness.Smooth },
+        };
+
+        public void AdjustBumpyness(int direction)
+        {
+            if (direction>0)
+            {
+                trackSmoothness = BumpyMapPlus[trackSmoothness];
+            }
+            else
+            {
+                trackSmoothness = BumpyMapNeg[trackSmoothness];
+            }
+        }
+
         float ctrlQhitTime = 0;
         float ctrlVhitTime = 0;
+        float ctrlBhitTime = 0;
         float F5hitTime = 0;
         float F6hitTime = 0;
         float F10hitTime = 0;
@@ -695,6 +713,20 @@ namespace KhiDemo
                 }
                 mmctrl.SetModeWhenIdle(newmode);
             }
+            if (ctrlhit && Input.GetKeyDown(KeyCode.B))
+            {
+                ctrlBhitTime = Time.time;
+            }
+            if (((Time.time - ctrlBhitTime) < 1) && Input.GetKeyDown(KeyCode.P))
+            {
+                // make more bumpy
+                AdjustBumpyness(+1);
+            }
+            if (((Time.time - ctrlBhitTime) < 1) && Input.GetKeyDown(KeyCode.N))
+            {
+                // make less bumpy
+                AdjustBumpyness(-1);
+            }
             if (ctrlhit && Input.GetKeyDown(KeyCode.V))
             {
                 ctrlVhitTime = Time.time;
@@ -777,12 +809,14 @@ namespace KhiDemo
             if (ctrlhit && Input.GetKeyDown(KeyCode.F))
             {
                 Debug.Log("Hit LCtrl-F");
+                initialSleedSpeed *= 2f;
                 mmt.AdjustSledSpeedFactor(2);
                 mmctrl.AdjustRobotSpeedFactor(2);
             }
             if (ctrlhit && Input.GetKeyDown(KeyCode.S))
             {
                 Debug.Log("Hit LCtrl-S");
+                initialSleedSpeed *= 0.5f;
                 mmt.AdjustSledSpeedFactor(0.5f);
                 mmctrl.AdjustRobotSpeedFactor(0.5f);
             }
@@ -878,6 +912,8 @@ namespace KhiDemo
             "",
             "Ctrl-F Speed up",
             "Ctrl-S Slow down",
+            "Ctrl-B Ctrl-P More Bumpy",
+            "Ctrl-B Ctrl-M Less Bumpy",
             "",
             "Ctrl-N Toggle Enclosure",
             "Ctrl-D Toggle Stop Simulation",
@@ -931,7 +967,7 @@ namespace KhiDemo
             {
                 default:
                 case InfoLineMode.Network:
-                    var ntxt = $"zmqpub:{ this.zmqPublishedCount}  rosrec: { this.rosReceivedCount}";
+                    var ntxt = $"zmq:{ this.zmqPublishedCount}  ros: { this.rosReceivedCount} speed:{initialSleedSpeed:f1} {trackSmoothness}";
                     return ntxt;
                 case InfoLineMode.RobotPose:
                     var j = mmRobot.GetRobotPos();

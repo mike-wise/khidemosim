@@ -644,6 +644,7 @@ namespace KhiDemo
             {
                 if (robstatus != RobStatus.idle)
                 {
+                    //Debug.Log($"CIOK - robstats != idle, cannot proceed");
                     return rv;
                 }
                 //Debug.Log($"CountBoxStatus nTray:{nTray} nRob:{nRob} nSled:{nSled}");
@@ -661,6 +662,7 @@ namespace KhiDemo
                 {
                     case MmMode.Planning:
                         {
+                            //Debug.Log($"CIOK - mMMode is MmMode.Planning cannot proceed");
                             rv = false;
                             return rv;
                         }
@@ -668,7 +670,7 @@ namespace KhiDemo
                     case MmMode.SimuRailToRail:
                         {
                             rv = (nloadedstopped > 0 && nunloadedstopped > 0);
-                            //Debug.Log($"Checking SimRailToRail if okay for next step- nloadedstopped:{nloadedstopped} nunloadedstopped:{nunloadedstopped}   ok:{rv}");
+                            //Debug.Log($"CIOK SimRailToRail if okay for next step- nloadedstopped:{nloadedstopped} nunloadedstopped:{nunloadedstopped}   ok:{rv}");
                             return rv;
                         }
                     case MmMode.StartRailToTray:
@@ -679,8 +681,10 @@ namespace KhiDemo
                             {
                                 case MmSubMode.RailToTray:
                                     rv = nloadedstopped > 0 || nRob > 0;
+                                    //Debug.Log($"CIOK RailToTray - nloadedstopped:{nloadedstopped}  nRob:{nRob}  ok:{rv}");
                                     return rv;
                                 case MmSubMode.TrayToRail:
+                                    //Debug.Log($"CIOK TrayToRail -  unloadedstopped:{nunloadedstopped} nRob:{nRob} nTray:{nTray} ok:{rv}");
                                     rv = nunloadedstopped > 0 && (nTray + nRob) > 0;
                                     return rv;
                             }
@@ -691,7 +695,7 @@ namespace KhiDemo
             }
             finally
             {
-                //var msg = $"CIOFNP {mmMode} {mmSubMode} - nls:{nloadedstopped} nus:{nunloadedstopped} nTray:{nTray} nRob:{nRob} nSled:{nSled} rv:{rv}";
+                var msg = $"CIOFNP {mmMode} {mmSubMode} - nls:{nloadedstopped} nus:{nunloadedstopped} nTray:{nTray} nRob:{nRob} nSled:{nSled} rv:{rv}";
                 //Debug.Log(msg);
             }
         }
