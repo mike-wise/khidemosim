@@ -414,37 +414,35 @@ def swaprow(m,i,j):
     return mm    
 
 
-def tomatrix(dict,key):
+def to_ov_matrix(dict,key):
     try:
         mdict = dict[key]
         m = []
         
-        correct = True
         transpose = True
-        onlyleftt = False
-        onlyrightt = False
-        notrans = False       
+        pattern = 1
         objname = dict["pathname"]
         
         if "ovtransctrl" in dict:
             ovtransctl = dict["ovtransctrl"]
             if ovtransctl=="NoTranspose":
+                pattern = 1
                 transpose = False
             elif ovtransctl=="Correct":
+                pattern = 1
                 correct = True
-            elif ovtransctl=="OnlyLeftT":
-                onlyleftt = True
-                correct = False
-            elif ovtransctl=="OnlyRightT":
-                onlyrightt = True
-                correct = False
             elif ovtransctl=="NoT":
-                notrans = True                
-                correct = False
+                pattern = 2
+                transpose = True
+            elif ovtransctl=="OnlyLeftT":
+                pattern = 3
+                transpose = True
+            elif ovtransctl=="OnlyRightT":
+                pattern = 4
+                transpose = True
             elif ovtransctl=="NoTandNoTranspose":
-                notrans = True                
+                pattern = 2
                 transpose = False
-                correct = False
             # print(f"{ovtransctl} transpose:{transpose}  {objname}")
         
         if transpose:
@@ -458,49 +456,50 @@ def tomatrix(dict,key):
             m.append(mdict["e20"]); m.append(mdict["e21"]); m.append(mdict["e22"]); m.append(mdict["e23"])
             m.append(mdict["e30"]); m.append(mdict["e31"]); m.append(mdict["e32"]); m.append(mdict["e33"])        
 
-        cormat = Gf.Matrix4d(  m[0],  m[1], -m[2],  m[3],  
-                               m[4],  m[5], -m[6],  m[7],  
-                              -m[8], -m[9],  m[10],-m[11],   
-                               m[12], m[13],-m[14], m[15] )
 
-        if correct:
+        if pattern==1:   # The correct pattern, z row and col both negated
             mat = Gf.Matrix4d(  m[0],  m[1], -m[2],  m[3],  
                                 m[4],  m[5], -m[6],  m[7],  
                                -m[8], -m[9],  m[10],-m[11],   
                                 m[12], m[13],-m[14], m[15] )
-        elif onlyleftt:
-            mat = Gf.Matrix4d(  m[0],  m[1],  m[2],  m[3],  
-                                m[4],  m[5],  m[6],  m[7],  
-                               -m[8], -m[9], -m[10],-m[11],   
-                                m[12], m[13], m[14], m[15] )
-        elif onlyrightt:
-            mat = Gf.Matrix4d(  m[0],  m[1], -m[2],  m[3],  
-                                m[4],  m[5], -m[6],  m[7],  
-                                m[8],  m[9], -m[10], m[11],   
-                                m[12], m[13],-m[14], m[15] )
-        elif notrans:
+        elif pattern==2: # do no transform at all
             mat = Gf.Matrix4d(  m[0],  m[1], m[2],  m[3],  
                                 m[4],  m[5], m[6],  m[7],  
                                 m[8],  m[9], m[10], m[11],   
                                 m[12], m[13],m[14], m[15] )
-        else:
+        elif pattern==3:  # only transform from the left which negates the z row
+            mat = Gf.Matrix4d(  m[0],  m[1],  m[2],  m[3],  
+                                m[4],  m[5],  m[6],  m[7],  
+                               -m[8], -m[9], -m[10],-m[11],   
+                                m[12], m[13], m[14], m[15] )
+        elif pattern==4: # only transform from the right which negates the z column
+            mat = Gf.Matrix4d(  m[0],  m[1], -m[2],  m[3],  
+                                m[4],  m[5], -m[6],  m[7],  
+                                m[8],  m[9], -m[10], m[11],   
+                                m[12], m[13],-m[14], m[15] )
+        else: # if in doubt do the correct pattern
             mat = Gf.Matrix4d(  m[0],  m[1], -m[2],  m[3],  
                                 m[4],  m[5], -m[6],  m[7],  
                                -m[8], -m[9],  m[10],-m[11],   
                                 m[12], m[13],-m[14], m[15] )
-
-
     
 
     except KeyError as e:
-        print(f"Exception in tomatrix - KeyError - reason {str(e)}")
-    except NameError as e:
-        print(f"Exception in tomatrix - NameError - reason {str(e)}")        
-    except Exception as ex:
-        print(f"Exception {ex.__class__} caught in tomatrix")
+        print(f"Exception in to_ov_matrix - KeyError - reason {str(e)}")
         mat = Gf.Matrix4d(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 )  
-    dmat = cormat - mat
-    # print(f"tomatrix - {key} :{dmat}")
+    except NameError as e:
+        print(f"Exception in to_ov_matrix - NameError - reason {str(e)}")        
+        mat = Gf.Matrix4d(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 )  
+    except Exception as ex:
+        print(f"Exception {ex.__class__} caught in to_ov_matrix")
+        mat = Gf.Matrix4d(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 )  
+        
+    # cormat = Gf.Matrix4d(  m[0],  m[1], -m[2],  m[3],  
+    #                        m[4],  m[5], -m[6],  m[7],  
+    #                       -m[8], -m[9],  m[10],-m[11],   
+    #                        m[12], m[13],-m[14], m[15] )
+    # dmat = cormat - mat
+    # print(f"to_ov_matrix - {key} :{dmat}")
     return mat
     
 def tovek(dict,key):
@@ -547,10 +546,10 @@ def process_json_lines(lines):
               scale= tovek(objdict,"localscale")
               if "flatten" in objdict["extras"]:
                   # print("Choosing loctowctrans because Flatten")
-                  locmat = tomatrix(objdict,"loctowctrans")
+                  locmat = to_ov_matrix(objdict,"loctowctrans")
               else:
                   # print("Choosing loctrans because not Flatten")
-                  locmat = tomatrix(objdict,"loctrans")
+                  locmat = to_ov_matrix(objdict,"loctrans")
               
               if i==0:
                   start = time.time()
@@ -695,32 +694,50 @@ def end_and_merge_session():
     g_stage_merged = True
     
     
+def delete_file(filename: str):
+    if os.path.exists(filename):
+        os.remove(filename)
+        # print(f"deleted {filename}")
+    else:
+        print(f"file {filename} does not exist so can not delete")
+        
+def delete_files(dirname: str, filenamelist):
+    for fname in filenamelist:
+        fullfname = dirname+fname
+        delete_file(fullfname)
+    
 #function to return files in a directory
-def fileInDirectory(my_dir: str):
-    onlyfiles = [f for f in listdir(my_dir) if isfile(join(my_dir, f))]
+def file_in_directory(dirname: str):
+    onlyfiles = [f for f in listdir(dirname) if isfile(join(dirname, f))]
     return(onlyfiles)
 
 #function comparing two lists
 
-def listComparison(OriginalList: list, NewList: list):
+def list_comparison(OriginalList: list, NewList: list):
     differencesList = [x for x in NewList if x not in OriginalList] #Note if files get deleted, this will not highlight them
     return(differencesList)
 
 
-def fileWatcher(watchDirectory: str, pollTime: float):
+def file_watcher(watchDirectory: str, pollTime: float):
     while True:
         if 'watching' not in locals(): #Check if this is the first time the function has run
-            previousFileList = fileInDirectory(watchDirectory)
+            previousFileList = file_in_directory(watchDirectory)
             watching = 1
             nfound = len(previousFileList)
             print(f'First Watch found {nfound}')
-            # print(previousFileList)
+            npass = 1
+            while nfound>0 and npass<5:
+               delete_files(watchDirectory,previousFileList)
+               previousFileList = file_in_directory(watchDirectory)
+               nfound = len(previousFileList)
+               print(f'First Watch now found {nfound}')
+               npass += 1
         
         time.sleep(pollTime)
         
-        newFileList = fileInDirectory(watchDirectory)
+        newFileList = file_in_directory(watchDirectory)
         
-        fileDiff = listComparison(previousFileList, newFileList)
+        fileDiff = list_comparison(previousFileList, newFileList)
         
         previousFileList = newFileList
         if keyboard.is_pressed('q'):  # if key 'q' is pressed 
@@ -733,6 +750,7 @@ def fileWatcher(watchDirectory: str, pollTime: float):
             with open(fulljfname) as f:
                 lines = f.read().splitlines()                 
             process_json_lines(lines)
+            delete_file(fulljfname)
     
     
     
@@ -832,7 +850,7 @@ def run_live_edit(prim, stageUrl, jsonFileName, watch_dir):
 
         elif option == b'w':
             LOGGER.info(f"Watching directory {watch_dir}")
-            fileWatcher(watch_dir, 0.01 )
+            file_watcher(watch_dir, 0.01 )
             # process_json_lines(lines)
     
         elif option == b'q' or option == chr(27).encode():

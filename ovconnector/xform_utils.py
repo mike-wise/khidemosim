@@ -194,16 +194,21 @@ class TransformPrimSRT:
 
     def get_transform_matrix(self) -> Gf.Matrix4d:
         """Get the transform matrix4"""
+        return self._loctrans
+        
+    def get_transform_matrix_original(self) -> Gf.Matrix4d:
+        """Get the transform matrix4"""
         srttrans =  self.construct_transform_matrix_from_srt(
             self._translation, self._rotation_euler, self._rotation_order, self._scale
         )
         # print(f"srttrans:{srttrans}")
         # print(f"loctrans:{self._loctrans}")
-        return self._loctrans
+        # return self._loctrans
         return srttrans
         #return self.construct_transform_matrix_from_srt(
         #    self._translation, self._rotation_euler, self._rotation_order, self._scale
         #)
+        
 
     def _xform_is_time_sampled(self) -> bool:
         for xform_op in self.xform_ops:
