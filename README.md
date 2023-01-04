@@ -153,3 +153,15 @@ The application has different modes:
     - made sure only one instance of Unity running
     - clicked on .unitypackage
     - restarted to get NuGet entry in menu
+
+
+## To do 2023-01-04
+- Document how OvConnector works
+-- what it is derived from (the old sample)
+-- how to install it (i.e. from a native directory)
+-- how to test it (need a clean OV capable computer for this?)
+- Make creation of JsonState files optional (add a switch - actually two switches for both modes)
+
+- See how it differs from newer connector sample and maybe port to that
+- See if we can install zmq from Python instructions on this https://docs.omniverse.nvidia.com/kit/docs/kit-manual/latest/api/pxr_index.html
+
