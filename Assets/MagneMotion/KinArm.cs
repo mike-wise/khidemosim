@@ -40,9 +40,37 @@ public class KinArm : MonoBehaviour
     Transform[] xform;
 
 
+    Transform BreathFirstFindLink(Transform parent, string seekName,int depth=0,int nchk=0)
+    {
+        // First breath
+        for (int i = 0; i < parent.childCount; i++)
+        {
+            var child = parent.GetChild(i);
+            nchk++;
+            if (child.name == seekName)
+            {
+                // Debug.Log($"Found {seekName} at depth {depth} nchk:{nchk}");
+                return child;
+            }
+        }
+        // Then deep
+        for (int i = 0; i < parent.childCount; i++)
+        {
+            var child = parent.GetChild(i);
+            var deepChild = BreathFirstFindLink(child, seekName,depth++,nchk);
+            if (deepChild != null)
+            {
+                return deepChild;
+            }
+        }
+        return null;
+    }
+
+
     Transform FindLink(string linkname)
     {
-        var go = GameObject.Find(linkname);
+        // var go = GameObject.Find(linkname);
+        var go = BreathFirstFindLink(transform,linkname);
         return go.transform;
     }
 
@@ -58,8 +86,10 @@ public class KinArm : MonoBehaviour
                     nlinks = 6;
                     linkName = new string[] { "link1piv", "link2piv", "link3piv", "link4piv", "link5piv", "link6piv" };
                     rotAx = new RotAx[] { RotAx.YP, RotAx.ZP, RotAx.ZP, RotAx.YP, RotAx.ZP, RotAx.YP };
-                    jointMin = new float[] { -360, -90, -90, -360, -90, -360 };
-                    jointMax = new float[] {  360,  90, 90,   360,  90,  360 };
+                    //jointMin = new float[] { -360, -90, -90, -360, -90, -360 };
+                    //jointMax = new float[] {  360,  90, 90,   360,  90,  360 };
+                    jointMin = new float[] { -360, -270, -310, -400, -250, -720 }; // from rs007n.urdf
+                    jointMax = new float[] { +360, +270, +310, +400, +250, +720 };
                     curAng = new float[] { 0, 0, 0, 0, 0, 0 };
                     break;
                 }
@@ -75,9 +105,13 @@ public class KinArm : MonoBehaviour
             xformlist.Add(xform);
         }
         xform = xformlist.ToArray();
+        AddPivots(initialActiveStatus: false);
         moving = false;
         newRanPoint = false;
         performAction = false;
+        oldState = ArmViewing.Pivots;
+        armViewing = ArmViewing.Meshes;
+        RealizeArmViewingState();
     }
 
     Quaternion Quang(RotAx rotax,float angle)
@@ -148,6 +182,89 @@ public class KinArm : MonoBehaviour
         }
     }
 
+    public void ActivateVisuals(bool activeStatus)
+    {
+        foreach (var xf in xform)
+        {
+            var visgo = BreathFirstFindLink(xf, "Visuals");
+            if (visgo == null)
+            {
+                Debug.LogWarning($"Can't find visuals for {xf.name}");
+            }
+            else
+            {
+                visgo.gameObject.SetActive(activeStatus);
+            }
+        }
+    }
+
+    public void ActivatePivots(bool activeStatus)
+    {
+        foreach (var xf in xform)
+        {
+            var visgo = BreathFirstFindLink(xf, "Pivots");
+            if (visgo == null)
+            {
+                Debug.LogWarning($"Can't find Pivots for {xf.name}");
+            }
+            else
+            {
+                visgo.gameObject.SetActive(activeStatus);
+            }
+        }
+    }
+
+    GameObject MakeCub(Transform parent,string name,Vector3 ofs,float sz,Color clr )
+    {
+        var cub = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        cub.name = name;
+        cub.transform.localScale = new Vector3(sz, sz, sz);
+        cub.transform.position = ofs;
+        cub.transform.SetParent(parent, worldPositionStays: false);
+        var material = cub.GetComponent<Renderer>().material;
+        material.color = clr;
+        return cub;
+    }
+    public void AddPivots(bool initialActiveStatus)
+    {
+        foreach (var xf in xform)
+        {
+            var sz = 1f;
+            var sz2 = sz/2;
+            var basecub = MakeCub(xf, "Pivots", Vector3.zero, sz, Color.white);
+            var xfbc = basecub.transform;
+            MakeCub(xfbc, "X", new Vector3(sz2, 0, 0), sz2, Color.red);
+            MakeCub(xfbc, "Y", new Vector3(0, sz2, 0), sz2, Color.green);
+            MakeCub(xfbc, "Z", new Vector3(0, 0, sz2), sz2, Color.blue);
+
+            var csz = 0.02f;
+            basecub.transform.localScale = new Vector3(csz,csz,csz);
+            basecub.SetActive(initialActiveStatus);
+            basecub.transform.SetAsFirstSibling();
+        }
+    }
+
+    ArmViewing oldState;
+
+    public void RealizeArmViewingState()
+    {
+        if (oldState!=armViewing)
+        {
+            switch (armViewing)
+            {
+                case ArmViewing.Meshes:
+                    ActivatePivots(false);
+                    ActivateVisuals(true);
+                    break;
+                case ArmViewing.Pivots:
+                    ActivatePivots(true);
+                    ActivateVisuals(false);
+                    break;
+            }
+            oldState = armViewing;
+        }
+    }
+
     private void Start()
     {
         Init(ArmTyp.RS007N);
@@ -170,6 +287,8 @@ public class KinArm : MonoBehaviour
         if (moving)
         {
             Moveit();
-        }       
+        }
+
+        RealizeArmViewingState();
     }
 }
