@@ -5,7 +5,7 @@ using UnityEngine;
 public class KinArm : MonoBehaviour
 {
     public enum RotAx { XP,XN,YP,YN,ZP,ZN }
-    public enum ArmTyp { RS007N, RS007N_mod, RS007L }
+    public enum ArmTyp { RS007N, RS007N_mod, RS007L, UR10 }
 
     public enum ArmViewing { Meshes, Pivots }
 
@@ -96,6 +96,7 @@ public class KinArm : MonoBehaviour
                     curAng = new float[] { 0, 0, 0, 0, 0, 0 };
                     break;
                 }
+            case ArmTyp.UR10:
             case ArmTyp.RS007L:
             case ArmTyp.RS007N:
                 {
@@ -297,6 +298,7 @@ public class KinArm : MonoBehaviour
         {
             Init(ArmTyp.RS007N);
         }
+
     }
 
     private void Update()

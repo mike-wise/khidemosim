@@ -5,7 +5,7 @@ using UnityEngine;
 public class KinUrdf : MonoBehaviour
 {
     public enum RotAx { XP, XN, YP, YN, ZP, ZN }
-    public enum ArmTyp { RS007N, RS007L }
+    public enum ArmTyp { RS007N, RS007L, UR10 }
 
     public enum JointType { Revolute, Fixed, Prisimatic, NotJoint }
 
@@ -186,14 +186,23 @@ public class KinUrdf : MonoBehaviour
                     //jointMin = new float[] { -360, -270, -310, -400, -250, -720 }; // from rs007n.urdf
                     //jointMax = new float[] { +360, +270, +310, +400, +250, +720 };
                     curAng = new float[] { 0, 0, 0, 0, 0, 0 };
-                    //var vz = Vector3.zero;
-                    //var vzp = new Vector3(0, 0, +1);
-                    //var vzn = new Vector3(0, 0, -1);
-                    //var vxp = new Vector3(+1, 0, 0);
-                    //var vxn = new Vector3(-1, 0, 0);
-                    //var vyp = new Vector3(0, +1, 0);
-                    //var vyn = new Vector3(0, -1, 0);
-                    //rotAxis = new Vector3[] { vyp, vyp, vyp, vzp, vxp, vyp };
+                    baseAxis = new RotAx[] { RotAx.XP, RotAx.XP, RotAx.XP, RotAx.XP, RotAx.XP, RotAx.XP };
+                    baseAng = new float[] { 0, 270, 0, 90, 270, 270 };
+                    var vr = JointType.Revolute;
+                    jointType = new JointType[] { vr, vr, vr, vr, vr, vr };
+                    InactivateUrdf();
+                    break;
+                }
+            case ArmTyp.UR10:
+                {
+                    nlinks = 6;
+                    linkName = new string[] { "shoulder_link", "upper_arm_link", "forearm_link", "wrist_1_link", "wrist_2_link", "wrist_3_link" };
+                    rotAx = new RotAx[] { RotAx.YP, RotAx.YP, RotAx.YP, RotAx.YP, RotAx.YP, RotAx.YP };
+                    jointMin = new float[] { -360, -90, -90, -360, -90, -360 };
+                    jointMax = new float[] { 360, 90, 90, 360, 90, 360 };
+                    //jointMin = new float[] { -360, -270, -310, -400, -250, -720 }; // from rs007n.urdf
+                    //jointMax = new float[] { +360, +270, +310, +400, +250, +720 };
+                    curAng = new float[] { 0, 0, 0, 0, 0, 0 };
                     baseAxis = new RotAx[] { RotAx.XP, RotAx.XP, RotAx.XP, RotAx.XP, RotAx.XP, RotAx.XP };
                     baseAng = new float[] { 0, 270, 0, 90, 270, 270 };
                     var vr = JointType.Revolute;
@@ -412,6 +421,10 @@ public class KinUrdf : MonoBehaviour
         else if (name.StartsWith("khi_rs007l"))
         {
             Init(ArmTyp.RS007L);
+        }
+        else if (name.StartsWith("ur10"))
+        {
+            Init(ArmTyp.UR10);
         }
     }
 
