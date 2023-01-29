@@ -4,8 +4,10 @@ using UnityEngine;
 
 public class KinUrdf : MonoBehaviour
 {
-    public enum RotAx { XP,XN,YP,YN,ZP,ZN }
-    public enum ArmTyp { RS007N, RS007N_mod, RS007L }
+    public enum RotAx { XP, XN, YP, YN, ZP, ZN }
+    public enum ArmTyp { RS007N, RS007L }
+
+    public enum JointType { Revolute, Fixed, Prisimatic, NotJoint }
 
     public enum ArmViewing { Meshes, Pivots }
 
@@ -16,7 +18,10 @@ public class KinUrdf : MonoBehaviour
     [Header("TestActions")]
     public bool performAction;
     public int actionIndex;
+    public RotAx actionAxis;
     public float actionAngle;
+    public bool performIncAction;
+    public bool performDecAction;
 
     [Header("Random Actions")]
     public bool newRanPoint;
@@ -33,14 +38,18 @@ public class KinUrdf : MonoBehaviour
     public int nlinks;
     public string[] linkName;
     RotAx[] rotAx;
+    JointType[] jointType;
+    //Vector3[] rotAxis;
     float[] jointMin;
     float[] jointMax;
     float[] curAng;
+    float[] baseAng;
+    RotAx[] baseAxis;
 
     Transform[] xform;
 
 
-    Transform BreathFirstFindLink(Transform parent, string seekName,int depth=0,int nchk=0)
+    Transform BreathFirstFindLink(Transform parent, string seekName, int depth = 0, int nchk = 0)
     {
         // First breath
         for (int i = 0; i < parent.childCount; i++)
@@ -57,7 +66,7 @@ public class KinUrdf : MonoBehaviour
         for (int i = 0; i < parent.childCount; i++)
         {
             var child = parent.GetChild(i);
-            var deepChild = BreathFirstFindLink(child, seekName,depth++,nchk);
+            var deepChild = BreathFirstFindLink(child, seekName, depth++, nchk);
             if (deepChild != null)
             {
                 return deepChild;
@@ -70,8 +79,8 @@ public class KinUrdf : MonoBehaviour
     Transform FindLink(string linkname)
     {
         // var go = GameObject.Find(linkname);
-        var go = BreathFirstFindLink(transform,linkname);
-        if (go==null)
+        var go = BreathFirstFindLink(transform, linkname);
+        if (go == null)
         {
             return null;
         }
@@ -86,18 +95,20 @@ public class KinUrdf : MonoBehaviour
 
     void DestoryUrdfComponents(GameObject go)
     {
-        if (go == null) return;
-        DestroyComponent<Unity.Robotics.UrdfImporter.UrdfInertial>(go);
-        DestroyComponent<Unity.Robotics.UrdfImporter.UrdfJointRevolute>(go);
-        DestroyComponent<Unity.Robotics.UrdfImporter.UrdfJointFixed>(go);
-        DestroyComponent<Unity.Robotics.UrdfImporter.UrdfJointPrismatic>(go);
-        DestroyComponent<ArticulationBody>(go);
-        DestroyComponent<Unity.Robotics.UrdfImporter.UrdfLink>(go);
-        DestroyComponent<Unity.Robotics.UrdfImporter.Control.Controller>(go);
-        DestroyComponent<Unity.Robotics.UrdfImporter.UrdfRobot>(go);
+        if (go != null)
+        {
+            DestroyComponent<Unity.Robotics.UrdfImporter.UrdfInertial>(go);
+            DestroyComponent<Unity.Robotics.UrdfImporter.UrdfJointRevolute>(go);
+            DestroyComponent<Unity.Robotics.UrdfImporter.UrdfJointFixed>(go);
+            DestroyComponent<Unity.Robotics.UrdfImporter.UrdfJointPrismatic>(go);
+            DestroyComponent<ArticulationBody>(go);
+            DestroyComponent<Unity.Robotics.UrdfImporter.UrdfLink>(go);
+            DestroyComponent<Unity.Robotics.UrdfImporter.Control.Controller>(go);
+            DestroyComponent<Unity.Robotics.UrdfImporter.UrdfRobot>(go);
+        }
     }
 
-    void InactivateUrdfName(string linkname)
+    void DestroyUrdfName(string linkname)
     {
         var t = FindLink(linkname);
         if (t == null)
@@ -112,14 +123,50 @@ public class KinUrdf : MonoBehaviour
 
     void InactivateUrdf()
     {
-        foreach(var ln in linkName)
+        foreach (var ln in linkName)
         {
-            InactivateUrdfName(ln);
+            DestroyUrdfName(ln);
         }
-        InactivateUrdfName("base_link");
-        InactivateUrdfName("world");
+        DestroyUrdfName("base_link");
+        DestroyUrdfName("world");
         DestoryUrdfComponents(this.gameObject);
     }
+//    public void FishOutUrdfValuesFromLink(int jidx,string linkname)
+//    {
+//        var t = FindLink(linkname);
+//        if (t == null)
+//        {
+//            Debug.LogWarning($"Cound not find link {linkname} in Robot {name}");
+//        }
+//        else
+//        {
+//            var go = t.gameObject;
+//            var urdflink = go.GetComponent<Unity.Robotics.UrdfImporter.UrdfLink>();
+//            if (urdflink == null)
+//            {
+//                Debug.LogWarning($"Link {linkname} does not have a urdf link");
+//            }
+//            else
+//            {
+//                jointType[jidx] = JointType.Revolute;
+//                var jrev = go.GetComponent<Unity.Robotics.UrdfImporter.UrdfJointRevolute>();
+//                var art = go.GetComponent<ArticulationBody>();
+////                Quaternion rot = Quaternion.AngleAxis(-deltaState * Mathf.Rad2Deg, unityJoint.axis);
+////                transform.rotation = transform.rotation * rot;
+//            }
+//            DestoryUrdfComponents(t.gameObject);
+//        }
+
+//    }
+//    public void FishOutUrdfValues()
+//    {
+//        int idx = 0;
+//        foreach( var ln in linkName )
+//        {
+//            FishOutUrdfValuesFromLink(idx,ln);
+//            idx++;
+//        }
+//    }
 
     public void Init( ArmTyp armTyp )
     {
@@ -127,29 +174,30 @@ public class KinUrdf : MonoBehaviour
         switch(armTyp)
         {
             default:
-            case ArmTyp.RS007N_mod:
-                {
-                    nlinks = 6;
-                    linkName = new string[] { "link1piv", "link2piv", "link3piv", "link4piv", "link5piv", "link6piv" };
-                    rotAx = new RotAx[] { RotAx.YP, RotAx.ZP, RotAx.ZP, RotAx.YP, RotAx.ZP, RotAx.YP };
-                    //jointMin = new float[] { -360, -90, -90, -360, -90, -360 };
-                    //jointMax = new float[] {  360,  90, 90,   360,  90,  360 };
-                    jointMin = new float[] { -360, -270, -310, -400, -250, -720 }; // from rs007n.urdf
-                    jointMax = new float[] { +360, +270, +310, +400, +250, +720 };
-                    curAng = new float[] { 0, 0, 0, 0, 0, 0 };
-                    break;
-                }
+
             case ArmTyp.RS007L:
             case ArmTyp.RS007N:
                 {
                     nlinks = 6;
                     linkName = new string[] { "link1", "link2", "link3", "link4", "link5", "link6" };
-                    rotAx = new RotAx[] { RotAx.YP, RotAx.YP, RotAx.ZP, RotAx.YP, RotAx.ZP, RotAx.YP };
-                    //jointMin = new float[] { -360, -90, -90, -360, -90, -360 };
-                    //jointMax = new float[] {  360,  90, 90,   360,  90,  360 };
-                    jointMin = new float[] { -360, -270, -310, -400, -250, -720 }; // from rs007n.urdf
-                    jointMax = new float[] { +360, +270, +310, +400, +250, +720 };
+                    rotAx = new RotAx[] { RotAx.YP, RotAx.YP, RotAx.YP, RotAx.YP, RotAx.YP, RotAx.YP };
+                    jointMin = new float[] { -360, -90, -90, -360, -90, -360 };
+                    jointMax = new float[] {  360,  90, 90,   360,  90,  360 };
+                    //jointMin = new float[] { -360, -270, -310, -400, -250, -720 }; // from rs007n.urdf
+                    //jointMax = new float[] { +360, +270, +310, +400, +250, +720 };
                     curAng = new float[] { 0, 0, 0, 0, 0, 0 };
+                    //var vz = Vector3.zero;
+                    //var vzp = new Vector3(0, 0, +1);
+                    //var vzn = new Vector3(0, 0, -1);
+                    //var vxp = new Vector3(+1, 0, 0);
+                    //var vxn = new Vector3(-1, 0, 0);
+                    //var vyp = new Vector3(0, +1, 0);
+                    //var vyn = new Vector3(0, -1, 0);
+                    //rotAxis = new Vector3[] { vyp, vyp, vyp, vzp, vxp, vyp };
+                    baseAxis = new RotAx[] { RotAx.XP, RotAx.XP, RotAx.XP, RotAx.XP, RotAx.XP, RotAx.XP };
+                    baseAng = new float[] { 0, 270, 0, 90, 270, 270 };
+                    var vr = JointType.Revolute;
+                    jointType = new JointType[] { vr, vr, vr, vr, vr, vr };
                     InactivateUrdf();
                     break;
                 }
@@ -197,9 +245,33 @@ public class KinUrdf : MonoBehaviour
         }
         var xf = xform[jidx];
         var ang = Mathf.Min(jointMax[jidx], Mathf.Max(jointMin[jidx], angle));
-        var qrot = Quang(rotAx[jidx], ang);
+        var brot = Quang(baseAxis[jidx], baseAng[jidx]);
+        var qrot = Quang(rotAx[jidx],ang);
+        //var qrot = Quaternion.AngleAxis(ang, rotAxis[jidx]);
         curAng[jidx] = ang;
-        xf.localRotation = qrot;
+        xf.localRotation = brot*qrot;
+        Debug.Log($"Set LocalRotation:{qrot}");
+    }
+
+    public void IncAngle(int jidx, float angle)
+    {
+        if (jidx < 0 || nlinks <= jidx)
+        {
+            Debug.LogWarning($"joint index out of range: {jidx} nlinks:{nlinks}");
+            return;
+        }
+        var xf = xform[jidx];
+        var ang = Mathf.Min(jointMax[jidx], Mathf.Max(jointMin[jidx], angle));
+        var qrot = Quang(actionAxis, ang);
+        //var qrot = Quaternion.AngleAxis(ang, rotAxis[jidx]);
+        curAng[jidx] += ang;
+        xf.localRotation *= qrot;
+        Debug.Log($"Inc LocalRotation:{qrot}");
+    }
+
+    public void DecAngle(int jidx, float angle)
+    {
+        IncAngle(jidx, -angle);
     }
 
     System.Random ranman = new System.Random(1234);
@@ -333,13 +405,13 @@ public class KinUrdf : MonoBehaviour
 
     private void Start()
     {
-        if (name == "khi_rs007n_vac_tex_simp")
-        {
-            Init(ArmTyp.RS007N_mod);
-        }
-        else if (name.StartsWith("khi_rs007n"))
+        if (name.StartsWith("khi_rs007n"))
         {
             Init(ArmTyp.RS007N);
+        }
+        else if (name.StartsWith("khi_rs007l"))
+        {
+            Init(ArmTyp.RS007L);
         }
     }
 
@@ -349,6 +421,18 @@ public class KinUrdf : MonoBehaviour
         {
             SetAngle(actionIndex, actionAngle);
             performAction = false;
+        }
+
+        if (performIncAction)
+        {
+            IncAngle(actionIndex, actionAngle);
+            performIncAction = false;
+        }
+
+        if (performDecAction)
+        {
+            DecAngle(actionIndex, actionAngle);
+            performDecAction = false;
         }
 
         if (newRanPoint)
