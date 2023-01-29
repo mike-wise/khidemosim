@@ -5,7 +5,7 @@ using UnityEngine;
 public class KinArm : MonoBehaviour
 {
     public enum RotAx { XP,XN,YP,YN,ZP,ZN }
-    public enum ArmTyp { RS007N, RS007L }
+    public enum ArmTyp { RS007N, RS007N_mod, RS007L }
 
     public enum ArmViewing { Meshes, Pivots }
 
@@ -71,7 +71,11 @@ public class KinArm : MonoBehaviour
     {
         // var go = GameObject.Find(linkname);
         var go = BreathFirstFindLink(transform,linkname);
-        return go.transform;
+        if (go==null)
+        {
+            return null;
+        }
+        return go?.transform;
     }
 
     public void Init( ArmTyp armTyp )
@@ -80,12 +84,24 @@ public class KinArm : MonoBehaviour
         switch(armTyp)
         {
             default:
-            case ArmTyp.RS007L:
-            case ArmTyp.RS007N:
+            case ArmTyp.RS007N_mod:
                 {
                     nlinks = 6;
                     linkName = new string[] { "link1piv", "link2piv", "link3piv", "link4piv", "link5piv", "link6piv" };
                     rotAx = new RotAx[] { RotAx.YP, RotAx.ZP, RotAx.ZP, RotAx.YP, RotAx.ZP, RotAx.YP };
+                    //jointMin = new float[] { -360, -90, -90, -360, -90, -360 };
+                    //jointMax = new float[] {  360,  90, 90,   360,  90,  360 };
+                    jointMin = new float[] { -360, -270, -310, -400, -250, -720 }; // from rs007n.urdf
+                    jointMax = new float[] { +360, +270, +310, +400, +250, +720 };
+                    curAng = new float[] { 0, 0, 0, 0, 0, 0 };
+                    break;
+                }
+            case ArmTyp.RS007L:
+            case ArmTyp.RS007N:
+                {
+                    nlinks = 6;
+                    linkName = new string[] { "link1", "link2", "link3", "link4", "link5", "link6" };
+                    rotAx = new RotAx[] { RotAx.YP, RotAx.YP, RotAx.ZP, RotAx.YP, RotAx.ZP, RotAx.YP };
                     //jointMin = new float[] { -360, -90, -90, -360, -90, -360 };
                     //jointMax = new float[] {  360,  90, 90,   360,  90,  360 };
                     jointMin = new float[] { -360, -270, -310, -400, -250, -720 }; // from rs007n.urdf
@@ -186,14 +202,17 @@ public class KinArm : MonoBehaviour
     {
         foreach (var xf in xform)
         {
-            var visgo = BreathFirstFindLink(xf, "Visuals");
-            if (visgo == null)
+            if (xf != null)
             {
-                Debug.LogWarning($"Can't find visuals for {xf.name}");
-            }
-            else
-            {
-                visgo.gameObject.SetActive(activeStatus);
+                var visgo = BreathFirstFindLink(xf, "Visuals");
+                if (visgo == null)
+                {
+                    Debug.LogWarning($"Can't find visuals for {xf.name}");
+                }
+                else
+                {
+                    visgo.gameObject.SetActive(activeStatus);
+                }
             }
         }
     }
@@ -202,14 +221,17 @@ public class KinArm : MonoBehaviour
     {
         foreach (var xf in xform)
         {
-            var visgo = BreathFirstFindLink(xf, "Pivots");
-            if (visgo == null)
+            if (xf != null)
             {
-                Debug.LogWarning($"Can't find Pivots for {xf.name}");
-            }
-            else
-            {
-                visgo.gameObject.SetActive(activeStatus);
+                var visgo = BreathFirstFindLink(xf, "Pivots");
+                if (visgo == null)
+                {
+                    Debug.LogWarning($"Can't find Pivots for {xf.name}");
+                }
+                else
+                {
+                    visgo.gameObject.SetActive(activeStatus);
+                }
             }
         }
     }
@@ -267,7 +289,14 @@ public class KinArm : MonoBehaviour
 
     private void Start()
     {
-        Init(ArmTyp.RS007N);
+        if (name == "khi_rs007n_vac_tex_simp")
+        {
+            Init(ArmTyp.RS007N_mod);
+        }
+        else if (name.StartsWith("khi_rs007n"))
+        {
+            Init(ArmTyp.RS007N);
+        }
     }
 
     private void Update()
