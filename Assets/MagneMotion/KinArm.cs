@@ -89,24 +89,23 @@ public class KinArm : MonoBehaviour
                     nlinks = 6;
                     linkName = new string[] { "link1piv", "link2piv", "link3piv", "link4piv", "link5piv", "link6piv" };
                     rotAx = new RotAx[] { RotAx.YP, RotAx.ZP, RotAx.ZP, RotAx.YP, RotAx.ZP, RotAx.YP };
-                    //jointMin = new float[] { -360, -90, -90, -360, -90, -360 };
-                    //jointMax = new float[] {  360,  90, 90,   360,  90,  360 };
-                    jointMin = new float[] { -360, -270, -310, -400, -250, -720 }; // from rs007n.urdf
-                    jointMax = new float[] { +360, +270, +310, +400, +250, +720 };
+                    jointMin = new float[] { -360, -90, -90, -360, -90, -360 };
+                    jointMax = new float[] {  360,  90, 90,   360,  90,  360 };
+                    //jointMin = new float[] { -360, -270, -310, -400, -250, -720 }; // from rs007n.urdf
+                    //jointMax = new float[] { +360, +270, +310, +400, +250, +720 };
                     curAng = new float[] { 0, 0, 0, 0, 0, 0 };
                     break;
                 }
-            case ArmTyp.UR10:
             case ArmTyp.RS007L:
             case ArmTyp.RS007N:
                 {
                     nlinks = 6;
                     linkName = new string[] { "link1", "link2", "link3", "link4", "link5", "link6" };
                     rotAx = new RotAx[] { RotAx.YP, RotAx.YP, RotAx.ZP, RotAx.YP, RotAx.ZP, RotAx.YP };
-                    //jointMin = new float[] { -360, -90, -90, -360, -90, -360 };
-                    //jointMax = new float[] {  360,  90, 90,   360,  90,  360 };
-                    jointMin = new float[] { -360, -270, -310, -400, -250, -720 }; // from rs007n.urdf
-                    jointMax = new float[] { +360, +270, +310, +400, +250, +720 };
+                    jointMin = new float[] { -360, -90, -90, -360, -90, -360 };
+                    jointMax = new float[] {  360,  90, 90,   360,  90,  360 };
+                    //jointMin = new float[] { -360, -270, -310, -400, -250, -720 }; // from rs007n.urdf
+                    //jointMax = new float[] { +360, +270, +310, +400, +250, +720 };
                     curAng = new float[] { 0, 0, 0, 0, 0, 0 };
                     break;
                 }
