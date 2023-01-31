@@ -162,6 +162,7 @@ public class KinArm : MonoBehaviour
 
     public void SetupRandomPointToMoveTowards()
     {
+        Debug.Log($"{name} generated new random point to move towards");
         targAngles = new float[nlinks];
         startAngles = new float[nlinks];
         for(int i = 0; i<nlinks; i++)

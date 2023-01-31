@@ -10,6 +10,9 @@ public class KinUrdf : MonoBehaviour
 
     public enum ArmViewing { Meshes, Skel }
 
+    [Header("Behavior")]
+    public bool clipJoints = true;
+
 
     [Header("Viewing")]
     public ArmViewing armViewing;
@@ -35,6 +38,8 @@ public class KinUrdf : MonoBehaviour
     [Header("Internal")]
     public ArmTyp armTyp;
     public int nlinks;
+    public string eeLinkName;
+    public string worldLinkName;
     public string baseLinkName;
     public string[] linkName;
     RotAx[] rotAx;
@@ -45,6 +50,8 @@ public class KinUrdf : MonoBehaviour
     float[] curAng;
     float[] baseAng;
     RotAx[] baseAxis;
+
+    Dictionary<string, int> jidxdict;
 
     List<Transform> xform;
 
@@ -128,8 +135,9 @@ public class KinUrdf : MonoBehaviour
         {
             DestroyUrdfComponentsGoName(ln);
         }
-        DestroyUrdfComponentsGoName("base_link");
-        DestroyUrdfComponentsGoName("world");
+        DestroyUrdfComponentsGoName(baseLinkName);
+        DestroyUrdfComponentsGoName(worldLinkName);
+        DestroyUrdfComponentsGoName(eeLinkName);
         DestoryUrdfComponentsGo(this.gameObject);
     }
 
@@ -137,6 +145,8 @@ public class KinUrdf : MonoBehaviour
     {
         this.armTyp = armTyp;
         curAng = new float[] { 0, 0, 0, 0, 0, 0 };
+        startAngles= new float[] { 0, 0, 0, 0, 0, 0 };
+        targAngles = new float[] { 0, 0, 0, 0, 0, 0 };
         switch (armTyp)
         {
             default:
@@ -146,6 +156,8 @@ public class KinUrdf : MonoBehaviour
                 {
                     nlinks = 6;
                     baseLinkName = "base_link";
+                    worldLinkName = "world";
+                    eeLinkName = "tool_link";
                     linkName = new string[] { "link1", "link2", "link3", "link4", "link5", "link6" };
                     rotAx = new RotAx[] { RotAx.YP, RotAx.YP, RotAx.YP, RotAx.YP, RotAx.YP, RotAx.YP };
                     jointMin = new float[] { -360, -90, -90, -360, -90, -360 };
@@ -162,10 +174,12 @@ public class KinUrdf : MonoBehaviour
                 {
                     nlinks = 6;
                     baseLinkName = "base_link";
+                    worldLinkName = "world";
+                    eeLinkName = "ee_link";
                     linkName = new string[] { "shoulder_link", "upper_arm_link", "forearm_link", "wrist_1_link", "wrist_2_link", "wrist_3_link" };
                     rotAx = new RotAx[] { RotAx.YP, RotAx.XP, RotAx.XP, RotAx.XP, RotAx.YP, RotAx.XP };
                     jointMin = new float[] { -360, -90, -90, -90,  -90, -360 };
-                    jointMax = new float[] { +360,  90, +90, +90,  +90, +360 };
+                    jointMax = new float[] { +360, +90, +90, +90,  +90, +360 };
                     jointOrg = new float[] {    0,  -90,  0,  -90,   0, 0 };
                     jointSign = new float[] { 1, 1, 1, 1, 1, 1 };
                     curAng = new float[] { 0, 0, 0, 0, 0, 0 };
@@ -173,6 +187,12 @@ public class KinUrdf : MonoBehaviour
                     baseAng = new float[] { 0, 0, 0, 0, 0, 0 };
                     break;
                 }
+        }
+        jidxdict = new Dictionary<string, int>();
+        int idx = 0;
+        foreach(var ln in linkName)
+        {
+            jidxdict[ln] = idx++;
         }
         InactivateUrdf();
         var xformlist = new List<Transform>();
@@ -205,6 +225,21 @@ public class KinUrdf : MonoBehaviour
         }
     }
 
+    Vector3 Vecax(RotAx rotax)
+    {
+        switch (rotax)
+        {
+            default:
+            case RotAx.None: 
+            case RotAx.XP: return new Vector3(+1, 0, 0);
+            case RotAx.XN: return new Vector3(-1, 0, 0);
+            case RotAx.YP: return new Vector3(0, +1, 0);
+            case RotAx.YN: return new Vector3(0, -1, 0);
+            case RotAx.ZP: return new Vector3(0, 0, +1);
+            case RotAx.ZN: return new Vector3(0, 0, -1);
+        }
+    }
+
     Quaternion Quang(RotAx rotax,float angle)
     {
         switch (rotax)
@@ -213,11 +248,13 @@ public class KinUrdf : MonoBehaviour
             case RotAx.None: return Quaternion.identity;
             case RotAx.XP: return Quaternion.Euler(+angle, 0, 0);
             case RotAx.XN: return Quaternion.Euler(-angle, 0, 0);
-            case RotAx.YP: return Quaternion.Euler(0,+angle, 0);
-            case RotAx.YN: return Quaternion.Euler(0,-angle, 0);
-            case RotAx.ZP: return Quaternion.Euler(0,0,+angle);
-            case RotAx.ZN: return Quaternion.Euler(0,0,-angle);
+            case RotAx.YP: return Quaternion.Euler(0, +angle, 0);
+            case RotAx.YN: return Quaternion.Euler(0, -angle, 0);
+            case RotAx.ZP: return Quaternion.Euler(0, 0, +angle);
+            case RotAx.ZN: return Quaternion.Euler(0, 0, -angle);
         }
+        //var rv = Quaternion.AngleAxis(angle, Vecax(rotax));
+        //return rv;
     }
 
     float ClipAng(float ang,float amin,float amax,int jidx)
@@ -225,15 +262,20 @@ public class KinUrdf : MonoBehaviour
         var rang = ang;
         if (ang < amin)
         {
-            Debug.Log($"Clipped {linkName[jidx]} from {ang} to {amin}");
+            Debug.Log($"{name} clipped {linkName[jidx]} from {ang} to {amin}");
             rang = amin;
         }
         if (ang > amax)
         {
-            Debug.Log($"Clipped {linkName[jidx]} from {ang} to {amax}");
+            Debug.Log($"{name} clipped {linkName[jidx]} from {ang} to {amax}");
             rang = amax;
         }
         return rang;
+    }
+    public void SetAngle(string linkname, float oangle, bool quiet = false)
+    {
+        var jidx = jidxdict[linkname];
+        SetAngle(jidx, oangle, quiet);
     }
 
     public void SetAngle(int jidx, float oangle,bool quiet=false)
@@ -246,7 +288,7 @@ public class KinUrdf : MonoBehaviour
         var angle = jointSign[jidx] * (oangle - jointOrg[jidx]);
         var xf = xform[jidx];
         //var ang = Mathf.Min(jointMax[jidx], Mathf.Max(jointMin[jidx], angle));
-        var ang = ClipAng(angle, jointMin[jidx], jointMax[jidx], jidx);
+        var ang = clipJoints ? ClipAng(angle, jointMin[jidx], jointMax[jidx], jidx) : angle;
         var brot = Quang(baseAxis[jidx], baseAng[jidx]);
         var qrot = Quang(rotAx[jidx],ang);
         curAng[jidx] = ang;
@@ -266,8 +308,7 @@ public class KinUrdf : MonoBehaviour
         }
         var angle = jointSign[jidx] * oangle;
         var xf = xform[jidx];
-        //var ang = Mathf.Min(jointMax[jidx], Mathf.Max(jointMin[jidx], angle));
-        var ang = ClipAng(angle, jointMin[jidx], jointMax[jidx],jidx);
+        var ang = clipJoints ?  ClipAng(angle, jointMin[jidx], jointMax[jidx], jidx) : angle;
         var qrot = Quang(actionAxis, ang);
         curAng[jidx] += ang;
         xf.localRotation *= qrot;
@@ -281,6 +322,14 @@ public class KinUrdf : MonoBehaviour
 
     public void SetupRandomPointToMoveTowards()
     {
+        Debug.Log($"{name} generated new random point to move towards");
+        for (var idx0 = 0; idx0 < nlinks; idx0++)
+        {
+            var ca = curAng[idx0];
+            var sa = startAngles[idx0];
+            var ta = targAngles[idx0];
+            Debug.Log($"     before idx:{idx0}   ca:{ca:f1}   sa:{sa:f1}   ta:{ta:f1}");
+        }
         targAngles = new float[nlinks];
         startAngles = new float[nlinks];
         for(int i = 0; i<nlinks; i++)
@@ -290,6 +339,13 @@ public class KinUrdf : MonoBehaviour
             var jmin = jointMin[i];
             var jmax = jointMax[i];
             targAngles[i] = ((jmax-jmin)*ranman.Next(0, 1000) / 1000f) + jmin;
+        }
+        for (var idx1=0; idx1<nlinks; idx1++)
+        {
+            var ca = curAng[idx1];
+            var sa = startAngles[idx1];
+            var ta = targAngles[idx1];
+            Debug.Log($"     after idx:{idx1}   ca:{ca:f1}   sa:{sa:f1}   ta:{ta:f1}");
         }
         startTime = Time.time;
         moveTime = 5f;
@@ -306,9 +362,12 @@ public class KinUrdf : MonoBehaviour
             moving = false;
             lamb = 1;
         }
-        for (int i = 0; i < nlinks; i++)
+        for (int jix = 0; jix < nlinks; jix++)
         {
-            var newang = lamb * (targAngles[i] - startAngles[i]) + startAngles[i];
+            var js = jointSign[jix];
+            var newang = lamb * (js*targAngles[jix] - startAngles[jix]) + startAngles[jix];
+            //var ln = linkName[jix];
+            //SetAngle(ln, newang, quiet: true);
             SetAngle(i, newang,quiet:true);
         }
         if (!moving && continuousMove)
