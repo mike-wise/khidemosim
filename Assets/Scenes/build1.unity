@@ -716,6 +716,7 @@ MonoBehaviour:
   linknames: []
   xforms: []
   locToWorldMat: []
+  robotPoses: {fileID: 0}
   definingEffectorPoses: 0
 --- !u!1 &963194225
 GameObject:
@@ -1751,7 +1752,7 @@ MonoBehaviour:
   mmtctrlgo: {fileID: 0}
   mmBoxSimMode: 2
   mmRobotMoveMode: 0
-  mmMode: 5
+  mmMode: 3
   mmRigidMode: 0
   mmSledMoveMethod: 1
   stopSimulation: 0

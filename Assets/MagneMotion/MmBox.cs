@@ -78,7 +78,7 @@ namespace KhiDemo
             {
                 var boxid = $"r{i}";
                 var box = MmBox.ConstructBox(magmo, BoxForm.PrefabWithMarkerCube, "RealBox", boxid);
-                Debug.Log($"Constructed box {box.name} rot:{box.transform.rotation.eulerAngles:f1}");
+                //Debug.Log($"Constructed box {box.name} rot:{box.transform.rotation.eulerAngles:f1}");
                 box.poolStatus = PoolStatus.realPool;
                 box.transform.SetParent(realPoolRoot.transform, worldPositionStays: false);
                 SetPoolSidePosition(box);

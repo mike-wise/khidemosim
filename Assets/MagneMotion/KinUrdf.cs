@@ -5,19 +5,22 @@ using UnityEngine;
 public class KinUrdf : MonoBehaviour
 {
     public enum RotAx { None, XP, XN, YP, YN, ZP, ZN }
-    public enum ArmTyp { RS007N, RS007L, UR10, URFAM }
-
+    public enum ArmTyp { None, KHI_family, UR_family }
 
     public enum ArmViewing { Meshes, Skel }
+
+    #region Visible Members
+
+    [Header("Arm Type")]
+    public ArmTyp armTyp;
 
     [Header("Behavior")]
     public bool clipJoints = true;
 
-
     [Header("Viewing")]
     public ArmViewing armViewing;
 
-    [Header("TestActions")]
+    [Header("Single Joint Test Actions")]
     public bool performAction;
     public int actionIndex;
     public RotAx actionAxis;
@@ -25,38 +28,47 @@ public class KinUrdf : MonoBehaviour
     public bool performIncAction;
     public bool performDecAction;
 
-    [Header("Random Actions")]
-    public bool newRanPoint;
+    [Header("Test Robot Movment")]
+    public bool newRanPointForMovement;
     public bool continuousMove;
+    public KinArmCtrl.MoveStyles moveStyle;
+    public int currentMovePose;
+    public List<RobotPose> movePoses;
+    public RobotPoses robpose;
 
+    [Header("Internal")]
+    public int nlinks;
+    public string eeLinkName;
+    public string worldLinkName;
+    public string baseLinkName;
+    public string[] linkName;
+    #endregion
+
+    #region Private Members
     bool moving;
     float[] startAngles;
     float[] targAngles;
     float startTime;
     float moveTime;
 
-    [Header("Internal")]
-    public ArmTyp armTyp;
-    public int nlinks;
-    public string eeLinkName;
-    public string worldLinkName;
-    public string baseLinkName;
-    public string[] linkName;
+
     RotAx[] rotAx;
     float[] jointMin;
     float[] jointMax;
     float[] jointOrg;
     float[] jointSign;
-    float[] curAng;
+    public float[] curAng;
     float[] baseAng;
     RotAx[] baseAxis;
-
-    Dictionary<string, int> jidxdict;
-
     List<Transform> xform;
 
+    // Dictionary for mapping strings to integers for easy access to joints
+    Dictionary<string, int> jidxdict;
+    #endregion
 
-    Transform BreathFirstFindLink(Transform parent, string seekName, int depth = 0, int nchk = 0)
+    #region Utilities
+
+    static Transform BreathFirstFindLink(Transform parent, string seekName, int depth = 0, int nchk = 0)
     {
         // First breath
         for (int i = 0; i < parent.childCount; i++)
@@ -83,10 +95,10 @@ public class KinUrdf : MonoBehaviour
     }
 
 
-    Transform FindLink(string linkname)
+    static Transform FindLink(Transform parent, string linkname)
     {
         // var go = GameObject.Find(linkname);
-        var go = BreathFirstFindLink(transform, linkname);
+        var go = BreathFirstFindLink(parent, linkname);
         if (go == null)
         {
             return null;
@@ -94,6 +106,63 @@ public class KinUrdf : MonoBehaviour
         return go.transform;
     }
 
+    static Vector3 Vecax(RotAx rotax)
+    {
+        switch (rotax)
+        {
+            default:
+            case RotAx.None:
+            case RotAx.XP: return new Vector3(+1, 0, 0);
+            case RotAx.XN: return new Vector3(-1, 0, 0);
+            case RotAx.YP: return new Vector3(0, +1, 0);
+            case RotAx.YN: return new Vector3(0, -1, 0);
+            case RotAx.ZP: return new Vector3(0, 0, +1);
+            case RotAx.ZN: return new Vector3(0, 0, -1);
+        }
+    }
+
+    static Quaternion Quang(RotAx rotax, float angle)
+    {
+        switch (rotax)
+        {
+            default:
+            case RotAx.None: return Quaternion.identity;
+            case RotAx.XP: return Quaternion.Euler(+angle, 0, 0);
+            case RotAx.XN: return Quaternion.Euler(-angle, 0, 0);
+            case RotAx.YP: return Quaternion.Euler(0, +angle, 0);
+            case RotAx.YN: return Quaternion.Euler(0, -angle, 0);
+            case RotAx.ZP: return Quaternion.Euler(0, 0, +angle);
+            case RotAx.ZN: return Quaternion.Euler(0, 0, -angle);
+        }
+        //var rv = Quaternion.AngleAxis(angle, Vecax(rotax));
+        //return rv;
+    }
+
+    static float ClipAng(float ang, float amin, float amax, string name, string linkname, bool quiet = true)
+    {
+        var rang = ang;
+        if (ang < amin)
+        {
+            if (!quiet)
+            {
+                Debug.Log($"{name} min clipped {linkname} from {ang} to {amin}");
+            }
+            rang = amin;
+        }
+        if (ang > amax)
+        {
+            if (!quiet)
+            {
+                Debug.Log($"{name} max clipped {linkname} from {ang} to {amax}");
+            }
+            rang = amax;
+        }
+        return rang;
+    }
+
+    #endregion
+
+    #region Purge Urdf
     void DestroyComponent<T>(GameObject go)
     {
         var comp = go.GetComponent<T>() as Object;
@@ -113,12 +182,39 @@ public class KinUrdf : MonoBehaviour
             DestroyComponent<Unity.Robotics.UrdfImporter.UrdfLink>(go);
             DestroyComponent<Unity.Robotics.UrdfImporter.Control.Controller>(go);
             DestroyComponent<Unity.Robotics.UrdfImporter.UrdfRobot>(go);
+            DestroyComponent<Unity.Robotics.UrdfImporter.Control.FKRobot>(go);
+            var visxf = go.transform.Find("Visuals");
+            if (visxf != null)
+            {
+                DestroyComponent<Unity.Robotics.UrdfImporter.UrdfVisuals>(visxf.gameObject);
+            }
+            var colxf = go.transform.Find("Collisions");
+            if (colxf != null)
+            {
+                DestroyComponent<Unity.Robotics.UrdfImporter.UrdfCollisions>(colxf.gameObject);
+            }
+            var basexf = go.transform.Find("base");
+            if (basexf != null)
+            {
+                DestoryUrdfComponentsGo(basexf.gameObject);
+            }
+            var plugxf = go.transform.Find("Plugins");
+            if (plugxf != null)
+            {
+                Destroy(plugxf.gameObject);
+            }
+            var tool0xf = go.transform.Find("tool0");
+            if (tool0xf != null)
+            {
+                Destroy(tool0xf.gameObject);
+            }
+
         }
     }
 
     void DestroyUrdfComponentsGoName(string linkname)
     {
-        var t = FindLink(linkname);
+        var t = FindLink(transform,linkname);
         if (t == null)
         {
             Debug.LogWarning($"Cound not find link {linkname} in Robot {name}in DestroyUrdfComponentsGoName");
@@ -140,44 +236,50 @@ public class KinUrdf : MonoBehaviour
         DestroyUrdfComponentsGoName(eeLinkName);
         DestoryUrdfComponentsGo(this.gameObject);
     }
+    #endregion
 
-    public void Init( ArmTyp armTyp )
+    #region Core Code
+    public void Init()
     {
-        this.armTyp = armTyp;
         curAng = new float[] { 0, 0, 0, 0, 0, 0 };
         startAngles= new float[] { 0, 0, 0, 0, 0, 0 };
         targAngles = new float[] { 0, 0, 0, 0, 0, 0 };
+        if (armTyp==ArmTyp.None)
+        {
+            Debug.LogWarning("Armtype not specified assuming KHIfamily");
+            armTyp = ArmTyp.KHI_family;
+        }    
         switch (armTyp)
         {
             default:
-
-            case ArmTyp.RS007L:
-            case ArmTyp.RS007N:
+            case ArmTyp.KHI_family:
                 {
                     nlinks = 6;
                     baseLinkName = "base_link";
                     worldLinkName = "world";
                     eeLinkName = "tool_link";
                     linkName = new string[] { "link1", "link2", "link3", "link4", "link5", "link6" };
-                    rotAx = new RotAx[] { RotAx.YP, RotAx.YP, RotAx.YP, RotAx.YP, RotAx.YP, RotAx.YP };
+                    //rotAx = new RotAx[] { RotAx.YP, RotAx.YP, RotAx.YP, RotAx.YP, RotAx.YP, RotAx.YP };
+                    rotAx = new RotAx[] { RotAx.YP, RotAx.YN, RotAx.YP, RotAx.YN, RotAx.YP, RotAx.YN };
                     jointMin = new float[] { -360, -90, -90, -360, -90, -360 };
                     jointMax = new float[] { +360, +90, +90, +360, +90, +360 };
                     jointOrg = new float[] { 0, 0, 0, 0, 0, 0 };
-                    jointSign = new float[] { -1, 1, -1, 1, -1, 1 };
+                    //jointSign = new float[] { -1, 1, -1, 1, -1, 1 };
+                    jointSign = new float[] { 1, 1, 1, 1, 1, 1 };
                     //jointMin = new float[] { -360, -270, -310, -400, -250, -720 }; // from rs007n.urdf
                     //jointMax = new float[] { +360, +270, +310, +400, +250, +720 };
                     baseAxis = new RotAx[] { RotAx.None, RotAx.XP, RotAx.None, RotAx.XP, RotAx.XP, RotAx.XP };
                     baseAng = new float[] { 0, 270, 0, 90, 270, 270 };
                     break;
                 }
-            case ArmTyp.URFAM:
+            case ArmTyp.UR_family:
                 {
                     nlinks = 6;
                     baseLinkName = "base_link";
                     worldLinkName = "world";
                     eeLinkName = "ee_link";
                     linkName = new string[] { "shoulder_link", "upper_arm_link", "forearm_link", "wrist_1_link", "wrist_2_link", "wrist_3_link" };
-                    rotAx = new RotAx[] { RotAx.YP, RotAx.XP, RotAx.XP, RotAx.XP, RotAx.YP, RotAx.XP };
+                    rotAx = new RotAx[] { RotAx.YP, RotAx.XP, RotAx.XP, RotAx.XP, RotAx.YN, RotAx.XP };
                     jointMin = new float[] { -360, -90, -90, -90,  -90, -360 };
                     jointMax = new float[] { +360, +90, +90, +90,  +90, +360 };
                     jointOrg = new float[] {    0,  -90,  0,  -90,   0, 0 };
@@ -194,11 +296,11 @@ public class KinUrdf : MonoBehaviour
         {
             jidxdict[ln] = idx++;
         }
-        InactivateUrdf();
+        InactivateUrdf();// purge urdf components
         var xformlist = new List<Transform>();
         foreach (var lname in linkName)
         {
-            var xform = FindLink(lname);
+            var xform = FindLink(transform,lname);
             if (xform==null)
             {
                 Debug.LogWarning($"Cound not find link:{lname}");
@@ -209,10 +311,11 @@ public class KinUrdf : MonoBehaviour
         xform = xformlist;
         AddSkels(initialActiveStatus: false);
         moving = false;
-        newRanPoint = false;
+        newRanPointForMovement = false;
         performAction = false;
         oldState = ArmViewing.Skel;
         armViewing = ArmViewing.Meshes;
+        moveTime = 5;
         if (actionIndex>nlinks)
         {
             actionIndex = 0;
@@ -221,65 +324,30 @@ public class KinUrdf : MonoBehaviour
         RealizeArmViewingState();
         for(var i=0; i<nlinks; i++)
         {
-            SetAngle(i, curAng[i],quiet:true);
+            SetAngleDegrees(i, curAng[i],quiet:true);
         }
     }
 
-    Vector3 Vecax(RotAx rotax)
+
+    public void SetAnglRadians(string linkname, float odeltangle, bool quiet = false)
     {
-        switch (rotax)
-        {
-            default:
-            case RotAx.None: 
-            case RotAx.XP: return new Vector3(+1, 0, 0);
-            case RotAx.XN: return new Vector3(-1, 0, 0);
-            case RotAx.YP: return new Vector3(0, +1, 0);
-            case RotAx.YN: return new Vector3(0, -1, 0);
-            case RotAx.ZP: return new Vector3(0, 0, +1);
-            case RotAx.ZN: return new Vector3(0, 0, -1);
-        }
+        SetAngleDegrees(linkname, odeltangle * 180f / Mathf.PI, quiet);
     }
 
-    Quaternion Quang(RotAx rotax,float angle)
+    public void SetAnglRadians(int jidx, float odeltangle, bool quiet = false)
     {
-        switch (rotax)
-        {
-            default:
-            case RotAx.None: return Quaternion.identity;
-            case RotAx.XP: return Quaternion.Euler(+angle, 0, 0);
-            case RotAx.XN: return Quaternion.Euler(-angle, 0, 0);
-            case RotAx.YP: return Quaternion.Euler(0, +angle, 0);
-            case RotAx.YN: return Quaternion.Euler(0, -angle, 0);
-            case RotAx.ZP: return Quaternion.Euler(0, 0, +angle);
-            case RotAx.ZN: return Quaternion.Euler(0, 0, -angle);
-        }
-        //var rv = Quaternion.AngleAxis(angle, Vecax(rotax));
-        //return rv;
+        SetAngleDegrees(jidx, odeltangle * 180f / Mathf.PI, quiet);
     }
 
-    float ClipAng(float ang,float amin,float amax,int jidx)
-    {
-        var rang = ang;
-        if (ang < amin)
-        {
-            Debug.Log($"{name} clipped {linkName[jidx]} from {ang} to {amin}");
-            rang = amin;
-        }
-        if (ang > amax)
-        {
-            Debug.Log($"{name} clipped {linkName[jidx]} from {ang} to {amax}");
-            rang = amax;
-        }
-        return rang;
-    }
-    public void SetAngle(string linkname, float oangle, bool quiet = false)
+    public void SetAngleDegrees(string linkname, float oangle, bool quiet = false)
     {
         var jidx = jidxdict[linkname];
-        SetAngle(jidx, oangle, quiet);
+        SetAngleDegrees(jidx, oangle, quiet);
     }
 
-    public void SetAngle(int jidx, float oangle,bool quiet=false)
+    public void SetAngleDegrees(int jidx, float oangle,bool quiet=false)
     {
+        //Debug.Log($"SetAngle {jidx} angle:{oangle}");
         if (jidx<0 || nlinks<=jidx)
         {
             Debug.LogWarning($"joint index out of range: {jidx} nlinks:{nlinks}");
@@ -288,40 +356,86 @@ public class KinUrdf : MonoBehaviour
         var angle = jointSign[jidx] * (oangle - jointOrg[jidx]);
         var xf = xform[jidx];
         //var ang = Mathf.Min(jointMax[jidx], Mathf.Max(jointMin[jidx], angle));
-        var ang = clipJoints ? ClipAng(angle, jointMin[jidx], jointMax[jidx], jidx) : angle;
+        var ang = clipJoints ? ClipAng(angle, jointMin[jidx], jointMax[jidx], name,linkName[jidx]) : angle;
         var brot = Quang(baseAxis[jidx], baseAng[jidx]);
         var qrot = Quang(rotAx[jidx],ang);
-        curAng[jidx] = ang;
+        curAng[jidx] = oangle;
         xf.localRotation = brot*qrot;
         if (!quiet)
         {
             Debug.Log($"Set LocalRotation jidx:{jidx} ang:{ang} qrot:{qrot}");
         }
     }
+    public void DeltAnglRadians(string linkname, float odeltangle, bool quiet = false)
+    {
+        DeltAngleDegrees(linkname, odeltangle * 180f / Mathf.PI, quiet);
+    }
 
-    public void DeltAngle(int jidx, float oangle,bool quiet=false)
+    public void DeltAnglRadians(int jidx, float odeltangle, bool quiet = false)
+    {
+        DeltAngleDegrees(jidx, odeltangle * 180f / Mathf.PI, quiet);
+    }
+
+    public void DeltAngleDegrees(string linkname, float odeltangle, bool quiet = false)
+    {
+        var jidx = jidxdict[linkname];
+        DeltAngleDegrees(jidx, odeltangle, quiet);
+    }
+    public void DeltAngleDegrees(int jidx, float odeltangle,bool quiet=false)
     {
         if (jidx < 0 || nlinks <= jidx)
         {
             Debug.LogWarning($"joint index out of range: {jidx} nlinks:{nlinks}");
             return;
         }
-        var angle = jointSign[jidx] * oangle;
+        var deltang = jointSign[jidx] * odeltangle;
         var xf = xform[jidx];
-        var ang = clipJoints ?  ClipAng(angle, jointMin[jidx], jointMax[jidx], jidx) : angle;
-        var qrot = Quang(actionAxis, ang);
-        curAng[jidx] += ang;
+        var deltangle = clipJoints ?  ClipAng(deltang, jointMin[jidx], jointMax[jidx], name, linkName[jidx]) : deltang;
+        //var qrot = Quang(actionAxis, ang);
+        var qrot = Quang(rotAx[jidx], deltangle);
+        curAng[jidx] += odeltangle;
         xf.localRotation *= qrot;
         if (!quiet)
         {
-            Debug.Log($"Inc/Dec LocalRotation  jidx:{jidx} ang:{ang} qrot:{qrot}");
+            Debug.Log($"Inc/Dec LocalRotation  jidx:{jidx} deltang:{deltangle} curAng:{curAng[jidx]} qrot:{qrot}");
         }
+    }
+    #endregion
+
+    #region Test Movment Code
+    public void SetupMovePoseSequenceSingle(RobotPoses robpose, List<RobotPose> movePoses,int posenum)
+    {
+        var p = movePoses[posenum];
+        Debug.Log($"{name} taking pose {p}");
+        targAngles = robpose.GetPose(p);
+        for (int i = 0; i < nlinks; i++)
+        {
+            //Debug.Log($"MoveToRandomPoint i:{i}");
+            startAngles[i] = curAng[i];
+        }
+    }
+
+
+    public void SetupMovePoseSequence(RobotPoses robpose,List<RobotPose> movePoses,int movetime=5)
+    {
+        moveStyle = KinArmCtrl.MoveStyles.rail2rail;
+        this.movePoses = new List<RobotPose>(movePoses);
+        this.robpose = robpose;
+        currentMovePose = 0;
+        if (targAngles == null)
+        {
+            targAngles = new float[nlinks];
+            startAngles = new float[nlinks];
+        }
+        moveTime = movetime;
+        SetupMovePoseSequenceSingle(robpose, movePoses, currentMovePose);
     }
 
     System.Random ranman = new System.Random(1234);
 
     public void SetupRandomPointToMoveTowards()
     {
+        moveStyle = KinArmCtrl.MoveStyles.random;
         Debug.Log($"{name} generated new random point to move towards");
         for (var idx0 = 0; idx0 < nlinks; idx0++)
         {
@@ -330,8 +444,11 @@ public class KinUrdf : MonoBehaviour
             var ta = targAngles[idx0];
             Debug.Log($"     before idx:{idx0}   ca:{ca:f1}   sa:{sa:f1}   ta:{ta:f1}");
         }
-        targAngles = new float[nlinks];
-        startAngles = new float[nlinks];
+        if (targAngles == null)
+        {
+            targAngles = new float[nlinks];
+            startAngles = new float[nlinks];
+        }
         for(int i = 0; i<nlinks; i++)
         {
             //Debug.Log($"MoveToRandomPoint i:{i}");
@@ -347,16 +464,24 @@ public class KinUrdf : MonoBehaviour
             var ta = targAngles[idx1];
             Debug.Log($"     after idx:{idx1}   ca:{ca:f1}   sa:{sa:f1}   ta:{ta:f1}");
         }
+    }
+
+    public void StartMovment()
+    {
         startTime = Time.time;
-        moveTime = 5f;
         moving = true;
+    }
+
+    public void StopMovement()
+    {
+        moving = false;
     }
 
     public void Moveit()
     {
         var delttime = Time.time - startTime;
         var lamb = delttime / moveTime;
-        //Debug.Log($"Moving time:{Time.time} delt:{delttime} lamb:{lamb}");
+        // Debug.Log($"KinUrdf - Moveit time:{Time.time} delt:{delttime} lamb:{lamb}");
         if (lamb >= 1)
         {
             moving = false;
@@ -364,18 +489,32 @@ public class KinUrdf : MonoBehaviour
         }
         for (int jix = 0; jix < nlinks; jix++)
         {
+            var newang = lamb * (targAngles[jix] - startAngles[jix]) + startAngles[jix];
             var js = jointSign[jix];
-            var newang = lamb * (js*targAngles[jix] - startAngles[jix]) + startAngles[jix];
+            var delt = newang - curAng[jix];
             //var ln = linkName[jix];
-            //SetAngle(ln, newang, quiet: true);
-            SetAngle(i, newang,quiet:true);
+            //DeltAngle(ln, newang, quiet: true);
+            DeltAngleDegrees(jix, js*delt,quiet:true);
         }
         if (!moving && continuousMove)
         {
-            SetupRandomPointToMoveTowards();
+            switch (moveStyle)
+            {
+                case KinArmCtrl.MoveStyles.random:
+                    SetupRandomPointToMoveTowards();
+                    break;
+                case KinArmCtrl.MoveStyles.rail2rail:
+                    currentMovePose = (currentMovePose + 1) % movePoses.Count;
+                    SetupMovePoseSequenceSingle(robpose,movePoses,currentMovePose);
+                    break;
+            }
+            startTime = Time.time;
+            moving = true;
         }
     }
+    #endregion
 
+    #region Alternate Visuals Code
     public void ActivateVisuals(bool activeStatus)
     {
         foreach (var xf in xform)
@@ -427,7 +566,7 @@ public class KinUrdf : MonoBehaviour
     }
     public void AddSkels(bool initialActiveStatus)
     {
-        var basexf = FindLink(baseLinkName);
+        var basexf = FindLink(transform,baseLinkName);
         var parxf = basexf;
         foreach (var xf in xform)
         {
@@ -471,53 +610,59 @@ public class KinUrdf : MonoBehaviour
             oldState = armViewing;
         }
     }
+    #endregion
 
+    #region Unity Events
     private void Start()
     {
-        if (name.StartsWith("khi_rs007n"))
-        {
-            Init(ArmTyp.RS007N);
-        }
-        else if (name.StartsWith("khi_rs007l"))
-        {
-            Init(ArmTyp.RS007L);
-        }
-        else if (name.StartsWith("ur10") || name.StartsWith("ur5") || name.StartsWith("ur3"))
-        {
-            Init(ArmTyp.URFAM);
-        }
+        Init();
     }
 
+    float lastReportTime = 0;
     private void Update()
     {
+        // Single Joint Test Actions
         if (performAction)
         {
-            SetAngle(actionIndex, actionAngle);
+            SetAngleDegrees(actionIndex, actionAngle);
             performAction = false;
         }
 
         if (performIncAction)
         {
-            DeltAngle(actionIndex, actionAngle);
+            DeltAngleDegrees(actionIndex, actionAngle);
             performIncAction = false;
         }
 
         if (performDecAction)
         {
-            DeltAngle(actionIndex, -actionAngle);
+            DeltAngleDegrees(actionIndex, -actionAngle);
             performDecAction = false;
         }
 
-        if (newRanPoint)
+        // Test Movement
+        if (newRanPointForMovement)
         {
             SetupRandomPointToMoveTowards();
-            newRanPoint = false;
+            StartMovment();
+            newRanPointForMovement = false;
         }
 
         if (moving)
         {
             Moveit();
+            if (Time.time - lastReportTime >= 2)
+            {
+                var msg = $"{name}";
+                foreach (var ca in curAng)
+                {
+                    msg += $" {ca:f1}";
+                }
+                Debug.Log(msg);
+                lastReportTime = Time.time;
+            }
         }
         RealizeArmViewingState();
     }
+    #endregion
 }

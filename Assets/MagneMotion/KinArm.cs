@@ -4,10 +4,15 @@ using UnityEngine;
 
 public class KinArm : MonoBehaviour
 {
-    public enum RotAx { XP,XN,YP,YN,ZP,ZN }
-    public enum ArmTyp { RS007N, RS007N_mod, RS007L, UR10 }
+    public enum RotAx { None,XP,XN,YP,YN,ZP,ZN }
+    public enum ArmTyp { None, KHI_family, RS007N_mod   }
 
     public enum ArmViewing { Meshes, Pivots }
+
+    #region Visible Members
+
+    [Header("Arm Type")]
+    public ArmTyp armTyp;
 
 
     [Header("Viewing")]
@@ -21,6 +26,18 @@ public class KinArm : MonoBehaviour
     [Header("Random Actions")]
     public bool newRanPoint;
     public bool continuousMove;
+    public KinArmCtrl.MoveStyles moveStyle;
+    public int currentMovePose;
+    public List<RobotPose> movePoses;
+    public RobotPoses robpose;
+
+    [Header("Internal")]
+    public int nlinks;
+    public string[] linkName;
+
+    #endregion
+
+    #region Private Members
 
     bool moving;
     float[] startAngles;
@@ -28,19 +45,18 @@ public class KinArm : MonoBehaviour
     float startTime;
     float moveTime;
 
-    [Header("Internal")]
-    public ArmTyp armTyp;
-    public int nlinks;
-    public string[] linkName;
     RotAx[] rotAx;
     float[] jointMin;
     float[] jointMax;
     float[] curAng;
-
+    float[] baseAng;
+    RotAx[] baseAxis;
     Transform[] xform;
+    #endregion
 
+    #region Utilities
 
-    Transform BreathFirstFindLink(Transform parent, string seekName,int depth=0,int nchk=0)
+    static Transform BreathFirstFindLink(Transform parent, string seekName,int depth=0,int nchk=0)
     {
         // First breath
         for (int i = 0; i < parent.childCount; i++)
@@ -67,10 +83,9 @@ public class KinArm : MonoBehaviour
     }
 
 
-    Transform FindLink(string linkname)
+    static Transform FindLink(Transform parent,string linkname)
     {
-        // var go = GameObject.Find(linkname);
-        var go = BreathFirstFindLink(transform,linkname);
+        var go = BreathFirstFindLink(parent,linkname);
         if (go==null)
         {
             return null;
@@ -78,32 +93,58 @@ public class KinArm : MonoBehaviour
         return go?.transform;
     }
 
+    static Quaternion Quang(RotAx rotax, float angle)
+    {
+        switch (rotax)
+        {
+            default:
+            case RotAx.XP: return Quaternion.Euler(+angle, 0, 0);
+            case RotAx.XN: return Quaternion.Euler(-angle, 0, 0);
+            case RotAx.YP: return Quaternion.Euler(0, +angle, 0);
+            case RotAx.YN: return Quaternion.Euler(0, -angle, 0);
+            case RotAx.ZP: return Quaternion.Euler(0, 0, +angle);
+            case RotAx.ZN: return Quaternion.Euler(0, 0, -angle);
+        }
+    }
+
+    #endregion
+
+    #region Core Code
+
     public void Init( ArmTyp armTyp )
     {
         this.armTyp = armTyp;
-        switch(armTyp)
+        if (armTyp == ArmTyp.None)
+        {
+            Debug.LogWarning("Armtype not specified assuming KHIfamily");
+            armTyp = ArmTyp.KHI_family;
+        }
+        switch (armTyp)
         {
             default:
+            case ArmTyp.KHI_family:
+                {
+                    nlinks = 6;
+                    linkName = new string[] { "link1", "link2", "link3", "link4", "link5", "link6" };
+                    //rotAx = new RotAx[] { RotAx.YP, RotAx.YP, RotAx.ZP, RotAx.YP, RotAx.ZP, RotAx.YP };
+                    rotAx = new RotAx[] { RotAx.YP, RotAx.YN, RotAx.YP, RotAx.YN, RotAx.YP, RotAx.YN };
+                    jointMin = new float[] { -360, -90, -90, -360, -90, -360 };
+                    jointMax = new float[] {  360,  90, 90,   360,  90,  360 };
+                    //jointMin = new float[] { -360, -270, -310, -400, -250, -720 }; // from rs007n.urdf
+                    //jointMax = new float[] { +360, +270, +310, +400, +250, +720 };
+                    baseAxis = new RotAx[] { RotAx.None, RotAx.XP, RotAx.None, RotAx.XP, RotAx.XP, RotAx.XP };
+                    baseAng = new float[] { 0, 270, 0, 90, 270, 270 };
+
+                    curAng = new float[] { 0, 0, 0, 0, 0, 0 };
+                    break;
+                }
             case ArmTyp.RS007N_mod:
                 {
                     nlinks = 6;
                     linkName = new string[] { "link1piv", "link2piv", "link3piv", "link4piv", "link5piv", "link6piv" };
                     rotAx = new RotAx[] { RotAx.YP, RotAx.ZP, RotAx.ZP, RotAx.YP, RotAx.ZP, RotAx.YP };
                     jointMin = new float[] { -360, -90, -90, -360, -90, -360 };
-                    jointMax = new float[] {  360,  90, 90,   360,  90,  360 };
-                    //jointMin = new float[] { -360, -270, -310, -400, -250, -720 }; // from rs007n.urdf
-                    //jointMax = new float[] { +360, +270, +310, +400, +250, +720 };
-                    curAng = new float[] { 0, 0, 0, 0, 0, 0 };
-                    break;
-                }
-            case ArmTyp.RS007L:
-            case ArmTyp.RS007N:
-                {
-                    nlinks = 6;
-                    linkName = new string[] { "link1", "link2", "link3", "link4", "link5", "link6" };
-                    rotAx = new RotAx[] { RotAx.YP, RotAx.YP, RotAx.ZP, RotAx.YP, RotAx.ZP, RotAx.YP };
-                    jointMin = new float[] { -360, -90, -90, -360, -90, -360 };
-                    jointMax = new float[] {  360,  90, 90,   360,  90,  360 };
+                    jointMax = new float[] { 360, 90, 90, 360, 90, 360 };
                     //jointMin = new float[] { -360, -270, -310, -400, -250, -720 }; // from rs007n.urdf
                     //jointMax = new float[] { +360, +270, +310, +400, +250, +720 };
                     curAng = new float[] { 0, 0, 0, 0, 0, 0 };
@@ -113,7 +154,7 @@ public class KinArm : MonoBehaviour
         var xformlist = new List<Transform>();
         foreach (var lname in linkName)
         {
-            var xform = FindLink(lname);
+            var xform = FindLink(transform,lname);
             if (xform==null)
             {
                 Debug.LogWarning($"Cound not find link:{lname}");
@@ -127,22 +168,10 @@ public class KinArm : MonoBehaviour
         performAction = false;
         oldState = ArmViewing.Pivots;
         armViewing = ArmViewing.Meshes;
+        moveTime = 5;
         RealizeArmViewingState();
     }
 
-    Quaternion Quang(RotAx rotax,float angle)
-    {
-        switch (rotax)
-        {
-            default:
-            case RotAx.XP: return Quaternion.Euler(+angle, 0, 0);
-            case RotAx.XN: return Quaternion.Euler(-angle, 0, 0);
-            case RotAx.YP: return Quaternion.Euler(0,+angle, 0);
-            case RotAx.YN: return Quaternion.Euler(0,-angle, 0);
-            case RotAx.ZP: return Quaternion.Euler(0,0,+angle);
-            case RotAx.ZN: return Quaternion.Euler(0,0,-angle);
-        }
-    }
 
     public void SetAngle(int jidx, float angle)
     {
@@ -153,9 +182,49 @@ public class KinArm : MonoBehaviour
         }
         var xf = xform[jidx];
         var ang = Mathf.Min(jointMax[jidx], Mathf.Max(jointMin[jidx], angle));
-        var qrot = Quang(rotAx[jidx], ang);
-        curAng[jidx] = ang;
-        xf.localRotation = qrot;
+        if (baseAxis != null)
+        {
+            var brot = Quang(baseAxis[jidx], baseAng[jidx]);
+            var qrot = Quang(rotAx[jidx], ang);
+            curAng[jidx] = ang;
+            xf.localRotation = brot * qrot;
+        }
+        else
+        {
+            var qrot = Quang(rotAx[jidx], ang);
+            curAng[jidx] = ang;
+            xf.localRotation = qrot;
+        }
+    }
+    #endregion
+
+    #region Test Movement Code
+
+    public void SetupMovePoseSequenceSingle(RobotPoses robpose, List<RobotPose> movePoses, int posenum)
+    {
+        var p = movePoses[posenum];
+        targAngles = robpose.GetPose(p);
+        for (int i = 0; i < nlinks; i++)
+        {
+            //Debug.Log($"MoveToRandomPoint i:{i}");
+            startAngles[i] = curAng[i];
+        }
+    }
+
+
+    public void SetupMovePoseSequence(RobotPoses robpose, List<RobotPose> movePoses,int movetime=5)
+    {
+        moveStyle = KinArmCtrl.MoveStyles.rail2rail;
+        this.movePoses = new List<RobotPose>(movePoses);
+        this.robpose = robpose;
+        currentMovePose = 0;
+        if (targAngles == null)
+        {
+            targAngles = new float[nlinks];
+            startAngles = new float[nlinks];
+        }
+        moveTime = movetime;
+        SetupMovePoseSequenceSingle(robpose, movePoses, currentMovePose);
     }
 
     System.Random ranman = new System.Random(1234);
@@ -173,16 +242,24 @@ public class KinArm : MonoBehaviour
             var jmax = jointMax[i];
             targAngles[i] = ((jmax-jmin)*ranman.Next(0, 1000) / 1000f) + jmin;
         }
+    }
+
+    public void StartMovment()
+    {
         startTime = Time.time;
-        moveTime = 5f;
         moving = true;
+    }
+
+    public void StopMovement()
+    {
+        moving = false;
     }
 
     public void Moveit()
     {
         var delttime = Time.time - startTime;
         var lamb = delttime / moveTime;
-        //Debug.Log($"Moving time:{Time.time} delt:{delttime} lamb:{lamb}");
+        // Debug.Log($"Moving time:{Time.time} delt:{delttime} lamb:{lamb} moveTime:{moveTime}");
         if (lamb >= 1)
         {
             moving = false;
@@ -195,9 +272,23 @@ public class KinArm : MonoBehaviour
         }
         if (!moving && continuousMove)
         {
-            SetupRandomPointToMoveTowards();
+            switch (moveStyle)
+            {
+                case KinArmCtrl.MoveStyles.random:
+                    SetupRandomPointToMoveTowards();
+                    break;
+                case KinArmCtrl.MoveStyles.rail2rail:
+                    currentMovePose = (currentMovePose + 1) % movePoses.Count;
+                    SetupMovePoseSequenceSingle(robpose, movePoses, currentMovePose);
+                    break;
+            }
+            startTime = Time.time;
+            moving = true;
         }
     }
+    #endregion
+
+    #region Alternate Visuals Code
 
     public void ActivateVisuals(bool activeStatus)
     {
@@ -287,6 +378,9 @@ public class KinArm : MonoBehaviour
             oldState = armViewing;
         }
     }
+    #endregion
+
+    #region Unity Events
 
     private void Start()
     {
@@ -296,10 +390,11 @@ public class KinArm : MonoBehaviour
         }
         else if (name.StartsWith("khi_rs007n"))
         {
-            Init(ArmTyp.RS007N);
+            Init(ArmTyp.KHI_family);
         }
 
     }
+    float lastReportTime = 0;
 
     private void Update()
     {
@@ -312,14 +407,28 @@ public class KinArm : MonoBehaviour
         if (newRanPoint)
         {
             SetupRandomPointToMoveTowards();
+            StartMovment();
             newRanPoint = false;
         }
 
         if (moving)
         {
             Moveit();
+            if (Time.time-lastReportTime>=2)
+            {
+                var msg = $"{name}";
+                foreach( var ca in curAng)
+                {
+                    msg += $" {ca:f1}";
+                }
+                Debug.Log(msg);
+            }
+
         }
+
+
 
         RealizeArmViewingState();
     }
+    #endregion
 }

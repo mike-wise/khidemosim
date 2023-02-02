@@ -163,7 +163,7 @@ namespace KhiDemo
                     magmo.enablePlanning = false;
                     magmo.publishMovementsRos = false;
                     magmo.publishMovementsZmq = false;
-                    magmo.mmRobot.RealiseRobotPose(RobotJointPose.rest);
+                    magmo.mmRobot.RealiseRobotPose(RobotPose.rest);
                     mmt.SetupSledSpeeds(SledSpeedDistrib.fixedValue, 0);
 
                     mmRobot.InitRobotBoxState(startLoadState:true);
@@ -178,7 +178,7 @@ namespace KhiDemo
                     magmo.enablePlanning = true;
                     magmo.publishMovementsRos = false;
                     magmo.publishMovementsZmq = false;
-                    magmo.mmRobot.RealiseRobotPose(RobotJointPose.rest);
+                    magmo.mmRobot.RealiseRobotPose(RobotPose.rest);
                     mmt.SetupSledSpeeds(SledSpeedDistrib.fixedValue, 0);
 
                     mmRobot.InitRobotBoxState(startLoadState: false);
@@ -195,7 +195,7 @@ namespace KhiDemo
                     magmo.publishMovementsZmq = true;
 
 
-                    magmo.mmRobot.RealiseRobotPose(RobotJointPose.rest);
+                    magmo.mmRobot.RealiseRobotPose(RobotPose.rest);
                     mmt.SetupSledSpeeds(SledSpeedDistrib.alternateHiLo, magmo.initialSleedSpeed );
 
                     mmRobot.InitRobotBoxState(startLoadState: false);
@@ -215,7 +215,7 @@ namespace KhiDemo
                     mmt.SetupSledSpeeds( SledSpeedDistrib.alternateHiLo, magmo.initialSleedSpeed);
                     mmt.SetupSledLoads(SledLoadDistrib.allLoaded);
                     mmtray.InitAllLoadstate(nbox: 0);
-                    magmo.mmRobot.RealiseRobotPose(RobotJointPose.rest);
+                    magmo.mmRobot.RealiseRobotPose(RobotPose.rest);
                     break;
                 case MmMode.StartTrayToRail:
                     MmBox.ReturnToPoolSidePositions(fakeBoxes: true, realBoxes: false);
@@ -230,7 +230,7 @@ namespace KhiDemo
                     mmt.SetupSledSpeeds( SledSpeedDistrib.alternateHiLo, magmo.initialSleedSpeed);
                     mmt.SetupSledLoads(SledLoadDistrib.allUnloaded);
                     mmtray.InitAllLoadstate(nbox: 10);
-                    magmo.mmRobot.RealiseRobotPose(RobotJointPose.rest);
+                    magmo.mmRobot.RealiseRobotPose(RobotPose.rest);
                     break;
             }
             magmo.CheckNetworkActivation();
@@ -307,11 +307,11 @@ namespace KhiDemo
                 if (Interrupt(launchMode)) yield break;
 
                 robstatus = RobStatus.busy;
-                mmRobot.RealiseRobotPose(RobotJointPose.fcartup);
+                mmRobot.RealiseRobotPose(RobotPose.fcartup);
                 yield return new WaitForSeconds(shortRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
 
-                mmRobot.RealiseRobotPose(RobotJointPose.fcartdn);
+                mmRobot.RealiseRobotPose(RobotPose.fcartdn);
                 yield return new WaitForSeconds(longRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
 
@@ -321,17 +321,17 @@ namespace KhiDemo
                     if (Interrupt(launchMode)) yield break;
                     rob.AttachBoxToRobot(box);
                 }
-                mmRobot.RealiseRobotPose(RobotJointPose.fcartup);
+                mmRobot.RealiseRobotPose(RobotPose.fcartup);
                 yield return new WaitForSeconds(shortRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
 
                 if (mmMode == MmMode.SimuRailToRail)
                 {
-                    mmRobot.MutateRobotPose(RobotJointPose.fcartup, RobotJointPose.restr2r);
+                    mmRobot.MutateRobotPose(RobotJointPose.fcartup, RobotPose.restr2r);
                 }
                 else
                 {
-                    mmRobot.MutateRobotPose(RobotJointPose.fcartup, RobotJointPose.rest);
+                    mmRobot.MutateRobotPose(RobotJointPose.fcartup, RobotPose.rest);
                 }
                 yield return new WaitForSeconds(longRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
@@ -352,11 +352,11 @@ namespace KhiDemo
                 if (Interrupt(launchMode)) yield break;
 
                 robstatus = RobStatus.busy;
-                mmRobot.RealiseRobotPose(RobotJointPose.ecartup);
+                mmRobot.RealiseRobotPose(RobotPose.ecartup);
                 yield return new WaitForSeconds(shortRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
 
-                mmRobot.RealiseRobotPose(RobotJointPose.ecartdn);
+                mmRobot.RealiseRobotPose(RobotPose.ecartdn);
                 yield return new WaitForSeconds(longRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
 
@@ -369,17 +369,17 @@ namespace KhiDemo
                 {
                     Debug.LogWarning($"Warning - expected to find a box on Robot to attach to sled {sled.sledid}");
                 }
-                mmRobot.RealiseRobotPose(RobotJointPose.ecartup);
+                mmRobot.RealiseRobotPose(RobotPose.ecartup);
                 yield return new WaitForSeconds(shortRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
 
                 if (mmMode == MmMode.SimuRailToRail)
                 {
-                    mmRobot.RealiseRobotPose(RobotJointPose.restr2r);
+                    mmRobot.RealiseRobotPose(RobotPose.restr2r);
                 }
                 else
                 {
-                    mmRobot.RealiseRobotPose(RobotJointPose.rest);
+                    mmRobot.RealiseRobotPose(RobotPose.rest);
                 }
                 yield return new WaitForSeconds(longRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
@@ -400,7 +400,7 @@ namespace KhiDemo
                 if (Interrupt(launchMode)) yield break;
 
                 robstatus = RobStatus.busy;
-                var (poseup, posedn) = mmRobot.GetTrayUpAndDownPoses(TrayRowColPos);
+                var (poseup, posedn) = mmRobot.robotPoses.GetTrayUpAndDownPoses(TrayRowColPos);
                 mmRobot.RealiseRobotPose(poseup);
                 yield return new WaitForSeconds(shortRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
@@ -419,7 +419,7 @@ namespace KhiDemo
                 yield return new WaitForSeconds(shortRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
 
-                mmRobot.RealiseRobotPose(RobotJointPose.rest);
+                mmRobot.RealiseRobotPose(RobotPose.rest);
                 yield return new WaitForSeconds(longRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
 
@@ -440,7 +440,7 @@ namespace KhiDemo
                 yield return new WaitUntil(() => robstatus == RobStatus.idle);
                 if (Interrupt(launchMode)) yield break;
                 robstatus = RobStatus.busy;
-                var (poseup, posedn) = mmRobot.GetTrayUpAndDownPoses(TrayRowColPos);
+                var (poseup, posedn) = mmRobot.robotPoses.GetTrayUpAndDownPoses(TrayRowColPos);
                 mmRobot.RealiseRobotPose(poseup);
                 yield return new WaitForSeconds(shortRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
@@ -462,7 +462,7 @@ namespace KhiDemo
                 yield return new WaitForSeconds(shortRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
 
-                mmRobot.RealiseRobotPose(RobotJointPose.rest);
+                mmRobot.RealiseRobotPose(RobotPose.rest);
                 yield return new WaitForSeconds(longRobMoveSec);
                 if (Interrupt(launchMode)) yield break;
             }
