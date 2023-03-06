@@ -119,7 +119,11 @@ public class RobotArmSignalRDataHandler : MonoBehaviour
 
             interpolant = 0f;
 
-            var id = "ur10e";
+            //var id = "ur3e";
+            var id = targetDeviceId.ToLower().Trim(new char[]{ '\"' });
+            Debug.Log("Looking for urdfDictionary:" + id);
+
+            //Find the Robot Arm by Name
             if (urdfDictionary.ContainsKey(id))
             {
                 Debug.Log("Found urdfDictionary:" + id);
