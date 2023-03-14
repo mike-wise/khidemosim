@@ -1,0 +1,210 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:macro name="threefingerhand" params="prefix">
+
+    <!-- joint limits [rad] -3 はbuffur -->
+    <xacro:property name="thumb_f_lower_limit" value="${radians(-3)}"/>
+    <xacro:property name="thumb_f_upper_limit" value="${radians( 150)}"/>
+    <xacro:property name="leftfinger_b_lower_limit" value="${radians(-3)}"/>
+    <xacro:property name="leftfinger_b_upper_limit" value="${radians( 27)}"/>
+    <xacro:property name="leftfinger_f_lower_limit" value="${radians(-3)}"/>
+    <xacro:property name="leftfinger_f_upper_limit" value="${radians( 150)}"/>
+    <xacro:property name="rightfinger_b_lower_limit" value="${radians(-3)}"/>
+    <xacro:property name="rightfinger_b_upper_limit" value="${radians( 27)}"/>
+    <xacro:property name="rightfinger_f_lower_limit" value="${radians(-3)}"/>
+    <xacro:property name="rightfinger_f_upper_limit" value="${radians( 150)}"/>
+
+    <!-- joint verocity limits [rad/s] -->
+    <xacro:property name="thumb_b_velocity_limit" value="${radians( 30)}"/>
+    <xacro:property name="rightfinger_b_velocity_limit" value="${radians( 30)}"/>
+    <xacro:property name="leftfinger_b_velocity_limit" value="${radians( 30)}"/>
+    <xacro:property name="thumb_f_velocity_limit" value="${radians( 30)}"/>
+    <xacro:property name="rightfinger_f_velocity_limit" value="${radians( 30)}"/>
+    <xacro:property name="leftfinger_f_velocity_limit" value="${radians( 30)}"/>
+
+
+
+    <!-- gripper base -->
+    <joint name="${prefix}gripper_base_joint" type="fixed">
+      <axis xyz="0 0 1" rpy="0 0 0" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <parent link="${prefix}end_effector_link"/>
+      <child link="${prefix}gripper_base_link"/>
+    </joint>
+
+    <link name="${prefix}gripper_base_link">
+      <visual>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/grippers/3fhand/meshes/tf_Hand_Base.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin rpy="0 1.5708 -1.5708" xyz="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/grippers/3fhand/meshes/tf_Hand_Base.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin rpy="0 1.5708 -1.5708" xyz="0 0 0"/>
+      </collision>
+    </link> 
+    
+    
+    <!-- thumb base -->
+    <joint name="${prefix}gripper_thumb_b" type="fixed">
+      <axis xyz="1 0 0" rpy="0 0 0" />
+      <origin xyz="0 -0.04425 -0.03" rpy="0 0 0" />
+      <parent link="${prefix}gripper_base_link"/>
+      <child link="${prefix}thumb_b_link"/>
+    </joint>
+
+    <link name="${prefix}thumb_b_link">
+      <visual>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/grippers/3fhand/meshes/tf_Thumb_b.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin rpy="1.5708 -1.5708 0" xyz="0 -0.0395 0"/>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/grippers/3fhand/meshes/tf_Thumb_b.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin rpy="1.5708 -1.5708 0" xyz="0 -0.0395 0"/>
+      </collision>
+    </link> 
+
+    <!-- thumb finger -->
+    <joint name="${prefix}gripper_thumb_f" type="revolute">
+      <axis xyz="-1 0 0" rpy="0 0 0" />
+      <limit effort="1000.0" lower="${thumb_f_lower_limit}" upper="${thumb_f_upper_limit}" velocity="${thumb_f_velocity_limit}"/>
+      <origin xyz="0 -0.0395 0" rpy="0.864985 0 0" />
+      <parent link="${prefix}thumb_b_link"/>
+      <child link="${prefix}thumb_f_link"/>
+    </joint>
+
+    <link name="${prefix}thumb_f_link">
+      <visual>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/grippers/3fhand/meshes/tf_Thumb_f.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin rpy="1.5708 -1.5708 0" xyz="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/grippers/3fhand/meshes/tf_Thumb_f.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin rpy="1.5708 -1.5708 0" xyz="0 0 0"/>
+      </collision>
+    </link> 
+    
+    <!-- left finger base -->
+    <joint name="${prefix}gripper_leftfinger_b" type="revolute">
+      <axis xyz="0 0 -1" rpy="0 0 0" />
+      <limit effort="1000.0" lower="${leftfinger_b_lower_limit}" upper="${leftfinger_b_upper_limit}" velocity="${leftfinger_b_velocity_limit}"/>
+      <origin xyz="0.037 -0.04425 0.03" rpy="0 0 0.2618" />
+      <parent link="${prefix}gripper_base_link"/>
+      <child link="${prefix}leftfinger_b_link"/>
+    </joint>
+
+    <link name="${prefix}leftfinger_b_link">
+      <visual>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/grippers/3fhand/meshes/tf_Left_b.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin rpy="1.5708 1.5708 0.0" xyz="0 -0.0395 0"/>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/grippers/3fhand/meshes/tf_Left_b.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin rpy="1.5708 1.5708 0.0" xyz="0 -0.0395 0"/>
+      </collision>
+    </link> 
+    
+    <!-- left finger -->
+    <joint name="${prefix}gripper_leftfinger_f" type="revolute">
+      <axis xyz="1 0 0" rpy="0 0 0" />
+      <limit effort="1000.0" lower="${leftfinger_f_lower_limit}" upper="${leftfinger_f_upper_limit}" velocity="${leftfinger_f_velocity_limit}"/>
+      <origin xyz="0.0 -0.0395 0.0" rpy="-0.86495 0 0" />
+      <parent link="${prefix}leftfinger_b_link"/>
+      <child link="${prefix}leftfinger_f_link"/>
+    </joint>
+
+    <link name="${prefix}leftfinger_f_link">
+      <visual>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/grippers/3fhand/meshes/tf_Left_f.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin rpy="1.5708 1.5708 0.0" xyz="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/grippers/3fhand/meshes/tf_Left_f.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin rpy="1.5708 1.5708 0.0" xyz="0 0 0"/>
+      </collision>
+    </link> 
+    
+    <!-- right finger base -->
+    <joint name="${prefix}gripper_rightfinger_b" type="revolute">
+      <axis xyz="0 0 1" rpy="0 0 0" />
+      <limit effort="1000.0" lower="${rightfinger_b_lower_limit}" upper="${rightfinger_b_upper_limit}" velocity="${rightfinger_b_velocity_limit}"/>
+      <origin xyz="-0.037 -0.04425 0.03" rpy="0 0 -0.2618" />
+      <parent link="${prefix}gripper_base_link"/>
+      <child link="${prefix}rightfinger_b_link"/>
+    </joint>
+
+    <link name="${prefix}rightfinger_b_link">
+      <visual>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/grippers/3fhand/meshes/tf_Right_b.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin rpy="1.5708 1.5708 0.0" xyz="0 -0.0395 0"/>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/grippers/3fhand/meshes/tf_Right_b.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin rpy="1.5708 1.5708 0.0" xyz="0 -0.0395 0"/>
+      </collision>
+    </link>
+
+    <!-- right finger -->
+    <joint name="${prefix}gripper_rightfinger_f" type="revolute">
+      <axis xyz="1 0 0" rpy="0 0 0" />
+      <limit effort="1000.0" lower="${rightfinger_f_lower_limit}" upper="${rightfinger_f_upper_limit}" velocity="${rightfinger_f_velocity_limit}"/>
+      <origin xyz="0 -0.0395 0" rpy="-0.864985 0 0" />
+      <parent link="${prefix}rightfinger_b_link"/>
+      <child link="${prefix}rightfinger_f_link"/>
+    </joint>
+
+    <link name="${prefix}rightfinger_f_link">
+      <visual>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/grippers/3fhand/meshes/tf_Right_f.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin rpy="1.5708 1.5708 0.0" xyz="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/grippers/3fhand/meshes/tf_Right_f.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin rpy="1.5708 1.5708 0.0" xyz="0 0 0"/>
+      </collision>
+    </link> 
+ 
+  </xacro:macro>
+</robot>
+

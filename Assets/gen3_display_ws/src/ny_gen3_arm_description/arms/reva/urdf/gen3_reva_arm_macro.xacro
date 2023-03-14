@@ -1,0 +1,306 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:macro name="ny_gen3_reva_arm" params="prefix">
+
+    <xacro:include filename="$(find ny_gen3_arm_description)/arms/reva/urdf/rs.transmission.xacro" />
+    <xacro:include filename="$(find ny_gen3_arm_description)/arms/reva/urdf/common.gazebo.xacro" />
+
+    <!-- link mass [kg] -->
+    <xacro:property name="j0_mass" value="11"/>
+    <xacro:property name="j1_mass" value="3.389"/>
+    <xacro:property name="j2_mass" value="1.316"/>
+    <xacro:property name="j3_mass" value="1.879"/>
+    <xacro:property name="j4_mass" value="0.951"/>
+    <xacro:property name="j4_2_mass" value="1.019"/>
+    <xacro:property name="j5_mass" value="0.742"/>
+    <xacro:property name="j6_mass" value="0.238"/>
+    <xacro:property name="j7_mass" value="0.01"/>
+
+    <!-- link lengths [m] -->
+    <xacro:property name="j0_length_z" value="0.0"/>
+    <xacro:property name="j1_length_x" value="-0.071"/>
+    <xacro:property name="j1_length_z" value="0.122"/>
+    <xacro:property name="j2_length_x" value="-0.076"/>
+    <xacro:property name="j2_length_z" value="-0.085"/>
+    <xacro:property name="j3_length_z" value="-0.1915"/>
+    <xacro:property name="j4_length_z" value="-0.0955"/>
+    <xacro:property name="j5_length_z" value="-0.1375"/>
+    <xacro:property name="j6_length_z" value="-0.1405"/>
+    <xacro:property name="j7_length_y_left" value="0.0245"/>
+    <xacro:property name="j7_length_y" value="-0.0245"/>
+    <xacro:property name="j7_length_z" value="-0.045"/>
+    
+    <!-- joint limits [rad] -->
+    <xacro:property name="j1_lower_limit" value="${radians(-180)}"/>
+    <xacro:property name="j1_upper_limit" value="${radians( 180)}"/>
+    <xacro:property name="j2_lower_limit" value="${radians(-135)}"/>
+    <xacro:property name="j2_upper_limit" value="${radians( 135)}"/>
+    <xacro:property name="j3_lower_limit" value="${radians(-157)}"/>
+    <xacro:property name="j3_upper_limit" value="${radians( 157)}"/>
+    <xacro:property name="j4_lower_limit" value="${radians(-200)}"/>
+    <xacro:property name="j4_upper_limit" value="${radians( 200)}"/>
+    <xacro:property name="j4_lower_limit" value="${radians(-200)}"/>
+    <xacro:property name="j4_upper_limit" value="${radians( 200)}"/>
+    <xacro:property name="j4_2_lower_limit" value="${radians(-200)}"/>
+    <xacro:property name="j4_2_upper_limit" value="${radians( 200)}"/>
+    <xacro:property name="j5_lower_limit" value="${radians(-125)}"/>
+    <xacro:property name="j5_upper_limit" value="${radians( 125)}"/>
+    <xacro:property name="j6_lower_limit" value="${radians(-360)}"/>
+    <xacro:property name="j6_upper_limit" value="${radians( 360)}"/>
+    <xacro:property name="j7_lower_limit" value="${radians(-360)}"/>
+    <xacro:property name="j7_upper_limit" value="${radians( 360)}"/>
+
+    <!-- joint verocity limits [rad/s] -->
+    <xacro:property name="j1_velocity_limit" value="${radians( 30)}"/>
+    <xacro:property name="j2_velocity_limit" value="${radians( 30)}"/>
+    <xacro:property name="j3_velocity_limit" value="${radians( 30)}"/>
+    <xacro:property name="j4_velocity_limit" value="${radians( 30)}"/>
+    <xacro:property name="j4_velocity_limit" value="${radians( 30)}"/>
+    <xacro:property name="j4_2_velocity_limit" value="${radians( 30)}"/>
+    <xacro:property name="j5_velocity_limit" value="${radians( 30)}"/>
+    <xacro:property name="j6_velocity_limit" value="${radians(30)}"/>
+    <xacro:property name="j7_velocity_limit" value="${radians(30)}"/>
+
+    <!-- link inertial(TODO : set correct link inertial )-->
+    <xacro:macro name="default_inertial" params="mass">
+      <inertial>
+        <mass value="${mass}" />
+        <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0" />
+      </inertial>
+    </xacro:macro>
+
+    <!-- rs007l start -->
+
+    <!-- Link 0 -->
+    <link name="${prefix}base_link"/>
+
+    <!-- Link 1 -->
+    <joint name="${prefix}joint1" type="revolute">
+      <axis xyz="0 0 1" rpy="0 0 0" />
+      <limit effort="1000.0" lower="${j1_lower_limit}" upper="${j1_upper_limit}" velocity="${j1_velocity_limit}"/>
+      <origin xyz="0 0 ${j0_length_z}" rpy="0 0 0" />
+      <parent link="${prefix}base_link"/>
+      <child link="${prefix}link1"/>
+      <dynamics damping="0.0" friction="0.0"/>
+    </joint>
+
+    <link name="${prefix}link1">
+      <visual>
+        <geometry>
+		<mesh filename="package://ny_gen3_arm_description/arms/reva/meshes/NG3A_JT1.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/arms/reva/meshes/NG3A_JT1.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+      </collision>
+      <xacro:default_inertial mass="${j1_mass}"/>
+    </link>
+
+    <!-- Link 2 -->
+    <joint name="${prefix}joint2" type="revolute">
+      <axis xyz="1 0 0" rpy="0 0 0" />
+      <limit effort="1000.0" lower="${j2_lower_limit}" upper="${j2_upper_limit}" velocity="${j2_velocity_limit}"/>
+      <origin xyz="${j1_length_x} 0 ${j1_length_z}" rpy="0 0 0" />
+      <parent link="${prefix}link1"/>
+      <child link="${prefix}link2"/>
+      <dynamics damping="0.0" friction="0.0"/>
+    </joint>
+
+    <link name="${prefix}link2">
+      <visual>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/arms/reva/meshes/NG3A_JT2.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/arms/reva/meshes/NG3A_JT2.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </collision>
+      <xacro:default_inertial mass="0${j2_mass}"/>
+    </link>
+
+    <!-- Link 3 -->
+    <joint name="${prefix}joint3" type="revolute">
+      <axis xyz="0 0 1" rpy="0 0 0" />
+      <limit effort="1000.0" lower="${j3_lower_limit}" upper="${j3_upper_limit}" velocity="${j3_velocity_limit}"/>
+      <origin xyz="${j2_length_x} 0 ${j2_length_z}" rpy="0 0 0" />
+      <parent link="${prefix}link2"/>
+      <child link="${prefix}link3"/>
+      <dynamics damping="0.0" friction="0.0"/>
+    </joint>
+
+    <link name="${prefix}link3">
+      <visual>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/arms/reva/meshes/NG3A_JT3.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/arms/reva/meshes/NG3A_JT3.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </collision>
+      <xacro:default_inertial mass="${j3_mass}"/>
+    </link>
+
+    <!-- Link 4_1 -->
+    <joint name="${prefix}joint4" type="revolute">
+      <axis xyz="1 0 0" rpy="0 0 0" />
+      <limit effort="1000.0" lower="${j4_lower_limit}" upper="${j4_upper_limit}" velocity="${j4_velocity_limit}"/>
+      <origin xyz="0 0 ${j3_length_z}" rpy="0 0 0" />
+      <parent link="${prefix}link3"/>
+      <child link="${prefix}link4"/>
+      <dynamics damping="0.0" friction="0.0"/>
+    </joint>
+
+    <link name="${prefix}link4">
+      <visual>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/arms/reva/meshes/NG3A_JT4_LINK.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/arms/reva/meshes/NG3A_JT4_LINK.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </collision>
+      <xacro:default_inertial mass="${j4_mass}"/>
+    </link>
+
+    <!-- Link 4_2 mimic -->
+    <joint name="${prefix}joint4_2" type="revolute">
+      <mimic joint="${prefix}joint4" />	    
+      <axis xyz="1 0 0" rpy="0 0 0" />
+      <limit effort="1000.0" lower="${j4_2_lower_limit}" upper="${j4_2_upper_limit}" velocity="${j4_2_velocity_limit}"/>
+      <origin xyz="0 0 ${j4_length_z}" rpy="0 0 0" />
+      <parent link="${prefix}link4"/>
+      <child link="${prefix}link4_2"/>
+      <dynamics damping="0.0" friction="0.0"/>
+    </joint>
+
+    <link name="${prefix}link4_2">
+      <visual>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/arms/reva/meshes/NG3A_JT4.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/arms/reva/meshes/NG3A_JT4.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </collision>
+      <xacro:default_inertial mass="${j4_2_mass}"/>
+    </link>
+
+    <!-- Link 5 -->
+    <joint name="${prefix}joint5" type="revolute">
+      <axis xyz="0 0 1" rpy="0 0 0" />
+      <limit effort="1000.0" lower="${j5_lower_limit}" upper="${j5_upper_limit}" velocity="${j5_velocity_limit}"/>
+      <xacro:if value="${prefix=='left_'}">
+        <origin xyz="0 0 ${j5_length_z}" rpy="0 0 1.57" />
+      </xacro:if>
+      <xacro:unless value="${prefix=='left_'}">
+        <origin xyz="0 0 ${j5_length_z}" rpy="0 0 -1.57" />
+      </xacro:unless>
+      <parent link="${prefix}link4_2"/>
+      <child link="${prefix}link5"/>
+      <dynamics damping="0.0" friction="0.0"/>
+    </joint>
+
+    <link name="${prefix}link5">
+      <visual>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/arms/reva/meshes/NG3A_JT5.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/arms/reva/meshes/NG3A_JT5.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </collision>
+      <xacro:default_inertial mass="${j5_mass}"/>
+    </link>
+    
+    <!-- Link 6 -->
+    <joint name="${prefix}joint6" type="revolute">
+      <axis xyz="1 0 0" rpy="0 0 0" />
+      <limit effort="1000.0" lower="${j6_lower_limit}" upper="${j6_upper_limit}" velocity="${j6_velocity_limit}"/>
+      <origin xyz="0 0 ${j6_length_z}" rpy="0 0 0" />
+      <parent link="${prefix}link5"/>
+      <child link="${prefix}link6"/>
+      <dynamics damping="0.0" friction="0.0"/>
+    </joint>
+
+    <link name="${prefix}link6">
+      <visual>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/arms/reva/meshes/NG3A_JT6.stl"/>
+        </geometry>
+        <material name="White"/>
+        <xacro:if value="${prefix=='left_'}">
+          <origin xyz="0 0 0" rpy="0 0 3.1415"/>
+        </xacro:if>
+        <xacro:unless value="${prefix=='left_'}">
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+        </xacro:unless>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/arms/reva/meshes/NG3A_JT6.stl"/>
+        </geometry>
+        <material name="White"/>
+        <xacro:if value="${prefix=='left_'}">
+          <origin xyz="0 0 0" rpy="0 0 3.1415"/>
+        </xacro:if>
+        <xacro:unless value="${prefix=='left_'}">
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+        </xacro:unless>
+      </collision>
+      <xacro:default_inertial mass="${j6_mass}"/>
+    </link>
+    
+    <!-- Link 7 -->
+    <joint name="${prefix}joint7" type="revolute">
+      <axis xyz="0 1 0" rpy="0 0 0" />
+      <limit effort="1000.0" lower="${j7_lower_limit}" upper="${j7_upper_limit}" velocity="${j7_velocity_limit}"/>
+      <xacro:if value="${prefix=='left_'}">
+        <origin xyz="0 ${j7_length_y_left} ${j7_length_z}" rpy="0 0 3.141592" />
+      </xacro:if>
+      <xacro:unless value="${prefix=='left_'}">
+        <origin xyz="0 ${j7_length_y} ${j7_length_z}" rpy="0 0 0" />
+      </xacro:unless>
+      <parent link="${prefix}link6"/>
+      <child link="${prefix}end_effector_link"/>
+      <dynamics damping="0.0" friction="0.0"/>
+    </joint>
+
+    <link name="${prefix}end_effector_link"/>
+  </xacro:macro>
+</robot>

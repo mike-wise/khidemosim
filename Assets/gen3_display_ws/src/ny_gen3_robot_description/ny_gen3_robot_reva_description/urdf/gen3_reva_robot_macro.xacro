@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<!-- このプログラムは色情報などを保存するために存在しています。-->
+
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:macro name="gen3_robot" params="prefix">
+
+    <!-- DH params -->
+    <xacro:property name="dh_j1_j2_transy" value="0.36"/>
+    <xacro:property name="dh_j2_j3_transy" value="0.40"/>
+
+    <!-- link mass -->
+    <xacro:property name="L1_mass" value="11.463"/>
+    <xacro:property name="L2_mass" value="3.747"/>
+    <xacro:property name="L3_mass" value="3.476"/>
+    <xacro:property name="U1_mass" value="11.452"/>
+    <xacro:property name="U2_mass" value="3.751"/>
+    <xacro:property name="U3_mass" value="3.476"/>
+
+    <!-- link inertia tensor -->
+    <xacro:property name="L1_Izz" value="0.503"/>
+    <xacro:property name="L2_Izz" value="0.109"/>
+    <xacro:property name="U1_Izz" value="0.524"/>
+    <xacro:property name="U2_Izz" value="0.109"/>
+
+    <!-- link center lengths -->
+    <xacro:property name="L1_length" value="0.162827"/>
+    <xacro:property name="L2_length" value="0.124537"/>
+    <xacro:property name="U1_length" value="-0.169738"/>
+    <xacro:property name="U2_length" value="0.124648"/>
+
+    <!-- joint limits [rad][m] -->
+    <xacro:property name="J1_lower_limit" value="-0.75"/>
+    <!-- <xacro:property name="J1_lower_limit" value="-3.49066"/> -->
+    <xacro:property name="J1_upper_limit" value="0.75"/>
+    <!-- <xacro:property name="J1_upper_limit" value="0.0"/> -->
+    <xacro:property name="J2_lower_limit" value="-3.49066"/>
+    <xacro:property name="J2_upper_limit" value="0.0"/>
+
+    <material name="Light_blue">
+      <color rgba="0 1.0 1.0 1.0"/>
+    </material>
+
+    <material name="White">
+      <color rgba="1.0 1.0 1.0 1.0"/>
+    </material>
+
+    <material name="Black">
+
+      <color rgba="0 0 0 1.0"/>
+    </material>
+
+    <material name="Red">
+      <color rgba="1.0 0 0 1.0"/>
+    </material>
+
+    <!-- link inertial-->
+    <xacro:macro name="default_inertial" params="mass">
+      <inertial>
+        <mass value="${mass}" />
+        <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0" />
+      </inertial>
+    </xacro:macro>
+
+    <xacro:macro name="link_inertial" params="mass Izz length">
+      <inertial>
+        <mass value="${mass}" />
+        <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="${Izz+length*length*mass}" />
+      </inertial>
+    </xacro:macro>
+
+  </xacro:macro>
+</robot>

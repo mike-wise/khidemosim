@@ -1,0 +1,167 @@
+<?xml version="1.0" ?>
+<robot name="ny_gen3_reva_body" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:property name="vertical_lower_limit" value="-0.500"/>
+  <xacro:property name="vertical_upper_limit" value="0.000"/>
+  <xacro:property name="vertical_velocity_limit" value="0.4"/>
+  <xacro:property name="rot1_lower_limit" value="-0.500"/>
+  <xacro:property name="rot1_upper_limit" value="0.5000"/>
+  <xacro:property name="rot1_velocity_limit" value="1.0"/>
+  <xacro:property name="rot2_lower_limit" value="-0.500"/>
+  <xacro:property name="rot2_upper_limit" value="0.500"/>
+  <xacro:property name="rot2_velocity_limit" value="1.0"/>
+
+
+  <!-- Coler Format--> 
+  <material name="White">
+    <color rgba="1.0 1.0 1.0 1.0"/>
+  </material>
+
+  <material name="Black">
+    <color rgba="0 0 0 1.0"/>
+  </material>
+ 
+
+  <!--下記、記載フォーマット-->	
+  <!-- link inertial-->
+  <xacro:macro name="default_inertial" params="mass">
+    <inertial>
+      <mass value="${mass}" />
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0" />
+    </inertial>
+  </xacro:macro>
+
+  <xacro:macro name="link_inertial" params="mass Izz length">
+    <inertial>
+      <mass value="${mass}" />
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="${Izz+length*length*mass}" />
+    </inertial>
+  </xacro:macro>
+
+  <!-- fixed parts xacro-->
+  <xacro:macro name="fixed_parts" params="prefix:=^ color name filename height rot mass">
+
+    <link name="${prefix}${name}">
+      <visual>
+        <geometry>
+          <mesh filename="package://ny_gen3_robot_reva_description/meshes/${filename}.stl"/>
+        </geometry>
+        <material name="${color}"/>
+        <origin rpy="0 0 ${rot}" xyz="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://ny_gen3_robot_reva_description/meshes/${filename}.stl"/>
+        </geometry>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+      </collision>
+    </link>
+
+    <joint name="${prefix}${name}_joint" type="fixed">
+      <parent link="${prefix}base_link"/>
+      <child link="${prefix}${name}"/>
+      <origin xyz="0 0 ${height}" rpy="0 0 0" />
+    </joint>
+  </xacro:macro>
+  <!--ここまで記載フォーマット-->	
+
+
+
+
+  <!-- lowerbody -->	
+  <!-- base_linkとつなげるのはここのみにする -->
+  <!--  -->
+  <xacro:macro name="ny_gen3_reva_lowerbody">
+    <link name="lowerbody_base_link">
+      <visual>
+        <geometry>
+    <mesh filename="package://ny_gen3_robot_reva_description/meshes/AMR_LowerBody.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry>
+    <mesh filename="package://ny_gen3_robot_reva_description/meshes/AMR_LowerBody.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+      </collision>
+    </link>
+    <joint name="baselink_to_lowerbodybase" type="fixed">
+      <child link="lowerbody_base_link"/>
+      <parent link="base_link"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+  </xacro:macro>
+
+  <!-- vertical base -->
+  <xacro:macro name="ny_gen3_reva_vertical">
+    <link name="vertical_link"/>
+
+    <joint name="vertical_joint" type="prismatic">
+      <axis xyz="0 0 1" rpy="0 0 0" />
+      <limit effort="100.0" lower="${vertical_lower_limit}" upper="${vertical_upper_limit}" velocity="${vertical_velocity_limit}"/>
+      <origin xyz="0.0875 0 0.871"/>
+      <parent link="lowerbody_base_link"/>
+      <child link="vertical_link"/>
+    </joint>
+  </xacro:macro>
+
+  <!-- upperbody base -->	
+  <xacro:macro name="ny_gen3_reva_upperbodywoarm">
+    <link name="upperbody_base_link">
+      <visual>
+        <geometry>
+    <mesh filename="package://ny_gen3_robot_reva_description/meshes/AMR_UpperBodyBase.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry>
+    <mesh filename="package://ny_gen3_robot_reva_description/meshes/AMR_UpperBodyBase.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+      </collision>
+    </link>
+      <joint name="vertical_to_upperbodybaselink" type="fixed">
+      <child link="upperbody_base_link"/>
+      <parent link="vertical_link"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+  </xacro:macro>
+  
+  <!-- face -->	
+  <xacro:macro name="ny_gen3_reva_face">
+    <link name="face_link">
+    </link>
+    <joint name="face_joint1" type="revolute">
+      <axis xyz="0 0 1" rpy="0 0 0" />
+      <limit effort="100.0" lower="${rot1_lower_limit}" upper="${rot1_upper_limit}" velocity="${rot1_velocity_limit}"/>
+      <child link="face_link"/>
+      <parent link="vertical_link"/>
+      <!-- <origin xyz="0 0 0.5529" rpy="0 0 0"/> -->
+      <origin xyz="0 0 0.5029" rpy="0 0 0"/>
+    </joint>
+    <link name="face_link2">
+    </link>
+    <joint name="face_joint2" type="revolute">
+      <limit effort="100.0" lower="${rot2_lower_limit}" upper="${rot2_upper_limit}" velocity="${rot2_velocity_limit}"/>
+      <axis xyz="0 1 0" rpy="0 0 0" />
+      <child link="face_link2"/>
+      <parent link="face_link"/>
+      <origin xyz="0.062 0 0" rpy="0 0 0"/>
+    </joint>
+    <link name="head_camera_link">
+    </link>
+    <joint name="head_camera" type="fixed">
+      <child link="head_camera_link"/>
+      <parent link="face_link2"/>
+      <origin xyz="0.047 0 0.085" rpy="0 0 0"/>
+    </joint>
+  </xacro:macro>
+
+
+</robot>

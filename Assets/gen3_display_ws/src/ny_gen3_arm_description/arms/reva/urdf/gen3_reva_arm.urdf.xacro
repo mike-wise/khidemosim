@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<!-- 上位からprefixがなにも流れてこない場合、arm単体の描写と判断し、base_linkはbase_linkとする。  -->
+<robot name="ny_gen3_reva_arm" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:include filename="$(find ny_gen3_arm_description)/arms/reva/urdf/gen3_reva_arm_macro.xacro"/>
+
+
+  <!-- link rviz colors -->
+    <material name="White">
+      <color rgba="1 1 1 1"/>
+    </material>
+
+    <material name="Black">
+      <color rgba="0 0 0 1"/>
+    </material>
+
+  <!-- instantiate -->
+  <xacro:ny_gen3_reva_arm prefix="" />
+
+
+  <link name="world"/>
+
+  <joint name="world2base" type="fixed">
+    <parent link="world"/>
+    <child link="base_link"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+  </joint>
+</robot>

@@ -1,0 +1,65 @@
+<?xml version="1.0" ?>
+<robot name="ny_gen3_reva_robot" xmlns:xacro="http://ros.org/wiki/xacro">
+  <!-- include files -->
+  <xacro:include filename="$(find ny_gen3_arm_description)/arms/reva/urdf/gen3_reva_arm_macro.xacro"/>
+  <xacro:include filename="$(find ny_gen3_robot_reva_description)/urdf/gen3_reva_body.urdf.xacro"/>
+
+  <!-- arg -->
+  <xacro:arg name="right_gripper" default="3fhand"/>
+  <xacro:arg name="left_gripper" default="murakita"/>
+  
+
+
+  <!-- Fix robot to world -->
+  <link name="world"/>
+  <link name="base_link"/>
+  <joint name="world2base" type="fixed">
+    <parent link="world"/>
+    <child link="base_link"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+  </joint>
+
+  <!-- lower body -->
+  <xacro:ny_gen3_reva_lowerbody/>
+
+  <!-- vertical -->
+  <xacro:ny_gen3_reva_vertical/>
+  
+  <!-- upper body -->
+  <xacro:ny_gen3_reva_upperbodywoarm/>
+  
+  <!-- face -->
+  <xacro:ny_gen3_reva_face/>
+
+  <!--  ARMS  -->
+  <xacro:arg name="left_prefix"  default="left_"/>
+  <xacro:arg name="right_prefix"  default="right_"/>
+
+
+  <joint name="baselink_to_$(arg left_prefix)root" type="fixed">
+    <child link="$(arg left_prefix)base_link"/>
+    <parent link="vertical_link"/>
+    <origin xyz="0.06 0.075 0.216" rpy="0 0 -1.57"/>
+  </joint>
+  
+  <joint name="baselink_to_$(arg right_prefix)root" type="fixed">
+    <child link="$(arg right_prefix)base_link"/>
+    <parent link="vertical_link"/>
+    <origin xyz="0.06 -0.075 0.216" rpy="0 0 1.57"/>
+  </joint>
+
+  <xacro:ny_gen3_reva_arm
+    prefix="$(arg left_prefix)"
+  />
+  <xacro:ny_gen3_reva_arm
+    prefix="$(arg right_prefix)"
+  />
+  
+  <!-- gripper -->
+  <xacro:include filename="$(find ny_gen3_arm_description)/grippers/$(arg right_gripper)/urdf/$(arg right_gripper)_macro.xacro"/>
+  <xacro:include filename="$(find ny_gen3_arm_description)/grippers/$(arg left_gripper)/urdf/$(arg left_gripper)_macro.xacro"/>
+  <!--gripper定義 もう少しうまい方法があるはず --> 
+  <!-- <xacro:threefingerhand prefix="$(arg right_prefix)"/> -->
+  <xacro:murakitahand_l prefix="$(arg left_prefix)"/>
+
+</robot>

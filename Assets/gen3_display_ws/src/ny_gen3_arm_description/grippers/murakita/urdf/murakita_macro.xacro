@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:macro name="murakitahand_l" params="prefix">
+
+    <!-- joint limits [rad] -->
+    <xacro:property name="thumb_lower_limit" value="${radians(-10)}"/>
+    <xacro:property name="thumb_upper_limit" value="${radians(180)}"/>
+    <xacro:property name="leftfinger_lower_limit" value="${radians(-10)}"/>
+    <xacro:property name="leftfinger_upper_limit" value="${radians(180)}"/>
+    <xacro:property name="rightfinger_lower_limit" value="${radians(-10)}"/>
+    <xacro:property name="rightfinger_upper_limit" value="${radians(180)}"/>
+    <xacro:property name="slider_lower_limit" value="-0.01"/>
+    <xacro:property name="slider_upper_limit" value="0.028"/>
+    
+    <!-- joint verocity limits [rad/s] -->
+    <xacro:property name="thumb_velocity_limit" value="${radians( 30)}"/>
+    <xacro:property name="rightfinger_velocity_limit" value="${radians( 30)}"/>
+    <xacro:property name="leftfinger_velocity_limit" value="${radians( 30)}"/>
+    <xacro:property name="slider_velocity_limit" value="${radians( 30)}"/>
+
+
+
+    <!-- gripper base -->
+    <joint name="${prefix}gripper_base_joint" type="fixed">
+      <axis xyz="0 0 1" rpy="0 0 0" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <parent link="${prefix}end_effector_link"/>
+      <child link="${prefix}gripper_base_link"/>
+    </joint>
+
+    <link name="${prefix}gripper_base_link">
+      <visual>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/grippers/murakita/meshes/murakitahand_Base.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/grippers/murakita/meshes/murakitahand_Base.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+      </collision>
+    </link> 
+    
+    <!-- left finger -->
+    <joint name="${prefix}gripper_leftfinger" type="revolute">
+      <axis xyz="1 0 0" rpy="0 0 0" />
+      <limit effort="1000.0" lower="${leftfinger_lower_limit}" upper="${leftfinger_upper_limit}" velocity="${leftfinger_velocity_limit}"/>
+      <origin xyz="0.0291 -0.119 0.0325" rpy="-1.3 0 0" />
+      <parent link="${prefix}gripper_base_link"/>
+      <child link="${prefix}leftfinger_link"/>
+    </joint>
+
+    <link name="${prefix}leftfinger_link">
+      <visual>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/grippers/murakita/meshes/murakitahand_Finger.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin rpy="0 3.141592 0" xyz="0 0 0"/>
+      </visual>
+    </link> 
+    
+    <!-- right finger -->
+    <joint name="${prefix}gripper_rightfinger" type="revolute">
+      <axis xyz="1 0 0" rpy="0 0 0" />
+      <limit effort="1000.0" lower="${rightfinger_lower_limit}" upper="${rightfinger_upper_limit}" velocity="${rightfinger_velocity_limit}"/>
+      <origin xyz="-0.0291 -0.119 0.0325" rpy="-1.3 0 0" />
+      <parent link="${prefix}gripper_base_link"/>
+      <child link="${prefix}rightfinger_link"/>
+    </joint>
+
+    <link name="${prefix}rightfinger_link">
+      <visual>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/grippers/murakita/meshes/murakitahand_Finger.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin rpy="0 3.141592 0" xyz="0 0 0"/>
+      </visual>
+    </link> 
+ 
+    <!-- thumb slider -->
+    <joint name="${prefix}gripper_thumbslider" type="prismatic">
+      <axis xyz="-1 0 0" rpy="0 0 0" />
+      <limit effort="1000.0" lower="${slider_lower_limit}" upper="${slider_upper_limit}" velocity="${slider_velocity_limit}"/>
+      <origin xyz="-0.02 0 0" rpy="0 0 0" />
+      <parent link="${prefix}gripper_base_link"/>
+      <child link="${prefix}thumbslider_link"/>
+    </joint>
+
+    <link name="${prefix}thumbslider_link">
+      <visual>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/grippers/murakita/meshes/murakitahand_Slider.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/grippers/murakita/meshes/murakitahand_Slider.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+      </collision>
+    </link> 
+    
+    <!-- thumb finger -->
+    <joint name="${prefix}gripper_thumb" type="revolute">
+      <axis xyz="-1 0 0" rpy="0 0 0" />
+      <limit effort="1000.0" lower="${thumb_lower_limit}" upper="${thumb_upper_limit}" velocity="${thumb_velocity_limit}"/>
+      <origin xyz="0.0 -0.119 -0.0325" rpy="1.3 0 0" />
+      <parent link="${prefix}thumbslider_link"/>
+      <child link="${prefix}thumb_link"/>
+    </joint>
+
+    <link name="${prefix}thumb_link">
+      <visual>
+        <geometry>
+          <mesh filename="package://ny_gen3_arm_description/grippers/murakita/meshes/murakitahand_Finger.stl"/>
+        </geometry>
+        <material name="White"/>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+      </visual>
+    </link> 
+
+
+  </xacro:macro>
+</robot>
+

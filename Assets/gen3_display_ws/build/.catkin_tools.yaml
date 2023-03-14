@@ -1,0 +1,6 @@
+devel_space: /home/khi/gen3_display_ws/devel
+install: false
+install_space: /home/khi/gen3_display_ws/install
+profile: default
+source_space: /home/khi/gen3_display_ws/src
+workspace: /home/khi/gen3_display_ws

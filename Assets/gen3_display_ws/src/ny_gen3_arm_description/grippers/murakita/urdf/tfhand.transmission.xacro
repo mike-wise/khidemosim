@@ -1,0 +1,28 @@
+<?xml version="1.0"?> 
+<robot xmlns:xacro="http://ros.org/wiki/xacro"> 
+
+<xacro:macro name="trans" params="transname">
+  <xacro:include filename="$(find ny_gen3_arm_description)/gripper/3fhand/urdf/tfhand.transmission.xacro" />
+  <xacro:include filename="$(find ny_gen3_arm_description)/gripper/3fhand/urdf/common.gazebo.xacro" />
+
+
+  <transmission name="${transname}_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <actuator name="${transname}_motor">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+    <joint name="${transname}">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    </joint>
+  </transmission>
+
+</xacro:macro>
+
+<xacro:trans transname="gripper_thumb_f"/>
+<xacro:trans transname="gripper_leftfinger_b"/>
+<xacro:trans transname="gripper_leftfinger_f"/>
+<xacro:trans transname="gripper_rightfinger_b"/>
+<xacro:trans transname="gripper_rightfinger_f"/>
+
+</robot>

@@ -1,0 +1,1 @@
+/home/khi/gen3_display_ws/devel/.private/ny_gen3_robot_reva_description/lib/pkgconfig/ny_gen3_robot_reva_description.pc

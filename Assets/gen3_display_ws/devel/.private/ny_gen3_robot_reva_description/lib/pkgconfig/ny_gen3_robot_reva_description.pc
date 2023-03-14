@@ -1,0 +1,8 @@
+prefix=/home/khi/gen3_display_ws/devel/.private/ny_gen3_robot_reva_description
+
+Name: ny_gen3_robot_reva_description
+Description: Description of ny_gen3_robot_reva_description
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
